@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { RecordItem } from "@/lib/types";
 import RecordTable from "./RecordTable";
 
-type Sort = "qalField" | "qalNeigh" | "cites" | "year";
+type Sort = "qalField" | "qalSynth" | "cites" | "year";
 
 export default function ExploreClient() {
   const [all, setAll] = useState<RecordItem[]>([]);
@@ -50,8 +50,8 @@ export default function ExploreClient() {
       ? "Cites"
       : sort === "year"
       ? "Yr"
-      : sort === "qalNeigh"
-      ? "QaL · neighborhood"
+      : sort === "qalSynth"
+      ? "QaL · synthetic field"
       : "QaL · field";
 
   return (
@@ -114,7 +114,7 @@ export default function ExploreClient() {
             onClick={() => {
               setField(sf);
               setCalOnly(true);
-              setSort("qalNeigh");
+              setSort("qalSynth");
             }}
           >
             Top QaL · {sf.replace("Management Science & OR", "MS&OR").replace("Information Systems & Management", "Info Systems").replace("General Decision Sciences", "Decision Sciences")}
@@ -123,18 +123,19 @@ export default function ExploreClient() {
         <span className="pl" style={{ marginLeft: 6 }}>
           Sort
         </span>
-        <button onClick={() => setSort("qalNeigh")}>QaL · neighborhood ★</button>
+        <button onClick={() => setSort("qalSynth")}>QaL · synthetic ★</button>
         <button onClick={() => setSort("qalField")}>QaL · field</button>
         <button onClick={() => setSort("cites")}>Most cited</button>
         <button onClick={() => setSort("year")}>Newest</button>
       </div>
 
       <p className="rcnote">
-        Both reference classes are shown: <b>QaL · field</b> (within detected field &amp; vintage) and{" "}
-        <b>QaL · neighborhood ★</b> (the co-citation neighborhood — the <b>official</b> class, computed
-        for the prefilled set; a "—" means it isn't computed yet for that paper). Click any column to
-        re-sort; the official number stays the neighborhood one. Divergence between the two flags a
-        field-sensitive paper and is itself information.
+        Both reference classes are shown: <b>QaL · field</b> (the single OpenAlex subfield &amp;
+        vintage) and <b>QaL · synthetic ★</b> (the <b>official</b> class — the paper ranked against a
+        recency-weighted blend of its true intellectual community's cohorts; computed for the
+        prefilled set, "—" until computed). Click any column to re-sort; the official number stays the
+        synthetic field. Divergence between the two flags a field-sensitive paper and is itself
+        information.
       </p>
 
       <div className="count">
@@ -148,10 +149,11 @@ export default function ExploreClient() {
       <footer>
         <span className="wh">academic Ledger</span> · explore view, Level 0 prototype. Records,
         citations, fields and open-access status from OpenAlex (CC0). Two reference classes are shown
-        side by side: the within-(subfield, year) field percentile and the co-citation neighborhood
-        (RCR); the <b>official</b> number is the neighborhood, fixed to prevent reference-class
-        shopping, with column sorting for exploration. QaL forecast intervals are <em>illustrative
-        pending calibration</em>, and the calibration mapping is currently field-based (QaL_spec.md).
+        side by side: the single-subfield field percentile and the synthetic field (a recency-weighted
+        topic-mixture of full cohorts, §5); the <b>official</b> number is the synthetic field, fixed to
+        prevent reference-class shopping, with column sorting for exploration. QaL forecast intervals
+        are <em>illustrative pending calibration</em>, and the calibration mapping is currently
+        field-based (QaL_spec.md).
       </footer>
     </div>
   );

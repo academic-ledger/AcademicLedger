@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import type { MetricView, RecordItem } from "@/lib/types";
 
-type SortKey = "_r" | "title" | "subfield" | "year" | "cites" | "qalField" | "qalNeigh";
+type SortKey = "_r" | "title" | "subfield" | "year" | "cites" | "qalField" | "qalSynth";
 type ColType = "rank" | "str" | "num";
 
 const COLS: { k: SortKey; t: string; cls?: string; type: ColType }[] = [
@@ -14,12 +14,12 @@ const COLS: { k: SortKey; t: string; cls?: string; type: ColType }[] = [
   { k: "year", t: "Yr", cls: "num", type: "num" },
   { k: "cites", t: "Cites", cls: "num", type: "num" },
   { k: "qalField", t: "QaL · field", cls: "num", type: "num" },
-  { k: "qalNeigh", t: "QaL · neighborhood ★", cls: "num", type: "num" },
+  { k: "qalSynth", t: "QaL · synthetic ★", cls: "num", type: "num" },
 ];
 
 function sortVal(w: RecordItem, key: SortKey): number | string {
   if (key === "qalField") return w.metrics?.field?.qal?.point ?? -1;
-  if (key === "qalNeigh") return w.metrics?.neighborhood?.qal?.point ?? -1;
+  if (key === "qalSynth") return w.metrics?.synthetic?.qal?.point ?? -1;
   const v = (w as any)[key];
   return v ?? -1;
 }
@@ -123,8 +123,8 @@ export default function RecordTable({
                 </td>
                 <td className="num qcell">
                   <QalCell
-                    m={w.metrics?.neighborhood}
-                    official={w.metrics?.official === "neighborhood"}
+                    m={w.metrics?.synthetic}
+                    official={w.metrics?.official === "synthetic"}
                   />
                 </td>
               </tr>

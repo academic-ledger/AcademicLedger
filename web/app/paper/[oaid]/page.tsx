@@ -80,25 +80,25 @@ export default async function PaperPage({ params }: { params: { oaid: string } }
                 </div>
               </>
             )}
-            {rec.reference_class?.kind === "neighborhood" ? (
+            {rec.reference_class?.kind === "synthetic" ? (
               <div className="qal-rc">
-                <b>Reference class:</b> co-citation neighborhood
+                <b>Reference class:</b> synthetic field · official headline
                 <br />
-                {rec.reference_class.n} papers it travels with · official headline
+                recency-weighted blend of its community&rsquo;s cohorts
                 {rec.reference_class.field_percentile != null && (
                   <>
                     {" "}
-                    · <span title="for contrast — within OpenAlex field">field pct{" "}
+                    · <span title="for contrast — single OpenAlex subfield">field pct{" "}
                     {rec.reference_class.field_percentile}</span>
                   </>
                 )}
               </div>
             ) : (
               <div className="qal-rc">
-                <b>Reference class:</b> within-field percentile{" "}
+                <b>Reference class:</b> single-field percentile{" "}
                 <span style={{ color: "#9aa3af" }}>(stand-in)</span>
                 <br />
-                co-citation neighborhood pending for this paper
+                synthetic field pending for this paper
               </div>
             )}
           </div>
@@ -151,7 +151,7 @@ export default async function PaperPage({ params }: { params: { oaid: string } }
               <div className="v">{rec.obs_percentile != null ? `${rec.obs_percentile}%` : "—"}</div>
               <div className="l">
                 Observed percentile{" "}
-                {rec.reference_class?.kind === "neighborhood" ? "(co-citation neighborhood)" : "(field & vintage)"}
+                {rec.reference_class?.kind === "synthetic" ? "(synthetic field)" : "(field & vintage)"}
               </div>
             </div>
             <div className="cell">
@@ -211,7 +211,7 @@ export default async function PaperPage({ params }: { params: { oaid: string } }
           <span className="wh">academic Ledger is an independent, non-commercial record of scholarship.</span>{" "}
           QaL computed from open public data (OpenAlex, OpenCitations, Crossref, ORCID); method
           version {rec.method_version}; data snapshot {rec.data_snapshot}. Prototype: metadata and
-          observed percentiles are real; QaL point estimates and the co-citation neighborhood are
+          observed percentiles are real; QaL point estimates and the synthetic field are
           illustrative pending Level 0 calibration.
         </footer>
       </div>

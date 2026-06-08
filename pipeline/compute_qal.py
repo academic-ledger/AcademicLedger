@@ -95,10 +95,10 @@ def main():
                 p_ge50=r[6], p_ge75=r[7], p_ge90=r[8], p_ge95=r[9], p_ge99=r[10],
             )
 
-        # Preload cached co-citation neighborhoods (the OFFICIAL reference class where
-        # available; QaL_spec.md §3). {oaid: (n_neighbors, neigh_percentile)}.
-        cur.execute("SELECT oaid, n_neighbors, obs_percentile FROM neighborhoods")
-        neigh = {r[0]: (r[1], float(r[2])) for r in cur.fetchall()}
+        # Preload the cached synthetic field — the OFFICIAL reference class where available
+        # (QaL_spec.md §5). {oaid: (n_citers, synthetic_percentile)}.
+        cur.execute("SELECT oaid, n_citers, obs_percentile FROM synthetic_field")
+        synth = {r[0]: (r[1], float(r[2])) for r in cur.fetchall()}
 
         # Walk every work whose cohort we have a percentile table for.
         cur.execute(
@@ -146,32 +146,33 @@ def main():
         for oaid, sid, year, cites in rows:
             key = (sid, year)
             has_cohort = key in cohorts
-            has_neigh = oaid in neigh
-            if not has_cohort and not has_neigh:
-                continue  # nothing to say (no field cohort, no neighborhood) -> leave as is
+            has_synth = oaid in synth
+            if not has_cohort and not has_synth:
+                continue  # nothing to say (no field cohort, no synthetic field) -> leave as is
             field_obs = round(obs_percentile(cohorts[key][1], cites or 0), 2) if has_cohort else None
             field_n = cohorts[key][0] if has_cohort else None
             age = max(1, min(H - 1, as_of - year))
 
-            # Compute BOTH reference classes (U2): field-cohort and co-citation neighborhood.
+            # Compute BOTH reference classes (U2): the single-label field cohort and the
+            # synthetic field (the official class; §5).
             field_m = metric(field_obs, age)
-            neigh_m = None
-            if has_neigh:
-                n_nbr, neigh_obs = neigh[oaid]
-                neigh_m = metric(neigh_obs, age)
-                neigh_m["n"] = n_nbr
+            synth_m = None
+            if has_synth:
+                n_cit, synth_obs = synth[oaid]
+                synth_m = metric(synth_obs, age)
+                synth_m["n"] = n_cit
 
-            # Official = co-citation neighborhood when present, else the field stand-in (§3).
-            official = "neighborhood" if has_neigh else "field"
-            off = neigh_m if has_neigh else field_m
+            # Official = the synthetic field when computed, else the single-label field stand-in.
+            official = "synthetic" if has_synth else "field"
+            off = synth_m if has_synth else field_m
             # Stored metrics are lean (point + interval + obs); the bulky class_prob is kept
             # only once, in the top-level column, for the official metric (paper-page hero).
             lean = lambda m: None if m is None else {k: m[k] for k in m if k != "class_prob"}
-            metrics = {"field": lean(field_m), "neighborhood": lean(neigh_m), "official": official}
+            metrics = {"field": lean(field_m), "synthetic": lean(synth_m), "official": official}
 
-            if has_neigh:
-                ref = {"field": "co-citation-neighborhood", "field_label": "co-citation neighborhood",
-                       "kind": "neighborhood", "vintage_year": year, "n": neigh_m["n"],
+            if has_synth:
+                ref = {"field": "synthetic-field", "field_label": "synthetic field",
+                       "kind": "synthetic", "vintage_year": year, "n": synth_m["n"],
                        "field_percentile": field_obs}
             else:
                 ref = {"field": f"subfields/{sid}", "field_label": labels.get(sid),

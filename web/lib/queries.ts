@@ -16,8 +16,8 @@ function toMetrics(raw: any): Metrics | null {
   if (!raw) return null;
   return {
     field: toMetric(raw.field),
-    neighborhood: toMetric(raw.neighborhood),
-    official: raw.official === "neighborhood" ? "neighborhood" : "field",
+    synthetic: toMetric(raw.synthetic),
+    official: raw.official === "synthetic" ? "synthetic" : "field",
   };
 }
 

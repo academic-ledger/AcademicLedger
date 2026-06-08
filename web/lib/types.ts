@@ -9,9 +9,9 @@ export interface MetricView {
 }
 
 export interface Metrics {
-  field: MetricView | null;
-  neighborhood: MetricView | null;
-  official: "field" | "neighborhood";
+  field: MetricView | null; // single OpenAlex subfield cohort
+  synthetic: MetricView | null; // the synthetic field — official reference class (§5)
+  official: "field" | "synthetic";
 }
 
 // One row of the shared record list (explore + author tables consume this).
