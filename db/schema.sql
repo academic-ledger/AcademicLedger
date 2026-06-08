@@ -79,6 +79,22 @@ CREATE TABLE IF NOT EXISTS author_works (
   PRIMARY KEY (author_oaid, work_oaid)
 );
 
+-- Synthetic field — the OFFICIAL reference class (QaL_spec.md §5). A graph/cohort
+-- computation, precomputed in batch and cached. The focal is ranked against a recency-
+-- weighted topic-mixture of full (subfield, vintage) cohorts; weights migrate from the
+-- bibliography (cold start) to the co-citation community as citations accrue.
+CREATE TABLE IF NOT EXISTS synthetic_field (
+  oaid           TEXT PRIMARY KEY REFERENCES works(oaid),
+  obs_percentile NUMERIC,        -- r_obs = Σ_t w_t · pct_t(focal) over the blended cohorts
+  p0             NUMERIC,        -- blended uncited fraction Σ_t w_t · p0(t,v)
+  lam            NUMERIC,        -- migration weight λ = c/(c+k) (community vs reference)
+  n_refs         INT,           -- usable references behind the reference-stage weights
+  n_citers       INT,           -- citing works behind the community-stage weights
+  weights        JSONB,         -- top synthetic-field subfield weights, for transparency
+  snapshot       TEXT,
+  computed_at    TIMESTAMPTZ DEFAULT now()
+);
+
 -- Co-citation neighborhood (RCR; Hutchins et al. 2016) — the OFFICIAL reference class.
 -- A graph computation, so precomputed in batch and cached here (QaL_spec.md §3, §11).
 -- For a work P: scan the works that cite P, tally the works co-cited with P in their
@@ -88,7 +104,9 @@ CREATE TABLE IF NOT EXISTS neighborhoods (
   oaid           TEXT PRIMARY KEY REFERENCES works(oaid),
   n_neighbors    INT,            -- size of the neighborhood used for the percentile
   n_citers       INT,            -- citing works scanned to build it
-  obs_percentile NUMERIC,        -- P's percentile within the neighborhood (citation rate)
+  obs_percentile NUMERIC,        -- full-population percentile r_full = p0 + (1-p0)*r_cited
+  r_cited        NUMERIC,        -- percentile among cited members only (before adding the atom)
+  p0             NUMERIC,        -- co-citation-weighted uncited fraction at the focal vintage
   members        JSONB,          -- top co-cited works [{oaid,cocite,rate}, ...] for transparency
   snapshot       TEXT,
   computed_at    TIMESTAMPTZ DEFAULT now()

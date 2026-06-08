@@ -8,13 +8,19 @@ import os, json
 import numpy as np
 
 def cdf_breakpoints(cites):
+    # MID-RANK percentile per distinct citation count (QaL_spec.md §5 denominator rule):
+    # ties take the average rank, so the uncited atom (cites=0) lands at 100·p0/2 rather
+    # than at the top of its block. p0 (the zero-citation share) is recoverable as the
+    # bottom breakpoint: pct(0) = 100·p0/2.
     cites = np.sort(np.asarray(cites))
     n = len(cites)
     vals = np.unique(cites)
     out = []
     for v in vals:
-        share_at_or_below = np.searchsorted(cites, v, side="right") / n
-        out.append({"cites": int(v), "pct": float(round(100 * share_at_or_below, 3))})
+        below = int(np.searchsorted(cites, v, side="left"))
+        equal = int(np.searchsorted(cites, v, side="right")) - below
+        midrank_pct = 100.0 * (below + equal / 2.0) / n
+        out.append({"cites": int(v), "pct": float(round(midrank_pct, 3))})
     return n, out
 
 def main():

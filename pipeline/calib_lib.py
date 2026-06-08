@@ -17,12 +17,16 @@ def cum_at_age(cby, pub_year, age):
 
 
 def pct_of_all(values):
-    """Vectorized within-cohort percentile (share at-or-below) for every element."""
+    """Vectorized within-cohort MID-RANK percentile for every element (QaL_spec.md §5,
+    'one convention'): ties — the uncited atom included — take the average rank, so the
+    uncited mass at the bottom sits at 100·p0/2 rather than at the top of its block. The
+    same convention is used for r_obs and r∞, so calibration coverage is comparable."""
     values = np.asarray(values, dtype=float)
-    order = np.argsort(values, kind="mergesort")
-    s = values[order]
-    ranks = np.searchsorted(s, values, side="right")
-    return 100.0 * ranks / len(values)
+    s = np.sort(values)
+    below = np.searchsorted(s, values, side="left")   # # strictly below
+    upper = np.searchsorted(s, values, side="right")  # # at or below
+    midrank = below + (upper - below) / 2.0           # average rank within ties
+    return 100.0 * midrank / len(values)
 
 
 def prepare(cby_list, vintage, H):
