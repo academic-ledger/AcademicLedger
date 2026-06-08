@@ -95,6 +95,11 @@ def main():
                 p_ge50=r[6], p_ge75=r[7], p_ge90=r[8], p_ge95=r[9], p_ge99=r[10],
             )
 
+        # Preload cached co-citation neighborhoods (the OFFICIAL reference class where
+        # available; QaL_spec.md §3). {oaid: (n_neighbors, neigh_percentile)}.
+        cur.execute("SELECT oaid, n_neighbors, obs_percentile FROM neighborhoods")
+        neigh = {r[0]: (r[1], float(r[2])) for r in cur.fetchall()}
+
         # Walk every work whose cohort we have a percentile table for.
         cur.execute(
             "SELECT oaid, primary_subfield, publication_year, cited_by_count FROM works "
@@ -125,16 +130,22 @@ def main():
             if key not in cohorts:
                 continue  # no percentile table for this cohort -> leave any existing record
             n, cdf = cohorts[key]
-            obs = round(obs_percentile(cdf, cites or 0), 2)
-            obs_bin = min(90, int(obs // 10) * 10)
+            field_obs = round(obs_percentile(cdf, cites or 0), 2)
             age = max(1, min(H - 1, as_of - year))
 
-            ref = {
-                "field": f"subfields/{sid}",
-                "field_label": labels.get(sid),
-                "vintage_year": year,
-                "n": n,
-            }
+            # Official reference class = co-citation neighborhood when cached; else the
+            # within-field percentile is the stand-in (labeled), per §3's thin-data fallback.
+            if oaid in neigh:
+                n_nbr, neigh_obs = neigh[oaid]
+                obs = neigh_obs
+                ref = {"field": "co-citation-neighborhood", "field_label": "co-citation neighborhood",
+                       "kind": "neighborhood", "vintage_year": year, "n": n_nbr,
+                       "field_percentile": field_obs}
+            else:
+                obs = field_obs
+                ref = {"field": f"subfields/{sid}", "field_label": labels.get(sid),
+                       "kind": "field", "vintage_year": year, "n": n}
+            obs_bin = min(90, int(obs // 10) * 10)
 
             cell = calib.get((sid, age, obs_bin)) if sid in seed else None
             if cell:

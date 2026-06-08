@@ -80,11 +80,27 @@ export default async function PaperPage({ params }: { params: { oaid: string } }
                 </div>
               </>
             )}
-            <div className="qal-rc">
-              <b>Reference class:</b> co-citation neighborhood
-              <br />
-              (the papers this one travels with) · the headline view
-            </div>
+            {rec.reference_class?.kind === "neighborhood" ? (
+              <div className="qal-rc">
+                <b>Reference class:</b> co-citation neighborhood
+                <br />
+                {rec.reference_class.n} papers it travels with · official headline
+                {rec.reference_class.field_percentile != null && (
+                  <>
+                    {" "}
+                    · <span title="for contrast — within OpenAlex field">field pct{" "}
+                    {rec.reference_class.field_percentile}</span>
+                  </>
+                )}
+              </div>
+            ) : (
+              <div className="qal-rc">
+                <b>Reference class:</b> within-field percentile{" "}
+                <span style={{ color: "#9aa3af" }}>(stand-in)</span>
+                <br />
+                co-citation neighborhood pending for this paper
+              </div>
+            )}
           </div>
           <div>
             {calibrated ? (

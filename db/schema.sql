@@ -77,3 +77,18 @@ CREATE TABLE IF NOT EXISTS author_works (
   work_oaid   TEXT REFERENCES works(oaid),
   PRIMARY KEY (author_oaid, work_oaid)
 );
+
+-- Co-citation neighborhood (RCR; Hutchins et al. 2016) — the OFFICIAL reference class.
+-- A graph computation, so precomputed in batch and cached here (QaL_spec.md §3, §11).
+-- For a work P: scan the works that cite P, tally the works co-cited with P in their
+-- reference lists -> P's neighborhood; obs_percentile is P's standing within it by
+-- age-normalized citation rate. Papers with thin co-citation fall back to the field class.
+CREATE TABLE IF NOT EXISTS neighborhoods (
+  oaid           TEXT PRIMARY KEY REFERENCES works(oaid),
+  n_neighbors    INT,            -- size of the neighborhood used for the percentile
+  n_citers       INT,            -- citing works scanned to build it
+  obs_percentile NUMERIC,        -- P's percentile within the neighborhood (citation rate)
+  members        JSONB,          -- top co-cited works [{oaid,cocite,rate}, ...] for transparency
+  snapshot       TEXT,
+  computed_at    TIMESTAMPTZ DEFAULT now()
+);
