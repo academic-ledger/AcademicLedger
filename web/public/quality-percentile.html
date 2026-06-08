@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Eventual percentile — academic Ledger</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23111'/%3E%3Ctext x='51' y='70' text-anchor='middle' fill='white' font-family='Georgia,serif' font-size='58'%3E%3Ctspan font-style='italic'%3Ea%3C/tspan%3E%3Ctspan%3EL%3C/tspan%3E%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; height:100%; font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif; color:#1c2433; background:#fff; display:flex; flex-direction:column; }
+  .brand{ background:#fff; border-bottom:1px solid #e6e6e6; padding:11px 22px; display:flex; align-items:center; justify-content:space-between; flex:0 0 auto; }
+  .brand .left{ display:flex; align-items:center; gap:13px; }
+  .brand .lock{ display:inline-flex; align-items:center; gap:11px; text-decoration:none; }
+  .brand .al{ width:30px; height:30px; border-radius:22%; background:#111; color:#fff; display:inline-flex; align-items:center; justify-content:center; font-family:"Cormorant Garamond",Georgia,serif; font-weight:600; font-size:21px; line-height:1; }
+  .brand .al .i{ font-style:italic; font-weight:500; }
+  .brand .nm{ font-family:"Cormorant Garamond",Garamond,serif; font-size:25px; line-height:1; }
+  .brand .nm .ac{ font-style:italic; font-weight:400; color:#555; font-size:.95em; }
+  .brand .nm .le{ font-weight:500; color:#111; }
+  .proto{ font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:#b06a00; background:#fff5d6; border:1px solid #e6cf7a; padding:2px 9px; border-radius:11px; }
+  .brand .nav a{ color:#6b7280; margin-left:15px; text-decoration:none; }
+  .brand .nav a.on{ color:#111; font-weight:600; }
+  .wrap{ flex:1 1 auto; min-height:0; display:flex; flex-direction:column; padding:14px 22px 6px; }
+  h1{ font-size:18px; margin:0 0 2px; color:#16243d; }
+  .sub{ color:#6b7280; font-size:13px; margin:0 0 10px; max-width:1000px; }
+  .stage{ flex:1 1 auto; display:flex; gap:22px; min-height:0; }
+  .panel{ flex:0 0 320px; display:flex; flex-direction:column; gap:14px; overflow:auto; background:#fafbfc; border:1px solid #e6e8ec; border-radius:11px; padding:16px 18px; }
+  #plot{ flex:1 1 auto; min-width:0; }
+  .ctl .lab{ display:flex; justify-content:space-between; align-items:baseline; font-size:14px; margin-bottom:6px; }
+  .ctl .lab b{ color:#16243d; font-weight:600; } .ctl .lab .val{ color:#2e8b57; font-weight:600; font-variant-numeric:tabular-nums; }
+  .ctl .hint{ color:#9aa3af; font-size:11px; margin-top:5px; line-height:1.4; }
+  input[type=range]{ width:100%; accent-color:#2e8b57; height:22px; }
+  .sep{ height:1px; background:#e6e8ec; }
+  .tiers{ font-size:13px; }
+  .tier{ display:flex; justify-content:space-between; align-items:center; padding:5px 0; border-bottom:1px dashed #ececec; }
+  .tier .nm2{ color:#333; } .tier .p{ font-variant-numeric:tabular-nums; font-weight:600; }
+  .ok{ color:#1b7837; } .no{ color:#b2182b; }
+  .btns{ display:flex; gap:8px; } button{ font-size:13px; padding:9px 12px; border:1px solid #cfd4da; background:#fff; border-radius:8px; cursor:pointer; } button:hover{ background:#f3f4f6; }
+  .foot{ color:#9aa3af; font-size:11px; margin-top:auto; }
+  .site-foot{ flex:0 0 auto; border-top:1px solid #e6e6e6; color:#9aa3af; font-size:12px; padding:8px 22px; }
+  .site-foot .wh{ color:#444; }
+</style>
+</head>
+<body>
+<header class="brand">
+  <div class="left">
+    <a class="lock" href="talk.html" title="academic Ledger"><span class="al"><span class="i">a</span>L</span>
+      <span class="nm"><span class="ac">academic</span><span class="le">Ledger</span></span></a>
+    <span class="proto">prototype</span>
+  </div>
+  <span class="nav"><a href="/explore">Explore</a><a href="/author">Author</a><a href="/about">About</a><a href="talk.html">Talk</a></span>
+</header>
+
+<div class="wrap">
+  <h1>Belief about a paper's eventual percentile</h1>
+  <p class="sub">At submission, with no information, every percentile is equally likely (a flat belief). Review effort and time concentrate the belief toward the paper's true eventual percentile. A tier is earned when we are 90% confident the percentile clears its threshold.</p>
+  <div class="stage">
+    <aside class="panel">
+      <div class="ctl">
+        <div class="lab"><b>R, review effort</b><span class="val" id="rval">0.30</span></div>
+        <input id="R" type="range" min="0" max="1" step="0.01" value="0.30">
+        <div class="hint">Sharpens the belief; reveals some of the eventual percentile.</div>
+      </div>
+      <div class="ctl">
+        <div class="lab"><b>t, time</b><span class="val" id="tval">0.30</span></div>
+        <input id="t" type="range" min="0" max="1" step="0.01" value="0.30">
+        <div class="hint">Reveals impact as it accrues; the dominant source of information.</div>
+      </div>
+      <div class="sep"></div>
+      <div class="tiers" id="tiers"></div>
+      <div class="sep"></div>
+      <div class="btns"><button id="redraw">&#8635; New paper</button></div>
+      <p class="foot">Bands follow the NSF / Leiden percentile classes (top 1 / 5 / 10 / 25 / 50%). Glänzel's parameter-free Characteristic Scores and Scales is an alternative. Belief modelled as a Beta on [0,1], flat at the prior and concentrating with evidence; illustrative.</p>
+    </aside>
+    <canvas id="plot"></canvas>
+  </div>
+</div>
+<footer class="site-foot"><span class="wh">academic Ledger is hosted at the Wharton School of the University of Pennsylvania.</span> An independent, non-commercial record of scholarship.</footer>
+
+<script>
+const $=id=>document.getElementById(id);
+let truth = 0.82;                        // hidden true eventual percentile (0..1)
+function drawTruth(){ truth = 0.05 + 0.9*Math.random(); }
+
+function params(R,t){
+  const kappa = 2 + 7*R + 34*t;                 // concentration grows with evidence (time dominates)
+  const w = (1.4*R + 4.2*t) / (1 + 1.4*R + 4.2*t); // weight of belief mean toward the truth
+  let m = 0.5 + (truth - 0.5)*w;
+  m = Math.min(0.985, Math.max(0.015, m));
+  return { a: m*kappa, b: (1-m)*kappa };
+}
+const N=400, xs=[], dx=1/N;
+for(let i=0;i<N;i++) xs.push((i+0.5)/N);
+function density(a,b){
+  const u = xs.map(x=> Math.exp((a-1)*Math.log(x) + (b-1)*Math.log(1-x)));
+  let Z=0; u.forEach(v=>Z+=v*dx);
+  return u.map(v=>v/Z);
+}
+function pAbove(pdf, tau){ let s=0; for(let i=0;i<N;i++) if(xs[i] > tau) s+=pdf[i]*dx; return s; }
+
+const cv=$("plot"), ctx=cv.getContext("2d");
+function resize(){ const r=cv.getBoundingClientRect(); cv.width=r.width*devicePixelRatio; cv.height=r.height*devicePixelRatio; ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0); draw(); }
+
+function draw(){
+  const R=parseFloat($("R").value), t=parseFloat($("t").value);
+  $("rval").textContent=R.toFixed(2); $("tval").textContent=t.toFixed(2);
+  const {a,b}=params(R,t); const pdf=density(a,b);
+  const W=cv.width/devicePixelRatio, H=cv.height/devicePixelRatio;
+  const mL=46,mR=16,mT=14,mB=40, pw=W-mL-mR, ph=H-mT-mB;
+  ctx.clearRect(0,0,W,H);
+  const ymax=Math.max(1.3, Math.max(...pdf)*1.08);
+  const X=x=>mL+x*pw, Y=y=>mT+ph-(y/ymax)*ph;
+  // axis
+  ctx.strokeStyle="#cfd4da"; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(mL,mT); ctx.lineTo(mL,mT+ph); ctx.lineTo(mL+pw,mT+ph); ctx.stroke();
+  ctx.fillStyle="#666"; ctx.font="11px -apple-system,Segoe UI,Arial"; ctx.textAlign="center";
+  [0,25,50,75,100].forEach(p=>{ const px=X(p/100); ctx.fillText(p, px, mT+ph+16); });
+  ctx.fillText("eventual percentile within cohort", mL+pw/2, mT+ph+33);
+  // threshold lines
+  [50,75,90,95,99].forEach(p=>{
+    const px=X(p/100); ctx.strokeStyle="#c2c2c2"; ctx.setLineDash([3,3]); ctx.beginPath(); ctx.moveTo(px,mT); ctx.lineTo(px,mT+ph); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle="#999"; ctx.fillText(p, px, mT+11);
+  });
+  // density area
+  ctx.beginPath(); ctx.moveTo(X(0),Y(0));
+  for(let i=0;i<N;i++) ctx.lineTo(X(xs[i]),Y(pdf[i]));
+  ctx.lineTo(X(1),Y(0)); ctx.closePath();
+  ctx.fillStyle="rgba(46,139,87,0.30)"; ctx.fill();
+  ctx.beginPath(); for(let i=0;i<N;i++){ const px=X(xs[i]),py=Y(pdf[i]); i?ctx.lineTo(px,py):ctx.moveTo(px,py);} ctx.strokeStyle="#2e8b57"; ctx.lineWidth=2; ctx.stroke();
+  // truth marker
+  const tx=X(truth); ctx.fillStyle="#16243d"; ctx.beginPath(); ctx.moveTo(tx,mT+ph); ctx.lineTo(tx-5,mT+ph+9); ctx.lineTo(tx+5,mT+ph+9); ctx.closePath(); ctx.fill();
+  ctx.textAlign="left"; ctx.fillText("truth", tx+7, mT+ph+9);
+  // tier readouts
+  const tiers=[["Top 50%  (>50th) &middot; Refereed",0.50],["Top 25%  (>75th)",0.75],["Top 10%  (>90th) &middot; Canon",0.90],["Top 5%  (>95th)",0.95],["Top 1%  (>99th)",0.99]];
+  $("tiers").innerHTML = tiers.map(([nm,tau])=>{ const p=pAbove(pdf,tau); const ok=p>=0.90;
+    return `<div class="tier"><span class="nm2">${nm}</span><span class="p ${ok?'ok':'no'}">P=${p.toFixed(2)} · ${ok?'ACCEPT':'—'}</span></div>`; }).join("");
+}
+["R","t"].forEach(id=>$(id).addEventListener("input",draw));
+$("redraw").addEventListener("click",()=>{ drawTruth(); draw(); });
+window.addEventListener("resize",resize);
+resize();
+</script>
+</body>
+</html>

@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Citation Race · academic Ledger</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23111'/%3E%3Ctext x='51' y='70' text-anchor='middle' fill='white' font-family='Georgia,serif' font-size='58'%3E%3Ctspan font-style='italic'%3Ea%3C/tspan%3E%3Ctspan%3EL%3C/tspan%3E%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root { --green:#1b7837; --blue:#4393c3; --ink:#222; --muted:#666; --line:#e3e3e3; }
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; color: var(--ink);
+         margin: 0 auto; padding: 24px; max-width: 980px; line-height: 1.5; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  .sub { color: var(--muted); margin: 0 0 18px; }
+  .controls { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-end;
+              background: #fafafa; border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+  .controls label { display: flex; flex-direction: column; font-size: 12px; color: var(--muted); gap: 4px; }
+  .controls input { font-size: 15px; padding: 7px 9px; border: 1px solid #ccc; border-radius: 7px; }
+  .controls select { font-size: 15px; padding: 7px 9px; border: 1px solid #ccc; border-radius: 7px; background: #fff; }
+  select#journalSelect { width: 252px; } input#journalOther { width: 210px; }
+  input#year { width: 80px; } input#kk, input#nn { width: 64px; }
+  button { font-size: 15px; padding: 9px 16px; border: 0; border-radius: 8px; background: var(--green);
+           color: #fff; cursor: pointer; }
+  button.secondary { background: #eee; color: #333; }
+  button.small { font-size: 13px; padding: 6px 10px; }
+  button:disabled { opacity: .5; cursor: default; }
+  #status { margin: 14px 2px; color: var(--muted); min-height: 22px; display: flex; align-items: center; gap: 8px; }
+  .spinner { width: 15px; height: 15px; border: 2px solid #ccc; border-top-color: var(--green);
+             border-radius: 50%; animation: spin .8s linear infinite; display: inline-block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .panel { margin-top: 22px; }
+  .panel h2 { font-size: 16px; margin: 0 0 8px; }
+  #raceWrap { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+  #raceControls { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+  #yearLabel { font-weight: 700; min-width: 120px; }
+  #race { position: relative; }
+  .bar-row { position: absolute; left: 0; right: 0; height: 22px; display: flex; align-items: center;
+             transition: top .55s ease, opacity .3s; }
+  .bar-name { width: 156px; text-align: right; padding-right: 8px; font-size: 12px; white-space: nowrap;
+              overflow: hidden; text-overflow: ellipsis; }
+  .bar-track { flex: 1; }
+  .bar-fill { height: 18px; background: var(--blue); border-radius: 3px; transition: width .55s ease; min-width: 2px; }
+  .bar-val { width: 56px; padding-left: 7px; font-size: 12px; color: #333; white-space: nowrap; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  th, td { border-bottom: 1px solid var(--line); padding: 6px 8px; text-align: left; vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; }
+  td.num, th.num { text-align: right; white-space: nowrap; }
+  .err { color: #b2182b; }
+  .site-head { display:flex; align-items:center; justify-content:space-between; margin:0 0 20px; padding-bottom:14px; border-bottom:1px solid var(--line); }
+  .site-head .nav a { color:var(--muted); margin-left:16px; text-decoration:none; font-size:13px; }
+  .brand { display:inline-flex; align-items:center; gap:11px; text-decoration:none; }
+  .brand .al { width:30px; height:30px; border-radius:22%; background:#111; color:#fff; display:inline-flex;
+               align-items:center; justify-content:center; font-family:"Cormorant Garamond",Georgia,serif; font-weight:600; font-size:21px; line-height:1; }
+  .brand .al .i { font-style:italic; font-weight:500; }
+  .brand .nm { font-family:"Cormorant Garamond",Garamond,serif; font-size:25px; line-height:1; }
+  .brand .nm .ac { font-style:italic; font-weight:400; color:#555; font-size:.95em; }
+  .brand .nm .le { font-weight:500; color:#111; }
+  .site-foot { margin-top:44px; padding-top:16px; border-top:1px solid var(--line); color:var(--muted); font-size:12.5px; line-height:1.55; }
+  .site-foot .wh { color:#444; }
+</style>
+</head>
+<body>
+  <header class="site-head">
+    <a class="brand" href="./" title="academic Ledger">
+      <span class="al"><span class="i">a</span>L</span>
+      <span class="nm"><span class="ac">academic</span><span class="le">Ledger</span></span>
+    </a>
+    <span class="nav"><a href="/explore">Explore</a><a href="/author">Author</a><a href="/about">About</a><a href="talk.html">Talk</a></span>
+  </header>
+  <h1>Citation Race</h1>
+  <p class="sub">How a cohort of same-journal, same-year papers sorts itself out over time. Live data from OpenAlex.</p>
+
+  <div class="controls">
+    <label>Journal
+      <select id="journalSelect">
+        <option>Management Science</option>
+        <option>American Economic Review</option>
+        <option>Quarterly Journal of Economics</option>
+        <option>Econometrica</option>
+        <option>Journal of Finance</option>
+        <option>Marketing Science</option>
+        <option>Journal of Consumer Research</option>
+        <option>Operations Research</option>
+        <option>Organization Science</option>
+        <option>Administrative Science Quarterly</option>
+        <option>Strategic Management Journal</option>
+        <option>American Sociological Review</option>
+        <option>American Political Science Review</option>
+        <option>Psychological Science</option>
+        <option value="__other__">Other (type name or ISSN) …</option>
+      </select>
+    </label>
+    <label id="otherWrap" style="display:none">Name or ISSN
+      <input id="journalOther" placeholder="e.g. Journal of Marketing">
+    </label>
+    <label>Year <input id="year" type="number" value="2014" min="1950" max="2024"></label>
+    <label>K (top papers) <input id="kk" type="number" value="10" min="1" max="100"></label>
+    <label>N (rows shown) <input id="nn" type="number" value="20" min="3" max="60"></label>
+    <button id="run">Run</button>
+    <button id="copy" class="secondary">Copy link</button>
+  </div>
+
+  <div id="status"></div>
+
+  <div class="panel" id="predPanel" style="display:none">
+    <h2>How soon are the best K papers identifiable?</h2>
+    <canvas id="predChart" height="120"></canvas>
+    <p class="sub" style="margin-top:6px">Top-K recall: the share of the eventual best K papers already in the top K at each age. The clock starts the year after publication.</p>
+  </div>
+
+  <div class="panel" id="racePanel" style="display:none">
+    <h2>The race</h2>
+    <div id="raceWrap">
+      <div id="raceControls">
+        <button id="play" class="secondary small">Play</button>
+        <button id="pause" class="secondary small">Pause</button>
+        <button id="stop" class="secondary small">Stop</button>
+        <button id="stepBack" class="secondary small">&#9664; yr</button>
+        <button id="stepFwd" class="secondary small">yr &#9654;</button>
+        <input id="slider" type="range" min="1" max="1" value="1" style="flex:1; min-width:160px">
+        <span id="yearLabel"></span>
+      </div>
+      <div id="race"></div>
+    </div>
+  </div>
+
+  <div class="panel" id="tablePanel" style="display:none">
+    <h2>The eventual top K</h2>
+    <table id="topTable"></table>
+  </div>
+
+<script>
+const $ = id => document.getElementById(id);
+let RACE = null;
+const MAILTO = "ktulrich@gmail.com";
+const isISSN = s => /^\d{4}-\d{3}[\dxX]$/.test(s.trim());
+function getJournal() {
+  const s = $("journalSelect").value;
+  return s === "__other__" ? $("journalOther").value.trim() : s;
+}
+
+async function resolveSource(name) {
+  const url = "https://api.openalex.org/sources?search=" + encodeURIComponent(name) +
+              "&filter=type:journal&per-page=1&select=id,display_name&mailto=" + MAILTO;
+  const r = await fetch(url);
+  if (!r.ok) throw new Error("journal lookup returned " + r.status);
+  const j = await r.json();
+  if (!j.results || !j.results.length) throw new Error("no journal matched “" + name + "”");
+  return { id: j.results[0].id.split("/").pop(), name: j.results[0].display_name };
+}
+
+async function fetchCohort(filter) {
+  let rows = [], cursor = "*", page = 0;
+  while (cursor && page < 30) {
+    const url = "https://api.openalex.org/works?filter=" + filter +
+                "&select=display_name,authorships,publication_year,cited_by_count,counts_by_year,doi" +
+                "&per-page=200&cursor=" + encodeURIComponent(cursor) + "&mailto=" + MAILTO;
+    const r = await fetch(url);
+    if (!r.ok) throw new Error("OpenAlex returned " + r.status);
+    const j = await r.json();
+    rows = rows.concat(j.results || []);
+    cursor = j.meta && j.meta.next_cursor;
+    page++;
+  }
+  return rows;
+}
+
+// ---- data hygiene: OpenAlex mixes mis-assigned foreign records, editorial
+//      front matter, and duplicate works into a journal-year. Strip them. ----
+const FRONT_MATTER = /^(management insights|reviewers and guest|.*\bservice awards\b|editorial board|editorial$|editorial[:\s]|introduction to the special|acknowledg|errat|corrigend|^correction\b|book reviews?|in this issue|call for papers|table of contents|front matter|back matter|issue information|list of reviewers)/i;
+function doiPrefix(w) { const m = (w.doi || "").match(/10\.\d{3,9}/); return m ? m[0] : ""; }
+function normTitle(t) { return (t || "").toLowerCase().replace(/<[^>]+>/g, "").replace(/[^a-z0-9]+/g, " ").trim(); }
+function cleanCohort(rows) {
+  // 1. real articles carry a DOI; the mis-assigned foreign records do not
+  let r = rows.filter(w => w.doi);
+  // 2. drop editorial columns and front matter
+  r = r.filter(w => !FRONT_MATTER.test((w.display_name || "").trim()));
+  // 3. keep only the journal's dominant DOI prefix (drops placeholder/cross-publisher duplicates)
+  const cnt = {}; r.forEach(w => { const p = doiPrefix(w); if (p) cnt[p] = (cnt[p] || 0) + 1; });
+  const modal = Object.keys(cnt).sort((a, b) => cnt[b] - cnt[a])[0];
+  if (modal) r = r.filter(w => doiPrefix(w) === modal);
+  // 4. de-duplicate by title, keeping the most-cited copy
+  const best = {};
+  r.forEach(w => { const k = normTitle(w.display_name); if (!k) return;
+    if (!best[k] || (w.cited_by_count || 0) > (best[k].cited_by_count || 0)) best[k] = w; });
+  return Object.values(best);
+}
+
+function buildPanel(rows, year) {
+  const now = new Date().getFullYear();
+  const years = []; for (let y = year; y <= now; y++) years.push(y);
+  const seen = {};
+  const papers = rows.map(w => {
+    const a = w.authorships || [];
+    const full = (a[0] && a[0].author && a[0].author.display_name) || "?";
+    let sn = full !== "?" ? full.trim().split(/\s+/).pop() : "?";
+    seen[sn] = (seen[sn] || 0) + 1;
+    const label = seen[sn] === 1 ? sn : sn + " (" + seen[sn] + ")";
+    const by = {}; (w.counts_by_year || []).forEach(d => by[d.year] = d.cited_by_count);
+    let cum = 0; const series = years.map(y => { cum += (by[y] || 0); return cum; });
+    return { label, full, title: w.display_name || "", series };
+  });
+  return { papers, years };
+}
+
+function ranksAtAge(papers, ageIdx) {
+  const vals = papers.map((p, i) => ({ i, v: p.series[ageIdx] }));
+  vals.sort((a, b) => b.v - a.v);
+  const rank = new Array(papers.length);
+  let r = 0, prev = null, count = 0;
+  vals.forEach(o => { count++; if (o.v !== prev) { r = count; prev = o.v; } rank[o.i] = r; });
+  return rank;
+}
+function topKset(papers, ageIdx, K) {
+  const vals = papers.map((p, i) => ({ i, v: p.series[ageIdx] }));
+  vals.sort((a, b) => b.v - a.v);
+  return new Set(vals.slice(0, K).map(o => o.i));
+}
+
+let predChart = null;
+function drawPredictability(papers, years, K) {
+  const lastIdx = years.length - 1;
+  const finalTop = topKset(papers, lastIdx, K);
+  const ages = [], recall = [];
+  for (let age = 1; age <= lastIdx; age++) {
+    const tk = topKset(papers, age, K);
+    let hit = 0; finalTop.forEach(i => { if (tk.has(i)) hit++; });
+    ages.push(age); recall.push(hit / K);
+  }
+  if (predChart) predChart.destroy();
+  predChart = new Chart($("predChart"), {
+    type: "line",
+    data: { labels: ages, datasets: [{ label: "top-" + K + " recall", data: recall,
+            borderColor: "#1b7837", backgroundColor: "#1b7837", tension: .2, pointRadius: 3 }] },
+    options: { animation: false, scales: { y: { min: 0, max: 1, title: { display: true, text: "recall" } },
+               x: { title: { display: true, text: "years since publication" } } },
+               plugins: { legend: { display: false } } }
+  });
+}
+
+function escapeHtml(s) { return (s || "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+
+function buildTable(papers, years, K) {
+  const lastIdx = years.length - 1;
+  const idxSorted = papers.map((p, i) => i).sort((a, b) => papers[b].series[lastIdx] - papers[a].series[lastIdx]);
+  const top = idxSorted.slice(0, K);
+  const r1 = ranksAtAge(papers, Math.min(1, lastIdx));
+  const r3 = ranksAtAge(papers, Math.min(3, lastIdx));
+  let html = "<tr><th class='num'>Final</th><th>First author</th><th>Title</th>" +
+             "<th class='num'>Cites</th><th class='num'>Rank yr1</th><th class='num'>Rank yr3</th></tr>";
+  top.forEach((i, n) => {
+    const p = papers[i];
+    html += "<tr><td class='num'>" + (n + 1) + "</td><td>" + escapeHtml(p.full) + "</td><td>" +
+            escapeHtml(p.title) + "</td><td class='num'>" + p.series[lastIdx] + "</td><td class='num'>" +
+            r1[i] + "</td><td class='num'>" + r3[i] + "</td></tr>";
+  });
+  $("topTable").innerHTML = html;
+}
+
+function setupRace(papers, years, N) {
+  const lastIdx = years.length - 1;
+  const maxVal = Math.max(1, ...papers.map(p => p.series[lastIdx]));
+  const union = new Set();
+  for (let age = 0; age <= lastIdx; age++) topKset(papers, age, N).forEach(i => union.add(i));
+  const members = [...union];
+  const rowH = 24;
+  const race = $("race");
+  race.style.height = (N * rowH + 6) + "px";
+  race.innerHTML = "";
+  const elem = {};
+  members.forEach(i => {
+    const row = document.createElement("div");
+    row.className = "bar-row";
+    row.innerHTML = "<div class='bar-name'>" + escapeHtml(papers[i].label) + "</div>" +
+                    "<div class='bar-track'><div class='bar-fill'></div></div>" +
+                    "<div class='bar-val'></div>";
+    race.appendChild(row);
+    elem[i] = { row, fill: row.querySelector(".bar-fill"), val: row.querySelector(".bar-val") };
+  });
+  function frame(age) {
+    // ordinal slots from a stable sort: unique row per paper, so ties never overlap and no gaps appear
+    const idxAll = papers.map((p, i) => i).sort((a, b) => papers[b].series[age] - papers[a].series[age]);
+    const slot = new Array(papers.length); idxAll.forEach((i, pos) => slot[i] = pos);
+    members.forEach(i => {
+      const v = papers[i].series[age], pos = slot[i], e = elem[i];
+      if (pos < N) { e.row.style.top = (pos * rowH) + "px"; e.row.style.opacity = 1; }
+      else { e.row.style.opacity = 0; e.row.style.top = (N * rowH) + "px"; }
+      e.fill.style.width = (100 * v / maxVal) + "%";
+      e.val.textContent = v > 0 ? v : "";
+    });
+    $("yearLabel").textContent = age + " yr after pub";
+    $("slider").value = age;
+    RACE.age = age;
+  }
+  RACE = { lastIdx, frame, age: 1, timer: null };
+  $("slider").min = 1; $("slider").max = lastIdx; $("slider").value = 1;
+  frame(1);
+}
+
+function playRace() {
+  if (!RACE || RACE.timer) return;
+  if (RACE.age >= RACE.lastIdx) RACE.frame(1);
+  RACE.timer = setInterval(() => {
+    if (RACE.age >= RACE.lastIdx) { clearInterval(RACE.timer); RACE.timer = null; return; }
+    RACE.frame(RACE.age + 1);
+  }, 750);
+}
+function pauseRace() { if (RACE && RACE.timer) { clearInterval(RACE.timer); RACE.timer = null; } }
+function stopRace() { pauseRace(); if (RACE) RACE.frame(1); }
+function stepFwd() { pauseRace(); if (RACE) RACE.frame(Math.min(RACE.age + 1, RACE.lastIdx)); }
+function stepBack() { pauseRace(); if (RACE) RACE.frame(Math.max(RACE.age - 1, 1)); }
+
+function shareURL() {
+  const p = new URLSearchParams({ j: getJournal(), year: $("year").value, k: $("kk").value, n: $("nn").value });
+  return location.origin + location.pathname + "?" + p.toString();
+}
+
+async function run() {
+  const jinput = getJournal();
+  if (!jinput) { $("status").innerHTML = "<span class='err'>Choose a journal, or pick Other and type one.</span>"; return; }
+  const year = parseInt($("year").value, 10);
+  const K = Math.max(1, parseInt($("kk").value, 10) || 10);
+  const N = Math.max(3, parseInt($("nn").value, 10) || 20);
+  $("run").disabled = true;
+  ["predPanel", "racePanel", "tablePanel"].forEach(p => $(p).style.display = "none");
+  stopRace();
+  const setStatus = (txt, spin) => $("status").innerHTML = (spin ? "<span class='spinner'></span>" : "") + txt;
+  try {
+    let filterClause, jname = jinput;
+    if (isISSN(jinput)) {
+      filterClause = "primary_location.source.issn:" + jinput;
+    } else {
+      setStatus("Looking up the journal …", true);
+      const src = await resolveSource(jinput);
+      filterClause = "primary_location.source.id:" + src.id; jname = src.name;
+    }
+    setStatus("Fetching papers from OpenAlex …", true);
+    const filter = filterClause + ",publication_year:" + year + ",type:article,has_doi:true";
+    const raw = await fetchCohort(filter);
+    const rows = cleanCohort(raw);
+    if (!rows.length) { setStatus("<span class='err'>No papers found for " + escapeHtml(jname) + " in " + year + ". Try another year or journal.</span>", false); $("run").disabled = false; return; }
+    const { papers, years } = buildPanel(rows, year);
+    if (years.length < 3) { setStatus("<span class='err'>Pick an earlier year so there is a citation history to show.</span>", false); $("run").disabled = false; return; }
+    setStatus(rows.length + " research papers in " + escapeHtml(jname) + " " + year + " (filtered from " + raw.length + " raw records). The clock starts the year after publication.", false);
+    ["predPanel", "racePanel", "tablePanel"].forEach(p => $(p).style.display = "block");
+    drawPredictability(papers, years, K);
+    setupRace(papers, years, N);
+    buildTable(papers, years, K);
+    history.replaceState(null, "", shareURL());
+  } catch (e) {
+    setStatus("<span class='err'>Could not load data: " + escapeHtml(e.message) + ".</span>", false);
+  }
+  $("run").disabled = false;
+}
+
+$("run").onclick = run;
+$("copy").onclick = () => {
+  navigator.clipboard.writeText(shareURL()).then(() => {
+    const b = $("copy"); const t = b.textContent; b.textContent = "Copied!"; setTimeout(() => b.textContent = t, 1500);
+  });
+};
+$("play").onclick = playRace;
+$("pause").onclick = pauseRace;
+$("stop").onclick = stopRace;
+$("stepFwd").onclick = stepFwd;
+$("stepBack").onclick = stepBack;
+$("slider").oninput = e => { pauseRace(); if (RACE) RACE.frame(parseInt(e.target.value, 10)); };
+$("journalSelect").onchange = () => {
+  $("otherWrap").style.display = $("journalSelect").value === "__other__" ? "flex" : "none";
+};
+
+function setJournal(jv) {
+  const opt = [...$("journalSelect").options].find(o => o.value === jv);
+  if (opt) { $("journalSelect").value = jv; $("otherWrap").style.display = "none"; }
+  else { $("journalSelect").value = "__other__"; $("otherWrap").style.display = "flex"; $("journalOther").value = jv; }
+}
+
+// prefill from the URL and auto-run if parameters are present
+(function () {
+  const p = new URLSearchParams(location.search);
+  if (p.has("j")) setJournal(p.get("j"));
+  if (p.has("year")) $("year").value = p.get("year");
+  if (p.has("k")) $("kk").value = p.get("k");
+  if (p.has("n")) $("nn").value = p.get("n");
+  if (p.has("j") || p.has("year")) run();
+})();
+</script>
+  <footer class="site-foot">
+    <span class="wh">academic Ledger is hosted at the Wharton School of the University of Pennsylvania.</span>
+    An independent, non-commercial record of scholarship.
+  </footer>
+</body>
+</html>

@@ -17,6 +17,12 @@ export default function AboutPage() {
           the open scholarly record.
         </p>
 
+        <p>
+          <a className="talk-link" href="/talk.html">
+            &#9654;&nbsp; View the seminar talk
+          </a>
+        </p>
+
         <h2>The big idea</h2>
         <p>
           Academic publishing bundles two jobs that do not belong together: <b>distribution</b>,

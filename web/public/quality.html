@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quality Assessment · academic Ledger</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23111'/%3E%3Ctext x='51' y='70' text-anchor='middle' fill='white' font-family='Georgia,serif' font-size='58'%3E%3Ctspan font-style='italic'%3Ea%3C/tspan%3E%3Ctspan%3EL%3C/tspan%3E%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.27.0/plotly.min.js"></script>
+<style>
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; height:100%; font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif; color:#1c2433; background:#fff; }
+  body{ display:flex; flex-direction:column; }
+  /* aL brand chrome */
+  .brand{ background:#fff; border-bottom:1px solid #e6e6e6; padding:11px 22px; font-size:13px; display:flex; align-items:center; justify-content:space-between; flex:0 0 auto; }
+  .brand .left{ display:flex; align-items:center; gap:13px; }
+  .brand .lock{ display:inline-flex; align-items:center; gap:11px; text-decoration:none; }
+  .brand .al{ width:30px; height:30px; border-radius:22%; background:#111; color:#fff; display:inline-flex; align-items:center; justify-content:center; font-family:"Cormorant Garamond",Georgia,serif; font-weight:600; font-size:21px; line-height:1; }
+  .brand .al .i{ font-style:italic; font-weight:500; }
+  .brand .nm{ font-family:"Cormorant Garamond",Garamond,serif; font-size:25px; line-height:1; }
+  .brand .nm .ac{ font-style:italic; font-weight:400; color:#555; font-size:.95em; }
+  .brand .nm .le{ font-weight:500; color:#111; }
+  .proto{ font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:#b06a00; background:#fff5d6; border:1px solid #e6cf7a; padding:2px 9px; border-radius:11px; }
+  .brand .nav a{ color:#6b7280; margin-left:15px; text-decoration:none; }
+  .brand .nav a.on{ color:#111; font-weight:600; }
+  .site-foot{ flex:0 0 auto; border-top:1px solid #e6e6e6; color:#9aa3af; font-size:12px; padding:9px 22px; }
+  .site-foot .wh{ color:#444; }
+  .wrap{ flex:1 1 auto; min-height:0; display:flex; flex-direction:column; padding:14px 22px 8px; }
+  h1{ font-size:18px; font-weight:600; color:#16243d; margin:0 0 2px; }
+  .sub{ color:#6b7280; font-size:13px; margin:0 0 12px; max-width:1000px; }
+  .stage{ flex:1 1 auto; display:flex; gap:22px; min-height:0; }
+  .panel{ flex:0 0 318px; display:flex; flex-direction:column; gap:14px; overflow:auto;
+          background:#fafbfc; border:1px solid #e6e8ec; border-radius:11px; padding:16px 18px; }
+  #plot{ flex:1 1 auto; min-width:0; height:100%; }
+  .ctl .lab{ display:flex; justify-content:space-between; align-items:baseline; font-size:14px; margin-bottom:6px; }
+  .ctl .lab b{ color:#16243d; font-weight:600; }
+  .ctl .lab .val{ font-variant-numeric:tabular-nums; color:#2e8b57; font-weight:600; }
+  .ctl .hint{ color:#9aa3af; font-size:11px; margin-top:5px; line-height:1.4; }
+  input[type=range]{ width:100%; accent-color:#2e8b57; height:22px; }
+  .sep{ height:1px; background:#e6e8ec; }
+  .pol-title{ font-size:13px; color:#16243d; font-weight:600; margin-bottom:6px; }
+  .pol label{ display:block; font-size:13.5px; margin:5px 0; cursor:pointer; }
+  #paccept{ font-size:14px; font-weight:600; margin-top:10px; min-height:20px; }
+  .btns{ display:flex; gap:8px; flex-wrap:wrap; }
+  button{ font-size:13px; padding:9px 12px; border:1px solid #cfd4da; background:#fff; color:#222; border-radius:8px; cursor:pointer; }
+  button:hover{ background:#f3f4f6; }
+  .foot{ color:#9aa3af; font-size:11px; margin-top:auto; line-height:1.45; }
+</style>
+</head>
+<body>
+<header class="brand">
+  <div class="left">
+    <a class="lock" href="talk.html" title="academic Ledger">
+      <span class="al"><span class="i">a</span>L</span>
+      <span class="nm"><span class="ac">academic</span><span class="le">Ledger</span></span>
+    </a>
+    <span class="proto" title="Illustrative prototype">prototype</span>
+  </div>
+  <span class="nav"><a href="/explore">Explore</a><a href="/author">Author</a><a href="/about">About</a><a href="talk.html">Talk</a></span>
+</header>
+<div class="wrap">
+  <h1>Joint density of correctness (C) and impact (I)</h1>
+  <p class="sub">Height is probability density. A paper has a hidden true (C, I). As review effort and time accrue, the belief sharpens <em>and</em> its mean drifts toward the truth (the dark marker).</p>
+
+  <div class="stage">
+    <aside class="panel">
+      <div class="ctl">
+        <div class="lab"><b>R, review effort</b><span class="val" id="rval">0.30</span></div>
+        <input id="R" type="range" min="0" max="1" step="0.01" value="0.30">
+        <div class="hint">Sharply reduces variance in C and homes the C mean; slightly reduces variance in I.</div>
+      </div>
+      <div class="ctl">
+        <div class="lab"><b>t, time</b><span class="val" id="tval">0.20</span></div>
+        <input id="t" type="range" min="0" max="1" step="0.01" value="0.20">
+        <div class="hint">Reduces variance in both C and I, and homes the I mean as evidence accrues.</div>
+      </div>
+
+      <div class="sep"></div>
+
+      <div class="pol">
+        <div class="pol-title">Selection criterion (90% confidence)</div>
+        <label><input type="radio" name="pol" value="none" checked> None</label>
+        <label><input type="radio" name="pol" value="c"> C &gt; 0.5</label>
+        <label><input type="radio" name="pol" value="sum"> C + I &gt; 0.75</label>
+        <label><input type="radio" name="pol" value="both"> C &gt; 0.5 and I &gt; 0.5</label>
+        <label><input type="radio" name="pol" value="prod"> C &times; I &gt; 0.25</label>
+        <div id="paccept"></div>
+      </div>
+
+      <div class="sep"></div>
+
+      <div class="btns">
+        <button id="redraw">&#8635; New paper</button>
+        <button id="reset">&#10530; Reset view</button>
+      </div>
+
+      <p class="foot">Illustrative model. C and I on [0, 1]; the z axis (density) is implicit.</p>
+    </aside>
+
+    <main id="plot"></main>
+  </div>
+</div>
+<footer class="site-foot"><span class="wh">academic Ledger is hosted at the Wharton School of the University of Pennsylvania.</span> An independent, non-commercial record of scholarship.</footer>
+
+<script>
+// ---- priors (R=0, t=0: a broad gentle ridge along I) ----
+const muC0 = 0.50, muI0 = 0.25, lean = 0.30;
+const sC0 = 0.20, sL0 = 0.18, sR0 = 0.46;
+const sBar0 = (sL0 + sR0) / 2;
+
+// ---- hidden truth, drawn randomly; redraw resamples ----
+function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; let x=Math.imul(a^a>>>15,1|a);
+  x=x+Math.imul(x^x>>>7,61|x)^x; return ((x^x>>>14)>>>0)/4294967296; }; }
+let seed = 7;
+let truthC = 0.78, truthI = 0.68;
+function drawTruth(){
+  const r = mulberry32(seed*2654435761);
+  truthC = 0.45 + 0.47*r();     // mostly correct, varies
+  truthI = 0.12 + 0.78*r();     // impact ranges widely
+}
+drawTruth();
+
+function sigmas(R, t){
+  const sC = sC0 * (1 - 0.75*R) * (1 - 0.40*t);   // R sharp, t moderate
+  const fI = (1 - 0.15*R) * (1 - 0.50*t);          // R slight, t moderate
+  return { sC, sL: sL0*fI, sR: sR0*fI };
+}
+function amplitude(sC, sL, sR){
+  return Math.pow((sC0 * sBar0) / (sC * ((sL+sR)/2)), 0.6);
+}
+// belief mean drifts toward truth as precision grows (C with review, I with time)
+function means(R, t){
+  const s = sigmas(R, t);
+  const wC = Math.min(0.92, 1 - s.sC / sC0);            // grows mainly with R
+  const wI = Math.min(0.92, 1 - ((s.sL+s.sR)/2) / sBar0); // grows mainly with t
+  return { muC: muC0 + wC*(truthC - muC0), muI: muI0 + wI*(truthI - muI0) };
+}
+
+const N = 64;
+const cs = [], is = [];
+for (let i=0;i<N;i++){ cs.push(i/(N-1)); is.push(i/(N-1)); }
+
+function surfaceZ(R, t){
+  const {sC, sL, sR} = sigmas(R, t);
+  const {muC, muI} = means(R, t);
+  const A = amplitude(sC, sL, sR);
+  const Z = [];
+  for (let j=0;j<N;j++){
+    const I = is[j]; const row = [];
+    for (let i=0;i<N;i++){
+      const C = cs[i];
+      const gC = Math.exp(-0.5*((C-muC)/sC)**2);
+      const Ie = I - lean*(C-muC);
+      const s = Ie >= muI ? sR : sL;
+      const gI = Math.exp(-0.5*((Ie-muI)/s)**2);
+      row.push(A * gC * gI);
+    }
+    Z.push(row);
+  }
+  return Z;
+}
+
+const sFull = sigmas(1,1);
+const zmax = amplitude(sFull.sC, sFull.sL, sFull.sR) * 1.04;
+
+const greens = [[0,'#f5fbf7'],[0.2,'#e0f2e7'],[0.4,'#c2e6ce'],[0.6,'#9bd4ae'],[0.8,'#74c194'],[1,'#54ad7e']];
+
+// ---- selection criteria (accept region + boundary on the C-I floor) ----
+let policy = 'none';
+function policyGeom(p){
+  const Z = zmax;   // slice rises to the top of the z range; x,y,z are 2-row grids
+  if (p==='c')    return { test:(C,I)=>C>0.5, label:'P(C &gt; 0.5)',
+      gx:[[0.5,0.5],[0.5,0.5]], gy:[[0,1],[0,1]], gz:[[0,0],[Z,Z]],
+      lx:[0.5,0.5], ly:[0,1] };
+  if (p==='sum')  return { test:(C,I)=>C+I>0.75, label:'P(C + I &gt; 0.75)',
+      gx:[[0.75,0],[0.75,0]], gy:[[0,0.75],[0,0.75]], gz:[[0,0],[Z,Z]],
+      lx:[0.75,0], ly:[0,0.75] };
+  if (p==='both') return { test:(C,I)=>C>0.5&&I>0.5, label:'P(C &gt; 0.5 and I &gt; 0.5)',
+      gx:[[0.5,0.5,1],[0.5,0.5,1]], gy:[[1,0.5,0.5],[1,0.5,0.5]], gz:[[0,0,0],[Z,Z,Z]],
+      lx:[0.5,0.5,1], ly:[1,0.5,0.5] };
+  if (p==='prod'){
+    const cp=[], ip=[], M=40;
+    for (let k=0;k<=M;k++){ const C=0.25 + 0.75*k/M; cp.push(C); ip.push(0.25/C); }
+    return { test:(C,I)=>C*I>0.25, label:'P(C &times; I &gt; 0.25)',
+      gx:[cp,cp], gy:[ip,ip], gz:[cp.map(()=>0), cp.map(()=>Z)],
+      lx:cp, ly:ip };
+  }
+  return null;
+}
+function probAccept(Z, test){
+  let acc=0, tot=0;
+  for (let j=0;j<N;j++) for (let i=0;i<N;i++){ const w=Z[j][i]; tot+=w; if (test(cs[i], is[j])) acc+=w; }
+  return tot>0 ? acc/tot : 0;
+}
+
+function buildData(R, t){
+  return [
+    { type:'surface', x:cs, y:is, z:surfaceZ(R, t),
+      colorscale:greens, showscale:false, opacity:1.0, hoverinfo:'skip',
+      contours:{ z:{ show:true, project:{z:true}, usecolormap:true, width:1 } },
+      lighting:{ ambient:0.62, diffuse:0.62, specular:0.08, roughness:0.95, fresnel:0.1 },
+      lightposition:{ x:-80, y:-60, z:140 } },
+    { type:'scatter3d', mode:'markers+text', x:[truthC], y:[truthI], z:[0],
+      marker:{ size:5, color:'#16243d', symbol:'diamond' },
+      text:['truth'], textposition:'bottom center', textfont:{size:11, color:'#16243d'},
+      hoverinfo:'skip' },
+    { type:'surface', x:[[0.5,0.5],[0.5,0.5]], y:[[0,1],[0,1]], z:[[0,0],[zmax,zmax]],
+      colorscale:[[0,'#aab0b8'],[1,'#aab0b8']], showscale:false, opacity:0.36,
+      lighting:{ambient:1,diffuse:0,specular:0}, hoverinfo:'skip', visible:false },
+    { type:'scatter3d', mode:'lines', x:[0.5,0.5], y:[0,1], z:[0.03,0.03],
+      line:{ color:'#5b626b', width:5 }, hoverinfo:'skip', visible:false }
+  ];
+}
+
+const DEFAULT_CAM = { eye:{x:-1.38, y:-1.38, z:0.68}, center:{x:0, y:0, z:-0.10} };
+const layout = {
+  margin:{l:0, r:0, t:6, b:0}, showlegend:false,
+  scene:{
+    camera: DEFAULT_CAM,
+    aspectratio:{x:1.05, y:1.05, z:0.55},
+    xaxis:{ title:{text:'C, correctness', font:{size:13}}, range:[0,1], tickvals:[0,0.5,1],
+            showspikes:false, showbackground:false, showgrid:true, gridcolor:'#b6bec8', gridwidth:1,
+            showline:true, linecolor:'#9aa2ab', linewidth:2, zeroline:false,
+            color:'#333', tickfont:{size:11, color:'#333'} },
+    yaxis:{ title:{text:'I, impact', font:{size:13}}, range:[0,1], tickvals:[0,0.5,1],
+            showspikes:false, showbackground:false, showgrid:true, gridcolor:'#b6bec8', gridwidth:1,
+            showline:true, linecolor:'#9aa2ab', linewidth:2, zeroline:false,
+            color:'#333', tickfont:{size:11, color:'#333'} },
+    zaxis:{ title:'', range:[0,zmax], showspikes:false, showbackground:true, backgroundcolor:'#eef1f4',
+            showticklabels:false, showgrid:false, zeroline:false, showline:false }
+  }
+};
+
+const gd = document.getElementById('plot');
+Plotly.newPlot(gd, buildData(0.30, 0.20), layout, {displayModeBar:false, responsive:true});
+
+function update(){
+  const R = parseFloat(document.getElementById('R').value);
+  const t = parseFloat(document.getElementById('t').value);
+  document.getElementById('rval').textContent = R.toFixed(2);
+  document.getElementById('tval').textContent = t.toFixed(2);
+  const Z = surfaceZ(R, t);
+  Plotly.restyle(gd, { z:[Z] }, [0]);
+  Plotly.restyle(gd, { x:[[truthC]], y:[[truthI]], z:[[0]] }, [1]);
+
+  const g = policyGeom(policy);
+  const out = document.getElementById('paccept');
+  if (g){
+    Plotly.restyle(gd, { visible:[true], x:[g.gx], y:[g.gy], z:[g.gz] }, [2]);
+    Plotly.restyle(gd, { visible:[true], x:[g.lx], y:[g.ly], z:[g.lx.map(()=>0.03)] }, [3]);
+    const p = probAccept(Z, g.test), ok = p >= 0.90;
+    out.innerHTML = g.label + ' = ' + p.toFixed(2) + '  &middot;  ' +
+      '<span style="color:' + (ok ? '#1b7837' : '#b2182b') + '">' + (ok ? 'ACCEPT' : 'reject') + '</span>';
+  } else {
+    Plotly.restyle(gd, { visible:[false] }, [2]);
+    Plotly.restyle(gd, { visible:[false] }, [3]);
+    out.innerHTML = '';
+  }
+}
+document.getElementById('R').addEventListener('input', update);
+document.getElementById('t').addEventListener('input', update);
+document.getElementById('redraw').addEventListener('click', () => { seed++; drawTruth(); update(); });
+document.getElementById('reset').addEventListener('click', () => {
+  Plotly.relayout(gd, { 'scene.camera': DEFAULT_CAM });
+});
+document.querySelectorAll('input[name=pol]').forEach(r =>
+  r.addEventListener('change', e => { policy = e.target.value; update(); }));
+window.addEventListener('resize', () => Plotly.Plots.resize(gd));
+update();
+</script>
+</body>
+</html>

@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>academic Ledger — Paper Home (mockup)</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23111'/%3E%3Ctext x='51' y='70' text-anchor='middle' fill='white' font-family='Georgia,serif' font-size='58'%3E%3Ctspan font-style='italic'%3Ea%3C/tspan%3E%3Ctspan%3EL%3C/tspan%3E%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --green:#1b7837; --blue:#2166ac; --gold:#b8860b; --canon:#7a5901;
+    --ink:#1c1c1c; --muted:#6b6b6b; --line:#e6e6e6; --bg:#fafafa; --card:#ffffff;
+  }
+  *{box-sizing:border-box;}
+  body{font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:var(--ink);
+       background:var(--bg);margin:0;line-height:1.5;}
+  a{color:var(--blue);text-decoration:none;} a:hover{text-decoration:underline;}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 22px 60px;}
+
+  /* top brand bar */
+  .brand{background:#fff;border-bottom:1px solid var(--line);padding:12px 22px;font-size:13px;display:flex;align-items:center;justify-content:space-between;}
+  .brand .lock{display:inline-flex;align-items:center;gap:11px;text-decoration:none;}
+  .brand .al{width:30px;height:30px;border-radius:22%;background:#111;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-family:"Cormorant Garamond",Georgia,serif;font-weight:600;font-size:21px;line-height:1;}
+  .brand .al .i{font-style:italic;font-weight:500;}
+  .brand .nm{font-family:"Cormorant Garamond",Garamond,serif;font-size:25px;line-height:1;}
+  .brand .nm .ac{font-style:italic;font-weight:400;color:#555;font-size:.95em;}
+  .brand .nm .le{font-weight:500;color:#111;}
+  .brand .nav a{color:var(--muted);margin-left:16px;text-decoration:none;}
+  .brand .left{display:flex;align-items:center;gap:13px;}
+  .proto{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#b06a00;background:#fff5d6;border:1px solid #e6cf7a;padding:2px 9px;border-radius:11px;}
+  .wh{color:#555;}
+
+  .mock{background:#fff5d6;border:1px solid #e6cf7a;color:#7a5d00;font-size:12.5px;
+        border-radius:7px;padding:7px 12px;margin:16px 0 6px;}
+
+  /* header block */
+  .tiers{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:14px 0 8px;}
+  .chip{display:inline-block;font-size:11.5px;font-weight:700;letter-spacing:.4px;
+        padding:3px 10px;border-radius:20px;text-transform:uppercase;}
+  .c-cert{background:#e7f1e7;color:var(--green);border:1px solid #bcd9bf;}
+  .c-ref{background:#e7f0f8;color:var(--blue);border:1px solid #b9d2ea;}
+  .c-can{background:#f6edd2;color:var(--canon);border:1px solid #e1c878;}
+  .chip.off{background:#f1f1f1;color:#aaa;border:1px solid #e2e2e2;}
+  .arrow{color:#bbb;font-weight:700;}
+  .pub{display:inline-flex;align-items:center;justify-content:center;width:21px;height:21px;
+       line-height:1;border:1.7px solid var(--green);border-radius:50%;font-weight:700;
+       font-size:12px;color:var(--green);}
+  h1.title{font-size:27px;line-height:1.25;margin:6px 0 8px;color:#16243d;}
+  .authors{font-size:15.5px;margin:0 0 4px;}
+  .authors .orc{color:#a6ce39;font-size:12px;margin-left:2px;}
+  .affil{color:var(--muted);font-size:13px;margin:0 0 10px;}
+  .idline{font-size:13px;color:var(--muted);margin:2px 0 14px;}
+  .idline a{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;}
+
+  .actions{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 18px;}
+  .btn{font-size:13.5px;padding:8px 13px;border-radius:8px;border:1px solid #cfcfcf;
+       background:#fff;color:#222;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
+  .btn.primary{background:var(--green);border-color:var(--green);color:#fff;}
+  .btn.blue{background:var(--blue);border-color:var(--blue);color:#fff;}
+
+  /* layout */
+  .grid{display:grid;grid-template-columns:1fr 320px;gap:26px;align-items:start;}
+  @media(max-width:880px){.grid{grid-template-columns:1fr;}}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:16px 18px;margin-bottom:18px;}
+  .card h2{font-size:15px;margin:0 0 12px;color:#16243d;letter-spacing:.2px;}
+  .card h2 .q{font-weight:400;color:var(--muted);font-size:12.5px;}
+
+  /* headline metric strip */
+  .strip{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);
+         border:1px solid var(--line);border-radius:11px;overflow:hidden;margin-bottom:18px;}
+  .strip .cell{background:#fff;padding:13px 14px;}
+  .strip .v{font-size:23px;font-weight:700;color:#16243d;line-height:1;}
+  .strip .l{font-size:11.5px;color:var(--muted);margin-top:5px;text-transform:uppercase;letter-spacing:.4px;}
+  .strip .s{font-size:11px;color:#9a9a9a;margin-top:2px;}
+  @media(max-width:880px){.strip{grid-template-columns:repeat(2,1fr);}}
+
+  /* QaL hero */
+  .qhero{background:#fff;border:1px solid var(--line);border-radius:13px;padding:18px 24px;margin:6px 0 14px;
+         display:grid;grid-template-columns:minmax(210px,290px) 1fr;gap:34px;align-items:center;}
+  @media(max-width:760px){.qhero{grid-template-columns:1fr;gap:20px;}}
+  .qal-tag{font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);}
+  .qal-name{font-family:"Cormorant Garamond",Georgia,serif;font-size:31px;color:#16243d;line-height:1;margin-top:2px;}
+  .qal-name .a{font-style:italic;font-weight:500;}
+  .qal-est{display:flex;align-items:baseline;gap:14px;margin-top:10px;}
+  .qal-lo,.qal-hi{font-size:23px;color:#bcc3cc;font-weight:500;font-variant-numeric:tabular-nums;}
+  .qal-pt{font-size:64px;font-weight:800;color:var(--green);line-height:.85;font-variant-numeric:tabular-nums;}
+  .qal-cap{font-size:11.5px;color:var(--muted);margin-top:7px;}
+  .qal-field{font-size:12px;color:#333;margin-top:13px;line-height:1.8;}
+  .qal-field b{color:#16243d;margin-right:5px;}
+  .qal-field .jx{font-family:ui-monospace,Menlo,monospace;font-size:11px;color:#3a4a5e;}
+  .bkt{display:flex;align-items:flex-end;gap:12px;}
+  .bkt .col{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:150px;}
+  .bkt .p{font-size:11px;font-weight:700;color:#16243d;margin-bottom:3px;font-variant-numeric:tabular-nums;}
+  .bkt .barv{width:100%;max-width:46px;background:#cfe0d4;border-radius:5px 5px 0 0;}
+  .bkt .col.hot .barv{background:var(--green);}
+  .bkt .xl{height:16px;font-size:10.5px;color:var(--muted);margin-top:7px;font-variant-numeric:tabular-nums;}
+
+  /* score card */
+  .score-top{display:flex;align-items:center;gap:18px;flex-wrap:wrap;}
+  .gauge{width:120px;height:120px;flex:none;}
+  .score-big{font-size:40px;font-weight:800;color:var(--green);line-height:1;}
+  .score-sub{font-size:12.5px;color:var(--muted);}
+  .prob{font-size:13px;color:#222;}
+  .prob b{font-size:20px;color:var(--blue);}
+  .bars{margin-top:14px;}
+  .bar{display:grid;grid-template-columns:170px 1fr 42px;align-items:center;gap:10px;margin:7px 0;font-size:12.5px;}
+  .bar .track{height:9px;background:#eee;border-radius:6px;overflow:hidden;}
+  .bar .fill{height:9px;border-radius:6px;background:var(--green);}
+  .bar .pct{text-align:right;color:var(--muted);font-size:11.5px;}
+  .bar .wt{color:#aaa;font-size:10.5px;}
+
+  /* metric groups table */
+  .mgrid{display:grid;grid-template-columns:1fr 1fr;gap:0 26px;}
+  @media(max-width:620px){.mgrid{grid-template-columns:1fr;}}
+  .mrow{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed #ededed;font-size:13px;}
+  .mrow .k{color:#333;} .mrow .k small{color:#9a9a9a;}
+  .mrow .val{font-weight:600;color:#16243d;white-space:nowrap;}
+  .grouplbl{font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;
+            color:var(--muted);margin:14px 0 4px;}
+
+  /* endorsements */
+  .endorse{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid #f0f0f0;}
+  .ava{width:30px;height:30px;border-radius:50%;background:#dfeae0;color:var(--green);
+       font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center;flex:none;}
+  .endorse .nm{font-size:13.5px;font-weight:600;}
+  .endorse .meta{font-size:12px;color:var(--muted);}
+  .endorse .qt{font-size:12.5px;color:#444;margin-top:3px;font-style:italic;}
+
+  /* discussion */
+  .cmt{padding:9px 0;border-bottom:1px solid #f0f0f0;}
+  .cmt .h{font-size:12.5px;color:var(--muted);}
+  .cmt .h b{color:#222;} .cmt .bd{font-size:13px;margin-top:3px;}
+  .reply{margin-left:22px;border-left:2px solid #eee;padding-left:12px;}
+
+  /* versions */
+  .ver{display:flex;gap:12px;padding:8px 0;border-bottom:1px solid #f0f0f0;font-size:13px;}
+  .ver .tag{font-family:ui-monospace,Menlo,monospace;font-weight:700;color:var(--blue);flex:none;width:34px;}
+  .ver .d{color:var(--muted);flex:none;width:96px;}
+
+  /* sidebar */
+  .side .card{padding:14px 16px;}
+  .side h3{font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);margin:0 0 9px;}
+  .kv{font-size:12.8px;margin:6px 0;}
+  .kv .k{color:var(--muted);} .kv .v{color:#1c1c1c;}
+  .jel{display:inline-block;background:#eef2f7;border:1px solid #dde4ec;color:#3a4a5e;
+       font-family:ui-monospace,Menlo,monospace;font-size:11.5px;padding:1px 7px;border-radius:5px;margin:2px 3px 2px 0;}
+  .timeline{margin:4px 0 2px;}
+  .tl{display:flex;gap:9px;font-size:12.5px;padding:4px 0;}
+  .tl .dot{width:10px;height:10px;border-radius:50%;flex:none;margin-top:4px;}
+  .tl .dot.g{background:var(--green);} .tl .dot.b{background:var(--blue);} .tl .dot.y{background:var(--gold);}
+  .tl .dot.o{background:#fff;border:2px solid #ccc;}
+  .small{font-size:11.5px;color:#9a9a9a;}
+  .sparkwrap{margin-top:4px;}
+  footer{color:#9a9a9a;font-size:12px;margin-top:18px;text-align:center;}
+</style>
+</head>
+<body>
+
+<header class="brand">
+  <div class="left">
+    <a class="lock" href="./" title="academic Ledger">
+      <span class="al"><span class="i">a</span>L</span>
+      <span class="nm"><span class="ac">academic</span><span class="le">Ledger</span></span>
+    </a>
+    <span class="proto" title="Illustrative prototype; figures, names, dates, and the journal citation are not real">prototype</span>
+  </div>
+  <span class="nav"><a href="/explore">Explore</a><a href="/author">Author</a><a href="/about">About</a><a href="talk.html">Talk</a></span>
+</header>
+
+<div class="wrap">
+
+  <!-- ===== HEADER ===== -->
+  <div class="tiers">
+    <span class="chip c-cert">✓ Certified</span><span class="arrow">→</span>
+    <span class="chip c-ref">✓ Refereed</span><span class="arrow">→</span>
+    <span class="chip c-can">★ Canon</span>
+    <span class="pub" title="A journal-published version exists">P</span>
+    <span style="font-size:12px;color:#999;margin-left:4px;">published also in <i>Quantitative Science Studies</i></span>
+  </div>
+
+  <h1 class="title">The Crisis in Academic Publishing: Symptoms, Diagnoses, and Potential Solution Concepts</h1>
+  <p class="authors">
+    Gérard P. Cachon<span class="orc" title="ORCID verified">iD</span>,
+    Christian Terwiesch<span class="orc" title="ORCID verified">iD</span>,
+    Karl T. Ulrich<span class="orc" title="ORCID verified">iD</span> <span style="font-size:11px;color:#999;">(corresponding)</span>
+  </p>
+  <p class="affil">The Wharton School, University of Pennsylvania · Operations, Information and Decisions</p>
+  <p class="idline">
+    Ledger ID <a href="#">aldg:2026.0427</a> &nbsp;·&nbsp;
+    DOI <a href="#">https://doi.org/10.59312/aldg.2026.0427</a> &nbsp;·&nbsp;
+    v2, revised 28 May 2026 &nbsp;·&nbsp; CC&nbsp;BY&nbsp;4.0
+  </p>
+
+  <div class="actions">
+    <button class="btn primary">↓ PDF</button>
+    <button class="btn">View HTML</button>
+    <button class="btn blue">✦ Endorse</button>
+    <button class="btn">✎ Comment</button>
+    <button class="btn">＋ Follow</button>
+    <button class="btn">❝ Cite</button>
+    <button class="btn">⤣ Share</button>
+  </div>
+
+  <!-- ===== QaL HERO (primary metric) ===== -->
+  <div class="qhero">
+    <div class="qhero-l">
+      <div class="qal-tag">Quality on the academic Ledger</div>
+      <div class="qal-name">Q<span class="a">a</span>L</div>
+      <div class="qal-est">
+        <span class="qal-lo" title="lower bound, 90% interval">90</span>
+        <span class="qal-pt" title="point estimate">96</span>
+        <span class="qal-hi" title="upper bound, 90% interval">99</span>
+      </div>
+      <div class="qal-cap">eventual percentile · point estimate with 90% interval</div>
+      <div class="qal-field">
+        <b>Field</b> Decision Sciences / Economics of Science <span class="jx">JEL A14 · I23 · O31</span><br>
+        <b>Vintage</b> 2026 cohort &middot; benchmarked within field × year (n = 412)
+      </div>
+    </div>
+    <div class="qhero-r">
+      <div class="bkt">
+        <div class="col"><div class="p">0%</div><div class="barv" style="height:2px"></div><div class="xl">&lt;50</div></div>
+        <div class="col"><div class="p">1%</div><div class="barv" style="height:2px"></div><div class="xl">50–75</div></div>
+        <div class="col"><div class="p">3%</div><div class="barv" style="height:6px"></div><div class="xl">75–90</div></div>
+        <div class="col"><div class="p">18%</div><div class="barv" style="height:33px"></div><div class="xl">90–95</div></div>
+        <div class="col hot"><div class="p">55%</div><div class="barv" style="height:100px"></div><div class="xl">95–99</div></div>
+        <div class="col"><div class="p">23%</div><div class="barv" style="height:42px"></div><div class="xl">99–100</div></div>
+      </div>
+      <div class="qal-cap" style="text-align:center;margin-top:9px;">probability of landing in each NSF percentile class (top 50 / 25 / 10 / 5 / 1%)</div>
+    </div>
+  </div>
+
+  <!-- secondary quick stats -->
+  <div class="strip">
+    <div class="cell"><div class="v">0.89</div><div class="l">P(Top 10%)</div><div class="s">forecast, field × cohort</div></div>
+    <div class="cell"><div class="v">142</div><div class="l">Citations</div><div class="s">97th pct in cohort</div></div>
+    <div class="cell"><div class="v">27</div><div class="l">Endorsements</div><div class="s">named, ORCID-verified</div></div>
+    <div class="cell"><div class="v">18.4k</div><div class="l">Views</div><div class="s">6.2k full-text / PDF</div></div>
+  </div>
+
+  <div class="grid">
+
+    <!-- ===== MAIN COLUMN ===== -->
+    <div class="main">
+
+      <div class="card">
+        <h2>Abstract</h2>
+        <p style="margin:0;font-size:14px;">Academic publishing bundles four functions — administration, certification, development, and recognition — into a single, slow, gatekeeping step. We document the resulting failures: two or three referees cannot reliably judge importance (inter-rater reliability near 0.3); submission volume is surging under generative AI; and the signals that actually distinguish important work emerge only over years. We argue the crux move is to decouple certification from recognition and to break the constraint of simultaneity. We describe the <b>Academic Ledger</b>, a neutral non-profit record in which work is certified up front and importance accrues over time through measured impact and named, signed endorsement, organized in three tiers — Certified, Refereed, and Canon — and we sketch a stylized two-stage model that makes a low early entry bar optimal under noisy signals and heavy-tailed importance.</p>
+        <div style="margin-top:11px;">
+          <span class="jel">JEL A14</span><span class="jel">JEL I23</span><span class="jel">JEL O31</span><span class="jel">JEL D80</span>
+        </div>
+        <p style="margin:9px 0 0;font-size:12.5px;color:var(--muted);"><b style="color:#333;">Keywords:</b> scholarly publishing · peer review · evaluation · inter-rater reliability · citation dynamics · large language models · mechanism design</p>
+      </div>
+
+      <!-- SCORE CARD -->
+      <div class="card">
+        <h2>Inside the Q<span style="font-style:italic">a</span>L estimate <span class="q">— the signals behind it</span></h2>
+        <div class="score-top">
+          <svg class="gauge" viewBox="0 0 120 120" aria-label="QaL gauge">
+            <circle cx="60" cy="60" r="50" fill="none" stroke="#eee" stroke-width="12"/>
+            <circle cx="60" cy="60" r="50" fill="none" stroke="#1b7837" stroke-width="12"
+                    stroke-linecap="round" stroke-dasharray="301 314" transform="rotate(-90 60 60)"/>
+            <text x="60" y="52" text-anchor="middle" font-size="11" fill="#9a9a9a">QaL</text>
+            <text x="60" y="74" text-anchor="middle" font-size="28" font-weight="800" fill="#1b7837">96</text>
+            <text x="60" y="88" text-anchor="middle" font-size="9" fill="#9a9a9a">90–99</text>
+          </svg>
+          <div>
+            <div class="prob"><b>0.93</b> probability this paper is a top-20% paper in its field-and-year cohort</div>
+            <div class="score-sub" style="margin-top:6px;">97th percentile among the 412 papers in its cohort · momentum <span style="color:var(--green);">▲ rising</span> · last updated 2&nbsp;Jun&nbsp;2026</div>
+            <div class="score-sub" style="margin-top:4px;">Forecast is model-based with uncertainty; the band narrows as impact realizes.</div>
+          </div>
+        </div>
+        <div class="bars">
+          <div class="bar"><div class="k">Citations (field-normalized) <span class="wt">30%</span></div><div class="track"><div class="fill" style="width:88%"></div></div><div class="pct">88</div></div>
+          <div class="bar"><div class="k">Named endorsements <span class="wt">20%</span></div><div class="track"><div class="fill" style="width:82%"></div></div><div class="pct">82</div></div>
+          <div class="bar"><div class="k">Expert panel rating <span class="wt">15%</span></div><div class="track"><div class="fill" style="width:92%"></div></div><div class="pct">92</div></div>
+          <div class="bar"><div class="k">Usage (views, downloads) <span class="wt">15%</span></div><div class="track"><div class="fill" style="width:79%"></div></div><div class="pct">79</div></div>
+          <div class="bar"><div class="k">Cross-field reach <span class="wt">10%</span></div><div class="track"><div class="fill" style="width:71%"></div></div><div class="pct">71</div></div>
+          <div class="bar"><div class="k">Discussion &amp; engagement <span class="wt">10%</span></div><div class="track"><div class="fill" style="width:85%"></div></div><div class="pct">85</div></div>
+        </div>
+        <p class="small" style="margin-top:10px;">Weights are tunable and public; the score is reproducible from the raw signals below. No single number confers Canon — a field panel does, under published criteria, with this dossier in view.</p>
+      </div>
+
+      <!-- FULL METRICS -->
+      <div class="card">
+        <h2>All metrics</h2>
+
+        <div class="grouplbl">Attention &amp; reach</div>
+        <div class="mgrid">
+          <div class="mrow"><span class="k">Abstract views</span><span class="val">18,432</span></div>
+          <div class="mrow"><span class="k">Full-text / PDF downloads</span><span class="val">6,210</span></div>
+          <div class="mrow"><span class="k">Inbound links <small>(syllabi, blogs, news)</small></span><span class="val">53</span></div>
+          <div class="mrow"><span class="k">News &amp; media mentions</span><span class="val">11</span></div>
+          <div class="mrow"><span class="k">Social posts <small>(X, Bluesky, Mastodon)</small></span><span class="val">340</span></div>
+          <div class="mrow"><span class="k">Policy / institutional citations</span><span class="val">4</span></div>
+          <div class="mrow"><span class="k">Reach <small>(countries / institutions)</small></span><span class="val">47 / 213</span></div>
+          <div class="mrow"><span class="k">Altmetric attention score</span><span class="val">128</span></div>
+        </div>
+
+        <div class="grouplbl">Engagement</div>
+        <div class="mgrid">
+          <div class="mrow"><span class="k">Likes / saves</span><span class="val">410</span></div>
+          <div class="mrow"><span class="k">Followers</span><span class="val">96</span></div>
+          <div class="mrow"><span class="k">Comments</span><span class="val">89</span></div>
+          <div class="mrow"><span class="k">Unique discussants</span><span class="val">64</span></div>
+          <div class="mrow"><span class="k">Use in teaching <small>(syllabus inclusions)</small></span><span class="val">22</span></div>
+          <div class="mrow"><span class="k">Use in practice <small>(industry / policy)</small></span><span class="val">7</span></div>
+        </div>
+
+        <div class="grouplbl">Endorsement &amp; expert judgment</div>
+        <div class="mgrid">
+          <div class="mrow"><span class="k">Named endorsements <small>(ORCID-verified)</small></span><span class="val">27</span></div>
+          <div class="mrow"><span class="k">Signed reviews</span><span class="val">5</span></div>
+          <div class="mrow"><span class="k">Expert panel rating</span><span class="val">4.6 / 5</span></div>
+          <div class="mrow"><span class="k">Community reader rating</span><span class="val">4.4 / 5 <small>(n=83)</small></span></div>
+        </div>
+
+        <div class="grouplbl">Scholarly impact</div>
+        <div class="mgrid">
+          <div class="mrow"><span class="k">Citations <small>(total)</small></span><span class="val">142</span></div>
+          <div class="mrow"><span class="k">Citations, last 12 mo.</span><span class="val">61</span></div>
+          <div class="mrow"><span class="k">Field-weighted citation impact</span><span class="val">7.8×</span></div>
+          <div class="mrow"><span class="k">Relative citation ratio <small>(RCR)</small></span><span class="val">5.2</span></div>
+          <div class="mrow"><span class="k">Authority-weighted <small>(PageRank)</small></span><span class="val">93rd pct</span></div>
+          <div class="mrow"><span class="k">Cross-field citation share</span><span class="val">38%</span></div>
+          <div class="mrow"><span class="k">Disruption index <small>(CD₅)</small></span><span class="val">+0.31</span></div>
+          <div class="mrow"><span class="k">Replications <small>(successful / attempted)</small></span><span class="val">2 / 2</span></div>
+        </div>
+
+        <div class="sparkwrap" style="margin-top:14px;">
+          <div class="grouplbl" style="margin-bottom:6px;">Citations by year</div>
+          <svg viewBox="0 0 320 64" width="100%" height="64" preserveAspectRatio="none">
+            <polyline fill="none" stroke="#2166ac" stroke-width="2.5"
+              points="6,58 58,52 110,40 162,30 214,18 266,12 314,6"/>
+            <g fill="#2166ac">
+              <circle cx="6" cy="58" r="2.5"/><circle cx="58" cy="52" r="2.5"/><circle cx="110" cy="40" r="2.5"/>
+              <circle cx="162" cy="30" r="2.5"/><circle cx="214" cy="18" r="2.5"/><circle cx="266" cy="12" r="2.5"/><circle cx="314" cy="6" r="2.5"/>
+            </g>
+          </svg>
+          <div class="small">cumulative · 2026 → 2026 (illustrative); still rising</div>
+        </div>
+      </div>
+
+      <!-- ENDORSEMENTS -->
+      <div class="card">
+        <h2>Endorsements <span class="q">— 27 named, signed, on the record</span></h2>
+        <div class="endorse">
+          <div class="ava">LM</div>
+          <div><div class="nm">L. Marchetti <span style="font-weight:400;color:#999;">· iD verified</span></div>
+            <div class="meta">Professor of Economics, Bocconi · endorsed 14 Apr 2026</div>
+            <div class="qt">"The clearest articulation yet of why certification and recognition should be unbundled."</div></div>
+        </div>
+        <div class="endorse">
+          <div class="ava">RO</div>
+          <div><div class="nm">R. Okafor <span style="font-weight:400;color:#999;">· iD verified</span></div>
+            <div class="meta">Associate Professor of Management, LBS · endorsed 2 May 2026</div>
+            <div class="qt">"The reliability evidence alone should change how committees read CVs."</div></div>
+        </div>
+        <div class="endorse">
+          <div class="ava">+25</div>
+          <div><div class="nm">25 more endorsers</div>
+            <div class="meta">across economics, operations, sociology, and information systems</div></div>
+        </div>
+      </div>
+
+      <!-- DISCUSSION -->
+      <div class="card">
+        <h2>Discussion <span class="q">— 89 comments · 64 discussants</span></h2>
+        <div class="cmt">
+          <div class="h"><b>A. Novak</b> · Stanford · 3 wk ago</div>
+          <div class="bd">Does the two-stage model assume the importance signal is stationary? Sleeping beauties seem to violate that.</div>
+          <div class="reply" style="margin-top:8px;">
+            <div class="h"><b>K. Ulrich</b> <span style="color:var(--green);">· author</span> · 3 wk ago</div>
+            <div class="bd">It doesn't require stationarity — late Canon review is precisely what catches the late bloomers.</div>
+          </div>
+        </div>
+        <div class="cmt">
+          <div class="h"><b>J. Park</b> · MIT · 1 mo ago</div>
+          <div class="bd">Worth contrasting the ensemble-LLM evidence with the single-reviewer baseline more explicitly.</div>
+        </div>
+      </div>
+
+      <!-- VERSIONS -->
+      <div class="card">
+        <h2>Submission history</h2>
+        <div class="ver"><span class="tag">v2</span><span class="d">28 May 2026</span><span>Added Section 5 (stylized two-stage model); expanded reliability evidence. <span style="color:var(--blue);">diff</span></span></div>
+        <div class="ver"><span class="tag">v1</span><span class="d">12 Mar 2026</span><span>Initial submission — certified within 2 days. <span style="color:var(--blue);">diff</span></span></div>
+        <p class="small" style="margin:8px 0 0;">Comments: 28 pages, 5 figures. Seminar version prepared for the OID Department, 9 July 2026.</p>
+      </div>
+
+    </div>
+
+    <!-- ===== SIDEBAR ===== -->
+    <div class="side">
+
+      <div class="card">
+        <h3>Status</h3>
+        <div class="timeline">
+          <div class="tl"><span class="dot g"></span><div><b>Certified</b> · 14 Mar 2026<br><span class="small">ORCID-authenticated, screened, archived</span></div></div>
+          <div class="tl"><span class="dot b"></span><div><b>Refereed</b> · 4 Jun 2026<br><span class="small">5 signed reviews, 27 endorsements</span></div></div>
+          <div class="tl"><span class="dot y"></span><div><b>Canon</b> · 2 May 2027<br><span class="small">conferred by field panel</span></div></div>
+          <div class="tl"><span class="dot o"></span><div><span style="color:#888;">Published version</span><br><span class="small"><i>Quantitative Science Studies</i> 7(2) (2026) — Ⓟ</span></div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Identifiers</h3>
+        <div class="kv"><span class="k">Ledger ID</span> &nbsp;<span class="v">aldg:2026.0427</span></div>
+        <div class="kv"><span class="k">DOI</span> &nbsp;<span class="v">10.59312/aldg.2026.0427</span></div>
+        <div class="kv"><span class="k">Version</span> &nbsp;<span class="v">v2 (current)</span></div>
+        <div class="kv"><span class="k">License</span> &nbsp;<span class="v">CC BY 4.0</span></div>
+        <div class="kv"><span class="k">Language</span> &nbsp;<span class="v">English</span></div>
+      </div>
+
+      <div class="card">
+        <h3>Classification</h3>
+        <div class="kv"><span class="k">Primary field</span> &nbsp;<span class="v">Operations &amp; Information</span></div>
+        <div class="kv"><span class="k">Secondary</span> &nbsp;<span class="v">Economics of science</span></div>
+        <div style="margin-top:7px;">
+          <span class="jel">A14</span><span class="jel">I23</span><span class="jel">O31</span><span class="jel">D80</span>
+        </div>
+        <div class="small" style="margin-top:6px;">JEL codes · OpenAlex topics auto-tagged</div>
+      </div>
+
+      <div class="card">
+        <h3>Integrity &amp; openness</h3>
+        <div class="kv"><span class="k">Data &amp; code</span> &nbsp;<span class="v"><a href="#">repository ↗</a> (DOI-linked)</span></div>
+        <div class="kv"><span class="k">Funding</span> &nbsp;<span class="v">Mack Institute (Wharton)</span></div>
+        <div class="kv"><span class="k">Conflicts</span> &nbsp;<span class="v">None declared</span></div>
+        <div class="kv"><span class="k">AI collaboration</span> &nbsp;<span class="v">Integral — ideation, literature synthesis, analysis, and drafting; all outputs author-verified</span></div>
+        <div class="kv"><span class="k">Ethics / IRB</span> &nbsp;<span class="v">N/A (no human subjects)</span></div>
+      </div>
+
+      <div class="card">
+        <h3>Also available at</h3>
+        <div class="kv"><a href="#">SSRN preprint ↗</a></div>
+        <div class="kv"><a href="#">arXiv:2603.04270 ↗</a></div>
+        <div class="kv"><a href="#"><i>Quantitative Science Studies</i> 7(2) (2026) ↗</a> <span class="pub" style="width:17px;height:17px;font-size:10px;vertical-align:middle;">P</span></div>
+      </div>
+
+      <div class="card">
+        <h3>Cite &amp; export</h3>
+        <div class="kv"><a href="#">Copy citation</a> · <a href="#">BibTeX</a></div>
+        <div class="kv"><a href="#">RIS</a> · <a href="#">EndNote</a> · <a href="#">CSL-JSON</a></div>
+        <div class="kv"><a href="#">References (61)</a> · <a href="#">Cited by (142)</a></div>
+      </div>
+
+    </div>
+  </div>
+
+  <footer><span class="wh">academic Ledger is hosted at the Wharton School of the University of Pennsylvania.</span> An independent, non-commercial record of scholarship. &nbsp;·&nbsp; Mockup; figures and names are illustrative.</footer>
+</div>
+</body>
+</html>
