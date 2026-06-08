@@ -232,26 +232,30 @@ def main():
     if not db:
         raise SystemExit("DATABASE_URL not set")
     import psycopg
-    conn = psycopg.connect(db)
-    if args.oaids:
-        oaids = [s.strip() for s in args.oaids.split(",") if s.strip()]
-    else:
-        oaids = _target_oaids(conn, args.targets, args.per_community)
-    print(f"computing synthetic field for {len(oaids)} papers", flush=True)
+    with psycopg.connect(db) as c0, c0.cursor() as cur:
+        if args.oaids:
+            oaids = [s.strip() for s in args.oaids.split(",") if s.strip()]
+        else:
+            oaids = _target_oaids(c0, args.targets, args.per_community)
+        # resume: skip papers already computed (each paper is an expensive OpenAlex run)
+        cur.execute("SELECT oaid FROM synthetic_field")
+        done = {r[0] for r in cur.fetchall()}
+    todo = [o for o in oaids if o not in done]
+    print(f"computing synthetic field for {len(todo)} papers "
+          f"({len(done)} already done)", flush=True)
     built = 0
-    for i, oaid in enumerate(oaids, 1):
+    for i, oaid in enumerate(todo, 1):
         try:
             rec = synthetic_field(oaid)
         except requests.HTTPError as e:
             print(f"  [{i}] {oaid}: HTTP {e}", flush=True)
             continue
         if rec:
-            _upsert(conn, rec)
+            _upsert(db, rec)   # fresh short-lived connection per upsert (Neon drops idle ones)
             built += 1
         if i % 25 == 0:
-            print(f"  [{i}/{len(oaids)}] built={built}", flush=True)
-    print(f"done: {built} synthetic-field records")
-    conn.close()
+            print(f"  [{i}/{len(todo)}] built={built}", flush=True)
+    print(f"done: {built} synthetic-field records this run")
 
 
 def _target_oaids(conn, mode, per_community):
@@ -270,8 +274,9 @@ def _target_oaids(conn, mode, per_community):
     return []
 
 
-def _upsert(conn, rec):
-    with conn.cursor() as cur:
+def _upsert(db, rec):
+    import psycopg
+    with psycopg.connect(db) as conn, conn.cursor() as cur:
         cur.execute(
             """INSERT INTO synthetic_field
                  (oaid,obs_percentile,p0,lam,n_refs,n_citers,weights,snapshot)
@@ -282,7 +287,7 @@ def _upsert(conn, rec):
                  snapshot=EXCLUDED.snapshot, computed_at=now()""",
             (rec["oaid"], rec["obs_percentile"], rec["p0"], rec["lam"], rec["n_refs"],
              rec["n_citers"], json.dumps(rec["weights"]), SNAPSHOT))
-    conn.commit()
+    # the connection context manager commits + closes on exit
 
 
 if __name__ == "__main__":
