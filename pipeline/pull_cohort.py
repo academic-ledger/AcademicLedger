@@ -51,7 +51,8 @@ def fetch_cohort(subfield, year, sample=0, seed=42):
     if sample and sample > 0:
         n = min(int(sample), 10000)
         per = 200
-        for page in range(1, (n // per) + 2):
+        pages = (n + per - 1) // per   # ceil; OpenAlex caps basic paging at page*per <= 10000
+        for page in range(1, pages + 1):
             params = {"filter": flt, "select": SELECT, "sample": n, "seed": seed,
                       "per-page": per, "page": page}
             if MAILTO: params["mailto"] = MAILTO
