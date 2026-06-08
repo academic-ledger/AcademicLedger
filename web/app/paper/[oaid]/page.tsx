@@ -149,7 +149,10 @@ export default async function PaperPage({ params }: { params: { oaid: string } }
             </div>
             <div className="cell">
               <div className="v">{rec.obs_percentile != null ? `${rec.obs_percentile}%` : "—"}</div>
-              <div className="l">Observed percentile (field &amp; vintage)</div>
+              <div className="l">
+                Observed percentile{" "}
+                {rec.reference_class?.kind === "neighborhood" ? "(co-citation neighborhood)" : "(field & vintage)"}
+              </div>
             </div>
             <div className="cell">
               <div className="v">{rec.evidence.is_oa ? "Open" : "Closed"}</div>
@@ -164,8 +167,8 @@ export default async function PaperPage({ params }: { params: { oaid: string } }
               <div className="l">Age since posting</div>
             </div>
             <div className="cell">
-              <div className="v">{rec.reference_class?.field_label || "—"}</div>
-              <div className="l">Detected field</div>
+              <div className="v">{rec.field || rec.subfield || "—"}</div>
+              <div className="l">Detected field (OpenAlex)</div>
             </div>
           </div>
         </div>
