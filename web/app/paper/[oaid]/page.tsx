@@ -1,0 +1,201 @@
+import Brand from "@/components/Brand";
+import { getQalRecord } from "@/lib/queries";
+
+export const dynamic = "force-dynamic";
+
+const BUCKET_DEFS = [
+  { key: "lt50", xl: "<50", lo: 0, hi: 50 },
+  { key: "b50_75", xl: "50–75", lo: 50, hi: 75 },
+  { key: "b75_90", xl: "75–90", lo: 75, hi: 90 },
+  { key: "b90_95", xl: "90–95", lo: 90, hi: 95 },
+  { key: "b95_99", xl: "95–99", lo: 95, hi: 99 },
+  { key: "b99_100", xl: "99–100", lo: 99, hi: 100 },
+] as const;
+
+export default async function PaperPage({ params }: { params: { oaid: string } }) {
+  const rec: any = await getQalRecord(params.oaid);
+  if (!rec) {
+    return (
+      <>
+        <Brand />
+        <div className="notfound">No record for {params.oaid}.</div>
+      </>
+    );
+  }
+
+  const calibrated = rec.calibrated && rec.qal;
+  const age = rec.year ? Math.max(1, 2026 - rec.year + 1) : null;
+  const src = rec.doi || `https://openalex.org/${rec.oaid}`;
+
+  return (
+    <>
+      <Brand />
+      <div className="wrap-paper">
+        <h1 className="title">{rec.title}</h1>
+        {rec.authors && <p className="authors">{rec.authors}</p>}
+        <p className="meta">
+          {rec.venue && <span className="pill">{rec.venue}</span>}
+          {rec.reference_class?.field_label && <span className="pill">{rec.reference_class.field_label}</span>}
+          {rec.year && (
+            <>
+              {" "}
+              Posted <b>{rec.year}</b>
+              {age ? ` · ${age} years on the record` : ""}
+            </>
+          )}
+        </p>
+
+        {/* ===== QaL HERO ===== */}
+        <div className="qhero">
+          <div>
+            <div className="qal-tag">Quality on the academic Ledger</div>
+            <div className="qal-name">
+              Q<span className="a">a</span>L
+            </div>
+            {calibrated ? (
+              <>
+                <div className="qal-est">
+                  <span className="qal-lo" title="lower bound, 90% interval">
+                    {rec.qal.ci90[0]}
+                  </span>
+                  <span className="qal-pt" title="point estimate">
+                    {rec.qal.point}
+                  </span>
+                  <span className="qal-hi" title="upper bound, 90% interval">
+                    {rec.qal.ci90[1]}
+                  </span>
+                </div>
+                <div className="qal-cap">
+                  eventual percentile · point estimate with 90% interval · <em>illustrative</em>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="qal-pending">calibration-pending</div>
+                <div className="qal-cap">
+                  Observed standing is{" "}
+                  <b>{rec.obs_percentile != null ? `${rec.obs_percentile}th percentile` : "—"}</b> in
+                  field &amp; vintage. A calibrated QaL forecast is shown once this community passes the
+                  Layer-B back-test.
+                </div>
+              </>
+            )}
+            <div className="qal-rc">
+              <b>Reference class:</b> co-citation neighborhood
+              <br />
+              (the papers this one travels with) · the headline view
+            </div>
+          </div>
+          <div>
+            {calibrated ? (
+              <>
+                <div className="bkt">
+                  {BUCKET_DEFS.map((d) => {
+                    const val: number = rec.qal.buckets[d.key] ?? 0;
+                    const maxVal = Math.max(...BUCKET_DEFS.map((b) => rec.qal.buckets[b.key] ?? 0), 1);
+                    const h = Math.max(2, Math.round((val / maxVal) * 128));
+                    const hot = rec.qal.point >= d.lo && rec.qal.point < (d.hi === 100 ? 101 : d.hi);
+                    return (
+                      <div className={`col ${hot ? "hot" : ""}`} key={d.key}>
+                        <div className="p">{val}%</div>
+                        <div className="barv" style={{ height: h }} />
+                        <div className="xl">{d.xl}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="bkt-cap">
+                  probability of landing in each NSF percentile class (top 50 / 25 / 10 / 5 / 1%)
+                </div>
+              </>
+            ) : (
+              <div className="bkt-cap" style={{ textAlign: "left" }}>
+                The NSF-bucket probability forecast appears for papers in a calibrated community.
+              </div>
+            )}
+          </div>
+        </div>
+        {calibrated && (
+          <p className="qal-cap" style={{ margin: "-4px 2px 0" }}>
+            Decided late: the interval is wide early and narrows as evidence accrues.
+          </p>
+        )}
+
+        {/* ===== EVIDENCE ===== */}
+        <div className="card">
+          <h2>
+            Evidence behind the estimate <span className="src">— pulled from OpenAlex</span>
+          </h2>
+          <div className="grid">
+            <div className="cell">
+              <div className="v">{(rec.evidence.cited_by_count || 0).toLocaleString()}</div>
+              <div className="l">Citations (total)</div>
+            </div>
+            <div className="cell">
+              <div className="v">{rec.obs_percentile != null ? `${rec.obs_percentile}%` : "—"}</div>
+              <div className="l">Observed percentile (field &amp; vintage)</div>
+            </div>
+            <div className="cell">
+              <div className="v">{rec.evidence.is_oa ? "Open" : "Closed"}</div>
+              <div className="l">Access</div>
+            </div>
+            <div className="cell">
+              <div className="v">{rec.evidence.is_retracted ? "Retracted" : "None"}</div>
+              <div className="l">Retractions / corrections</div>
+            </div>
+            <div className="cell">
+              <div className="v">{age ? `${age} yr` : "—"}</div>
+              <div className="l">Age since posting</div>
+            </div>
+            <div className="cell">
+              <div className="v">{rec.reference_class?.field_label || "—"}</div>
+              <div className="l">Detected field</div>
+            </div>
+          </div>
+        </div>
+
+        {/* ===== LINKS ===== */}
+        <div className="card">
+          <h2>
+            Read &amp; cite <span className="src">— the Ledger points to the record; it does not host it</span>
+          </h2>
+          <div className="links">
+            {rec.doi && (
+              <a href={rec.doi}>
+                Read at source <span className="arr">↗</span>
+              </a>
+            )}
+            {rec.doi && (
+              <a href={rec.doi}>
+                {rec.doi.replace("https://doi.org/", "DOI ")} <span className="arr">↗</span>
+              </a>
+            )}
+            <a href={`https://openalex.org/${rec.oaid}`}>
+              OpenAlex record <span className="arr">↗</span>
+            </a>
+            <a href={`https://scholar.google.com/scholar?q=${encodeURIComponent(rec.title)}`}>
+              Google Scholar <span className="arr">↗</span>
+            </a>
+            <a href={`https://openalex.org/works?filter=cites:${rec.oaid}`} target="_blank" rel="noopener noreferrer">
+              Cited by ({(rec.evidence.cited_by_count || 0).toLocaleString()}) ↗
+            </a>
+          </div>
+        </div>
+
+        <p className="statusline">
+          <span className="dot" />
+          <b>Status:</b> indexed and QaL-estimated. Refereed and Canon tiers, endorsements, and
+          discussion require the community layer and are not part of this MVP.
+        </p>
+
+        <footer>
+          <span className="wh">academic Ledger is an independent, non-commercial record of scholarship.</span>{" "}
+          QaL computed from open public data (OpenAlex, OpenCitations, Crossref, ORCID); method
+          version {rec.method_version}; data snapshot {rec.data_snapshot}. Prototype: metadata and
+          observed percentiles are real; QaL point estimates and the co-citation neighborhood are
+          illustrative pending Level 0 calibration.
+        </footer>
+      </div>
+    </>
+  );
+}

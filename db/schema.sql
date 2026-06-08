@@ -67,5 +67,13 @@ CREATE TABLE IF NOT EXISTS authors (
   affiliation TEXT,
   works_count INT,
   cited_by_count INT,
+  seed        TEXT[],                            -- seed subfields this author overlaps (display only)
   fetched_at  TIMESTAMPTZ DEFAULT now()
+);
+
+-- Author <-> work linkage (clustered by OpenAlex author id; imperfect, see author page note).
+CREATE TABLE IF NOT EXISTS author_works (
+  author_oaid TEXT REFERENCES authors(oaid),
+  work_oaid   TEXT REFERENCES works(oaid),
+  PRIMARY KEY (author_oaid, work_oaid)
 );
