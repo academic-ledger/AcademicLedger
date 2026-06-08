@@ -53,7 +53,8 @@ CREATE TABLE IF NOT EXISTS qal_records (
   qal_point       NUMERIC,                       -- null if not calibrated
   qal_ci_lo       NUMERIC,
   qal_ci_hi       NUMERIC,
-  class_prob      JSONB,                          -- {ge50,ge75,ge90,ge95,ge99}
+  class_prob      JSONB,                          -- {ge50,ge75,ge90,ge95,ge99} (official)
+  metrics         JSONB,                          -- both reference classes: {field:{obs,calibrated,point,ci_lo,ci_hi,class_prob}, neighborhood:{...,n}, official:'neighborhood'|'field'}
   method_version  TEXT,
   data_snapshot   TEXT,
   computed_at     TIMESTAMPTZ DEFAULT now()

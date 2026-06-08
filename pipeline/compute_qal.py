@@ -109,13 +109,14 @@ def main():
 
     UPSERT = """INSERT INTO qal_records
                  (oaid, reference_class, obs_percentile, calibrated,
-                  qal_point, qal_ci_lo, qal_ci_hi, class_prob, method_version, data_snapshot)
-               VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                  qal_point, qal_ci_lo, qal_ci_hi, class_prob, metrics, method_version, data_snapshot)
+               VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
                ON CONFLICT (oaid) DO UPDATE SET
                  reference_class=EXCLUDED.reference_class, obs_percentile=EXCLUDED.obs_percentile,
                  calibrated=EXCLUDED.calibrated, qal_point=EXCLUDED.qal_point,
                  qal_ci_lo=EXCLUDED.qal_ci_lo, qal_ci_hi=EXCLUDED.qal_ci_hi,
-                 class_prob=EXCLUDED.class_prob, method_version=EXCLUDED.method_version,
+                 class_prob=EXCLUDED.class_prob, metrics=EXCLUDED.metrics,
+                 method_version=EXCLUDED.method_version,
                  data_snapshot=EXCLUDED.data_snapshot, computed_at=now()"""
     batch = []
 
@@ -123,6 +124,23 @@ def main():
         if batch:
             wcur.executemany(UPSERT, batch)
             batch.clear()
+
+    def metric(obs, age):
+        """A QaL computation from one observed percentile, via the (field-fit) calibration."""
+        if obs is None:
+            return None
+        obs_bin = min(90, int(obs // 10) * 10)
+        cell = calib.get((sid, age, obs_bin)) if sid in seed else None
+        if cell:
+            return {
+                "obs": obs, "calibrated": True,
+                "point": round(cell["median"], 1),
+                "ci_lo": round(cell["ci_lo"], 1), "ci_hi": round(cell["ci_hi"], 1),
+                "class_prob": {f"ge{c}": round(float(cell[f"p_ge{c}"]), 4)
+                               for c in (50, 75, 90, 95, 99)},
+            }
+        return {"obs": obs, "calibrated": False, "point": None,
+                "ci_lo": None, "ci_hi": None, "class_prob": None}
 
     with conn.cursor() as wcur:
         for oaid, sid, year, cites in rows:
@@ -135,42 +153,41 @@ def main():
             field_n = cohorts[key][0] if has_cohort else None
             age = max(1, min(H - 1, as_of - year))
 
-            # Official reference class = co-citation neighborhood when cached; else the
-            # within-field percentile is the stand-in (labeled), per §3's thin-data fallback.
+            # Compute BOTH reference classes (U2): field-cohort and co-citation neighborhood.
+            field_m = metric(field_obs, age)
+            neigh_m = None
             if has_neigh:
                 n_nbr, neigh_obs = neigh[oaid]
-                obs = neigh_obs
+                neigh_m = metric(neigh_obs, age)
+                neigh_m["n"] = n_nbr
+
+            # Official = co-citation neighborhood when present, else the field stand-in (§3).
+            official = "neighborhood" if has_neigh else "field"
+            off = neigh_m if has_neigh else field_m
+            # Stored metrics are lean (point + interval + obs); the bulky class_prob is kept
+            # only once, in the top-level column, for the official metric (paper-page hero).
+            lean = lambda m: None if m is None else {k: m[k] for k in m if k != "class_prob"}
+            metrics = {"field": lean(field_m), "neighborhood": lean(neigh_m), "official": official}
+
+            if has_neigh:
                 ref = {"field": "co-citation-neighborhood", "field_label": "co-citation neighborhood",
-                       "kind": "neighborhood", "vintage_year": year, "n": n_nbr,
+                       "kind": "neighborhood", "vintage_year": year, "n": neigh_m["n"],
                        "field_percentile": field_obs}
             else:
-                obs = field_obs
                 ref = {"field": f"subfields/{sid}", "field_label": labels.get(sid),
                        "kind": "field", "vintage_year": year, "n": field_n}
-            obs_bin = min(90, int(obs // 10) * 10)
 
-            cell = calib.get((sid, age, obs_bin)) if sid in seed else None
-            if cell:
-                qal_point = round(cell["median"], 1)
-                ci_lo = round(cell["ci_lo"], 1)
-                ci_hi = round(cell["ci_hi"], 1)
-                class_prob = {
-                    "ge50": round(float(cell["p_ge50"]), 4),
-                    "ge75": round(float(cell["p_ge75"]), 4),
-                    "ge90": round(float(cell["p_ge90"]), 4),
-                    "ge95": round(float(cell["p_ge95"]), 4),
-                    "ge99": round(float(cell["p_ge99"]), 4),
-                }
-                calibrated = True
+            obs = off["obs"]
+            calibrated = off["calibrated"]
+            if calibrated:
                 n_calibrated += 1
-            else:
-                qal_point = ci_lo = ci_hi = class_prob = None
-                calibrated = False
+            qal_point, ci_lo, ci_hi = off["point"], off["ci_lo"], off["ci_hi"]
+            class_prob = off["class_prob"]
 
             batch.append(
                 (oaid, json.dumps(ref), obs, calibrated, qal_point, ci_lo, ci_hi,
-                 json.dumps(class_prob) if class_prob else None, model_version,
-                 snapshot or "latest")
+                 json.dumps(class_prob) if class_prob else None, json.dumps(metrics),
+                 model_version, snapshot or "latest")
             )
             n_written += 1
             if len(batch) >= 1000:

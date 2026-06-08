@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import type { RecordItem } from "@/lib/types";
+import type { MetricView, RecordItem } from "@/lib/types";
 
-type SortKey = "_r" | "title" | "subfield" | "year" | "cites" | "obs" | "qal";
+type SortKey = "_r" | "title" | "subfield" | "year" | "cites" | "qalField" | "qalNeigh";
 type ColType = "rank" | "str" | "num";
 
 const COLS: { k: SortKey; t: string; cls?: string; type: ColType }[] = [
@@ -13,14 +13,28 @@ const COLS: { k: SortKey; t: string; cls?: string; type: ColType }[] = [
   { k: "subfield", t: "Field", type: "str" },
   { k: "year", t: "Yr", cls: "num", type: "num" },
   { k: "cites", t: "Cites", cls: "num", type: "num" },
-  { k: "obs", t: "Observed %", cls: "num", type: "num" },
-  { k: "qal", t: "QaL (eventual %)", cls: "num", type: "num" },
+  { k: "qalField", t: "QaL · field", cls: "num", type: "num" },
+  { k: "qalNeigh", t: "QaL · neighborhood ★", cls: "num", type: "num" },
 ];
 
 function sortVal(w: RecordItem, key: SortKey): number | string {
-  if (key === "qal") return w.qal ? w.qal.point : -1;
+  if (key === "qalField") return w.metrics?.field?.qal?.point ?? -1;
+  if (key === "qalNeigh") return w.metrics?.neighborhood?.qal?.point ?? -1;
   const v = (w as any)[key];
   return v ?? -1;
+}
+
+function QalCell({ m, official }: { m: MetricView | null | undefined; official: boolean }) {
+  if (!m) return <span className="qdash">—</span>; // this reference class doesn't apply
+  if (!m.qal) return <span className="pend">pending</span>;
+  return (
+    <>
+      <span className={official ? "pt" : "pt2"}>{m.qal.point}</span>{" "}
+      <span className="ci">
+        [{m.qal.lo}–{m.qal.hi}]
+      </span>
+    </>
+  );
 }
 
 export default function RecordTable({
@@ -104,27 +118,14 @@ export default function RecordTable({
                 </td>
                 <td className="num">{w.year || ""}</td>
                 <td className="num">{(w.cites || 0).toLocaleString()}</td>
-                <td className="num">
-                  {w.obs == null ? (
-                    "—"
-                  ) : (
-                    <span className="obsv">
-                      {w.obs}
-                      <span className="pc">%</span>
-                    </span>
-                  )}
+                <td className="num qcell">
+                  <QalCell m={w.metrics?.field} official={w.metrics?.official === "field"} />
                 </td>
                 <td className="num qcell">
-                  {w.calibrated && w.qal ? (
-                    <>
-                      <span className="pt">{w.qal.point}</span>{" "}
-                      <span className="ci">
-                        [{w.qal.lo}–{w.qal.hi}]
-                      </span>
-                    </>
-                  ) : (
-                    <span className="pend">calibration-pending</span>
-                  )}
+                  <QalCell
+                    m={w.metrics?.neighborhood}
+                    official={w.metrics?.official === "neighborhood"}
+                  />
                 </td>
               </tr>
             );

@@ -1,5 +1,19 @@
 import type { QalPoint } from "./qal";
 
+// One reference-class view of a paper (field cohort OR co-citation neighborhood).
+export interface MetricView {
+  obs: number;
+  calibrated: boolean;
+  qal: QalPoint | null; // null when calibration-pending
+  n?: number; // neighborhood size (neighborhood metric only)
+}
+
+export interface Metrics {
+  field: MetricView | null;
+  neighborhood: MetricView | null;
+  official: "field" | "neighborhood";
+}
+
 // One row of the shared record list (explore + author tables consume this).
 export interface RecordItem {
   oaid: string;
@@ -14,9 +28,10 @@ export interface RecordItem {
   oa: boolean;
   doi: string | null;
   retracted: boolean;
-  obs: number | null; // observed within-(subfield,year) percentile
+  obs: number | null; // official observed percentile (neighborhood when present, else field)
   calibrated: boolean;
-  qal: QalPoint | null; // illustrative; null when calibration-pending
+  qal: QalPoint | null; // official QaL; null when calibration-pending
+  metrics: Metrics | null; // both reference classes (field + co-citation neighborhood)
 }
 
 export interface AuthorHeader {

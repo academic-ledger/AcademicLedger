@@ -54,8 +54,10 @@ td.rank { color: #aab0bb; text-align: right; width: 30px; }
 .seeddot { color: var(--green); background: #f0f8f2; border: 1px solid #bfe0c9; }
 .penddot { color: var(--amber); background: #fff8e6; border: 1px solid #e6cf7a; }
 .qcell .pt { font-weight: 800; color: var(--green); font-size: 16px; font-variant-numeric: tabular-nums; }
+.qcell .pt2 { font-weight: 700; color: #6b7a90; font-size: 15px; font-variant-numeric: tabular-nums; }
 .qcell .ci { color: #aab0bb; font-size: 11.5px; font-variant-numeric: tabular-nums; }
 .qcell .pend { color: var(--amber); font-size: 12px; }
+.qcell .qdash { color: #c4cad3; }
 .obsv { color: var(--navy); font-weight: 700; font-variant-numeric: tabular-nums; }
 .obsv .pc { color: #aab0bb; font-weight: 500; font-size: 11px; }
 

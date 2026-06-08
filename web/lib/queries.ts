@@ -1,6 +1,25 @@
 import { query } from "./db";
-import type { AuthorPayload, RecordItem } from "./types";
+import type { AuthorPayload, Metrics, MetricView, RecordItem } from "./types";
 import { buckets, classProb, type QalPoint } from "./qal";
+
+function toMetric(m: any): MetricView | null {
+  if (!m) return null;
+  return {
+    obs: Number(m.obs),
+    calibrated: !!m.calibrated,
+    n: m.n != null ? Number(m.n) : undefined,
+    qal: m.point != null ? { point: Number(m.point), lo: Number(m.ci_lo), hi: Number(m.ci_hi) } : null,
+  };
+}
+
+function toMetrics(raw: any): Metrics | null {
+  if (!raw) return null;
+  return {
+    field: toMetric(raw.field),
+    neighborhood: toMetric(raw.neighborhood),
+    official: raw.official === "neighborhood" ? "neighborhood" : "field",
+  };
+}
 
 // The seed subfields covering the OID department (QaL_spec.md §5).
 export const SEED_SUBFIELDS = ["1803", "1802", "1800"];
@@ -24,7 +43,8 @@ const RECORD_SELECT = `
          q.qal_ci_lo        as qal_ci_lo,
          q.qal_ci_hi        as qal_ci_hi,
          q.reference_class  as reference_class,
-         q.class_prob       as class_prob
+         q.class_prob       as class_prob,
+         q.metrics          as metrics
   from works w
   left join qal_records q on q.oaid = w.oaid
 `;
@@ -50,6 +70,7 @@ function mapRow(r: any): RecordItem {
     obs: r.obs != null ? Number(r.obs) : null,
     calibrated: !!r.calibrated,
     qal,
+    metrics: toMetrics(r.metrics),
   };
 }
 

@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { RecordItem } from "@/lib/types";
 import RecordTable from "./RecordTable";
 
-type Sort = "qal" | "cites" | "year";
+type Sort = "qalField" | "qalNeigh" | "cites" | "year";
 
 export default function ExploreClient() {
   const [all, setAll] = useState<RecordItem[]>([]);
@@ -13,8 +13,7 @@ export default function ExploreClient() {
   const [field, setField] = useState(""); // subfield label
   const [year, setYear] = useState(0);
   const [calOnly, setCalOnly] = useState(false);
-  const [rc, setRc] = useState<"neigh" | "field">("neigh");
-  const [sort, setSort] = useState<Sort>("qal");
+  const [sort, setSort] = useState<Sort>("qalField");
 
   useEffect(() => {
     fetch("/api/explore?sort=qal&limit=1000")
@@ -45,7 +44,15 @@ export default function ExploreClient() {
     });
   }, [all, q, field, year, calOnly]);
 
-  const sortKey = sort === "cites" ? "cites" : sort === "year" ? "year" : "qal";
+  const sortKey = sort; // RecordTable understands qalField | qalNeigh | cites | year
+  const sortLabel =
+    sort === "cites"
+      ? "Cites"
+      : sort === "year"
+      ? "Yr"
+      : sort === "qalNeigh"
+      ? "QaL · neighborhood"
+      : "QaL · field";
 
   return (
     <div className="wrap-explore">
@@ -88,13 +95,6 @@ export default function ExploreClient() {
             ))}
           </select>
         </label>
-        <label>
-          Reference class
-          <select value={rc} onChange={(e) => setRc(e.target.value as "neigh" | "field")}>
-            <option value="neigh">Co-citation neighborhood (official)</option>
-            <option value="field">Detected field (exploration)</option>
-          </select>
-        </label>
         <label className="chk">
           <input type="checkbox" checked={calOnly} onChange={(e) => setCalOnly(e.target.checked)} />{" "}
           Calibrated only
@@ -114,7 +114,7 @@ export default function ExploreClient() {
             onClick={() => {
               setField(sf);
               setCalOnly(true);
-              setSort("qal");
+              setSort("qalNeigh");
             }}
           >
             Top QaL · {sf.replace("Management Science & OR", "MS&OR").replace("Information Systems & Management", "Info Systems").replace("General Decision Sciences", "Decision Sciences")}
@@ -123,43 +123,35 @@ export default function ExploreClient() {
         <span className="pl" style={{ marginLeft: 6 }}>
           Sort
         </span>
-        <button onClick={() => setSort("qal")}>By QaL</button>
+        <button onClick={() => setSort("qalNeigh")}>QaL · neighborhood ★</button>
+        <button onClick={() => setSort("qalField")}>QaL · field</button>
         <button onClick={() => setSort("cites")}>Most cited</button>
         <button onClick={() => setSort("year")}>Newest</button>
       </div>
 
       <p className="rcnote">
-        {rc === "neigh" ? (
-          <>
-            Reference class: <b>co-citation neighborhood</b> (official). In this prototype the figure
-            shown is the within-detected-field percentile as a stand-in for the neighborhood.
-          </>
-        ) : (
-          <>
-            Reference class: <b>detected field</b> — exploration only; the official QaL is fixed to
-            the co-citation neighborhood to prevent reference-class shopping.
-          </>
-        )}
+        Both reference classes are shown: <b>QaL · field</b> (within detected field &amp; vintage) and{" "}
+        <b>QaL · neighborhood ★</b> (the co-citation neighborhood — the <b>official</b> class, computed
+        for the prefilled set; a "—" means it isn't computed yet for that paper). Click any column to
+        re-sort; the official number stays the neighborhood one. Divergence between the two flags a
+        field-sensitive paper and is itself information.
       </p>
 
       <div className="count">
         {loading
           ? "Loading records…"
-          : `${filtered.length} of ${all.length} records · sorted by ${
-              sort === "qal" ? "QaL (eventual %)" : sort === "cites" ? "Cites" : "Yr"
-            } ↓`}
+          : `${filtered.length} of ${all.length} records · sorted by ${sortLabel} ↓`}
       </div>
 
       <RecordTable key={sortKey} records={filtered} initialSortKey={sortKey} initialSortDir={-1} />
 
       <footer>
         <span className="wh">academic Ledger</span> · explore view, Level 0 prototype. Records,
-        citations, fields and open-access status from OpenAlex (CC0); observed percentiles are exact
-        within-(subfield, year) standing. The official reference class is the co-citation
-        neighborhood; in this prototype the displayed standing is the within-detected-field
-        percentile as a stand-in, and QaL forecast intervals are <em>illustrative pending
-        calibration</em> (QaL_spec.md). The official number is fixed; the reference-class selector is
-        for exploration only.
+        citations, fields and open-access status from OpenAlex (CC0). Two reference classes are shown
+        side by side: the within-(subfield, year) field percentile and the co-citation neighborhood
+        (RCR); the <b>official</b> number is the neighborhood, fixed to prevent reference-class
+        shopping, with column sorting for exploration. QaL forecast intervals are <em>illustrative
+        pending calibration</em>, and the calibration mapping is currently field-based (QaL_spec.md).
       </footer>
     </div>
   );
