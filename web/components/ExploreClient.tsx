@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { RecordItem } from "@/lib/types";
 import RecordTable from "./RecordTable";
+import { SkeletonTable } from "./Skeleton";
 
 type Sort = "qalField" | "qalSynth" | "cites" | "year";
 
@@ -139,12 +140,21 @@ export default function ExploreClient() {
       </p>
 
       <div className="count">
-        {loading
-          ? "Loading records…"
-          : `${filtered.length} of ${all.length} records · sorted by ${sortLabel} ↓`}
+        {loading ? (
+          <>
+            <span className="spin" />
+            Loading records…
+          </>
+        ) : (
+          `${filtered.length} of ${all.length} records · sorted by ${sortLabel} ↓`
+        )}
       </div>
 
-      <RecordTable key={sortKey} records={filtered} initialSortKey={sortKey} initialSortDir={-1} />
+      {loading ? (
+        <SkeletonTable rows={12} />
+      ) : (
+        <RecordTable key={sortKey} records={filtered} initialSortKey={sortKey} initialSortDir={-1} />
+      )}
 
       <footer>
         <span className="wh">academic Ledger</span> · explore view, Level 0 prototype. Records,
