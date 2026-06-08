@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ideas are Dimes a Dozen — academic Ledger (MVP)</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23111'/%3E%3Ctext x='51' y='70' text-anchor='middle' fill='white' font-family='Georgia,serif' font-size='58'%3E%3Ctspan font-style='italic'%3Ea%3C/tspan%3E%3Ctspan%3EL%3C/tspan%3E%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+  :root{ --navy:#16243d; --green:#2e8b57; --ink:#1c2433; --muted:#6b7280; --line:#e7e9ee; --bg:#fafbfc; --card:#fff; }
+  *{box-sizing:border-box;}
+  html,body{margin:0; background:var(--bg); color:var(--ink); line-height:1.55;
+            font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+  a{color:#2166ac; text-decoration:none;} a:hover{text-decoration:underline;}
+
+  .brand{background:#fff; border-bottom:1px solid var(--line); padding:11px 22px; display:flex; align-items:center; justify-content:space-between;}
+  .brand .left{display:flex; align-items:center; gap:13px;}
+  .brand .lock{display:inline-flex; align-items:center; gap:11px; text-decoration:none;}
+  .brand .al{width:30px; height:30px; border-radius:22%; background:#111; color:#fff; display:inline-flex; align-items:center; justify-content:center; font-family:"Cormorant Garamond",Georgia,serif; font-weight:600; font-size:21px; line-height:1;}
+  .brand .al .i{font-style:italic; font-weight:500;}
+  .brand .nm{font-family:"Cormorant Garamond",Garamond,serif; font-size:25px; line-height:1;}
+  .brand .nm .ac{font-style:italic; font-weight:400; color:#555; font-size:.95em;}
+  .brand .nm .le{font-weight:500; color:#111;}
+  .brand .nav a{color:var(--muted); margin-left:15px; font-size:13px;}
+  .proto{font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:#b06a00; background:#fff5d6; border:1px solid #e6cf7a; padding:2px 9px; border-radius:11px;}
+
+  .wrap{max-width:900px; margin:0 auto; padding:26px 24px 70px;}
+
+  h1.title{font-size:25px; line-height:1.3; color:var(--navy); margin:6px 0 10px; font-weight:700;}
+  .authors{font-size:15px; margin:0 0 4px;}
+  .authors .a{white-space:nowrap;}
+  .authors .orc{color:#a6ce39; font-size:11px; margin-left:1px; vertical-align:super;}
+  .affil{color:var(--muted); font-size:13px; margin:6px 0 2px;}
+  .meta{color:var(--muted); font-size:13px; margin:2px 0 0;}
+  .meta b{color:#3a4658; font-weight:600;}
+  .pill{display:inline-block; font-size:11px; border:1px solid var(--line); border-radius:5px; padding:1px 7px; color:#3a4a5e; background:#f1f4f8; margin-right:5px;}
+  .topics{margin:10px 0 0;}
+  .chip{display:inline-block; font-size:11.5px; border:1px solid #dde4ec; border-radius:20px; padding:3px 11px; color:#3a4a5e; background:#eef2f7; margin:0 6px 6px 0;}
+  .chip .f{color:#8a93a3;}
+  .note{font-size:11.5px; color:var(--muted); margin-top:3px;}
+
+  /* QaL hero */
+  .qhero{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:20px 24px; margin:18px 0;
+         display:grid; grid-template-columns:minmax(220px,300px) 1fr; gap:34px; align-items:center;}
+  @media(max-width:700px){ .qhero{grid-template-columns:1fr; gap:20px;} }
+  .qal-tag{font-size:11px; letter-spacing:.5px; text-transform:uppercase; color:var(--muted);}
+  .qal-name{font-family:"Cormorant Garamond",Georgia,serif; font-size:30px; color:var(--navy); line-height:1; margin-top:2px;}
+  .qal-name .a{font-style:italic; font-weight:500;}
+  .qal-est{display:flex; align-items:baseline; gap:13px; margin-top:10px;}
+  .qal-lo,.qal-hi{font-size:22px; color:#bcc3cc; font-weight:500; font-variant-numeric:tabular-nums;}
+  .qal-pt{font-size:60px; font-weight:800; color:var(--green); line-height:.85; font-variant-numeric:tabular-nums;}
+  .qal-cap{font-size:11.5px; color:var(--muted); margin-top:7px;}
+  .qal-rc{font-size:12.5px; color:#3a4658; margin-top:11px;}
+  .qal-rc b{color:var(--navy);}
+  .bkt{display:flex; align-items:flex-end; gap:11px;}
+  .bkt .col{flex:1; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; height:140px;}
+  .bkt .p{font-size:11px; font-weight:700; color:var(--navy); margin-bottom:3px; font-variant-numeric:tabular-nums;}
+  .bkt .barv{width:100%; max-width:42px; background:#cfe0d4; border-radius:5px 5px 0 0;}
+  .bkt .col.hot .barv{background:var(--green);}
+  .bkt .xl{height:15px; font-size:10px; color:var(--muted); margin-top:6px; font-variant-numeric:tabular-nums;}
+  .bkt-cap{font-size:11px; color:var(--muted); text-align:center; margin-top:8px;}
+
+  .card{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px 20px; margin:16px 0;}
+  .card h2{font-size:13px; letter-spacing:.5px; text-transform:uppercase; color:var(--muted); margin:0 0 12px; font-weight:700;}
+  .src{font-size:11px; color:#aab0bb; font-weight:400; text-transform:none; letter-spacing:0;}
+
+  /* robustness table */
+  table.rc{border-collapse:collapse; width:100%; font-size:13.5px;}
+  table.rc th{ text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.4px; color:var(--muted); font-weight:700; padding:0 8px 6px; border-bottom:1px solid var(--line);}
+  table.rc td{ padding:8px; border-bottom:1px solid #f0f2f5; vertical-align:middle;}
+  table.rc tr.head td{ background:#f3f8f4; }
+  table.rc .rcname{color:#26344b; font-weight:600;}
+  table.rc .star{color:var(--green); font-weight:700;}
+  table.rc .qv{font-variant-numeric:tabular-nums; color:var(--navy); font-weight:700; white-space:nowrap;}
+  table.rc .qi{color:#9aa3af; font-weight:500; font-size:12px;}
+  table.rc .obs{font-variant-numeric:tabular-nums; color:var(--muted);}
+  table.rc a{font-size:12.5px;}
+  .robust-note{font-size:12px; color:var(--muted); margin-top:10px;}
+  .robust-note .ok{color:var(--green); font-weight:700;}
+
+  .grid{display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:9px; overflow:hidden;}
+  @media(max-width:620px){ .grid{grid-template-columns:repeat(2,1fr);} }
+  .cell{background:#fff; padding:11px 13px;}
+  .cell .v{font-size:20px; font-weight:700; color:var(--navy); line-height:1;}
+  .cell .l{font-size:11px; color:var(--muted); margin-top:4px;}
+
+  .links a{display:inline-flex; align-items:center; gap:5px; margin:0 16px 8px 0; font-size:14px;}
+  .links .arr{color:#9aa3af;}
+  .deposit{background:#f3f8f4; border:1px solid #cfe0d4; border-radius:9px; padding:10px 14px; font-size:13px; color:#26344b; margin-top:6px;}
+  .statusline{font-size:12.5px; color:var(--muted); margin:14px 2px;}
+  .statusline .dot{display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--green); margin-right:6px; vertical-align:middle;}
+  footer{color:#9aa3af; font-size:12px; border-top:1px solid var(--line); margin-top:26px; padding-top:14px;}
+  footer .wh{color:#555;}
+
+  /* responsive / mobile-friendly */
+  @media(max-width:600px){
+    .brand{flex-wrap:wrap; gap:8px 12px; padding:10px 16px;}
+    .brand .nav{margin-top:2px;}
+    .brand .nav a{margin-left:0; margin-right:14px;}
+    .wrap{padding-left:16px; padding-right:16px;}
+  }
+</style>
+</head>
+<body>
+
+<header class="brand">
+  <div class="left">
+    <a class="lock" href="talk.html" title="academic Ledger"><span class="al"><span class="i">a</span>L</span>
+      <span class="nm"><span class="ac">academic</span><span class="le">Ledger</span></span></a>
+    <span class="proto" title="Level 0 prototype; QaL values are illustrative pending calibration">prototype · MVP</span>
+  </div>
+  <span class="nav"><a href="explore.html">Explore</a><a href="author.html">Author</a><a href="about.html">About</a><a href="talk.html">Talk</a></span>
+</header>
+
+<div class="wrap">
+
+  <!-- ===== HEADER (from OpenAlex) ===== -->
+  <h1 class="title">Ideas are Dimes a Dozen: Large Language Models for Idea Generation in Innovation</h1>
+  <p class="authors">
+    <span class="a">Lennart Meincke<a href="https://orcid.org/0009-0000-2260-011X" class="orc" title="ORCID">iD</a></span>,
+    <span class="a">Karan Girotra<a href="https://orcid.org/0000-0001-5529-2299" class="orc" title="ORCID">iD</a></span>,
+    <span class="a">Christian Terwiesch<a href="https://orcid.org/0000-0002-4050-4348" class="orc" title="ORCID">iD</a></span>,
+    <span class="a">Karl T. Ulrich<a href="https://orcid.org/0009-0000-4781-9230" class="orc" title="ORCID">iD</a></span>
+  </p>
+  <p class="affil">The Wharton School, University of Pennsylvania · Cornell SC Johnson College of Business · WHU – Otto Beisheim School of Management</p>
+  <p class="meta"><span class="pill">working paper</span><span class="pill">SSRN</span> Posted <b>2023</b> · 3 years on the record</p>
+  <div class="topics">
+    <span class="chip">Innovation &amp; Knowledge Management <span class="f">· Business</span></span>
+    <span class="chip">Knowledge Management &amp; Sharing <span class="f">· Social Sciences</span></span>
+    <span class="chip">Open-Source Software Innovations <span class="f">· Computer Science</span></span>
+    <div class="note">OpenAlex assigns three near-tied topics (scores 0.97–0.99). QaL normalizes against the paper's co-citation neighborhood rather than a single primary field, and the cross-field check is shown below.</div>
+  </div>
+
+  <!-- ===== QaL HERO (headline = co-citation neighborhood) ===== -->
+  <div class="qhero">
+    <div>
+      <div class="qal-tag">Quality on the academic Ledger</div>
+      <div class="qal-name">Q<span class="a">a</span>L</div>
+      <div class="qal-est">
+        <span class="qal-lo" title="lower bound, 90% interval">96</span>
+        <span class="qal-pt" title="point estimate">98</span>
+        <span class="qal-hi" title="upper bound, 90% interval">99</span>
+      </div>
+      <div class="qal-cap">eventual percentile · point estimate with 90% interval · <em>illustrative</em></div>
+      <div class="qal-rc"><b>Reference class:</b> co-citation neighborhood<br>(the papers this one travels with) · the headline view</div>
+    </div>
+    <div>
+      <div class="bkt">
+        <div class="col"><div class="p">0%</div><div class="barv" style="height:2px"></div><div class="xl">&lt;50</div></div>
+        <div class="col"><div class="p">0%</div><div class="barv" style="height:2px"></div><div class="xl">50–75</div></div>
+        <div class="col"><div class="p">1%</div><div class="barv" style="height:3px"></div><div class="xl">75–90</div></div>
+        <div class="col"><div class="p">4%</div><div class="barv" style="height:11px"></div><div class="xl">90–95</div></div>
+        <div class="col hot"><div class="p">50%</div><div class="barv" style="height:128px"></div><div class="xl">95–99</div></div>
+        <div class="col"><div class="p">45%</div><div class="barv" style="height:116px"></div><div class="xl">99–100</div></div>
+      </div>
+      <div class="bkt-cap">probability of landing in each NSF percentile class (top 50 / 25 / 10 / 5 / 1%)</div>
+    </div>
+  </div>
+  <p class="qal-cap" style="margin:-4px 2px 0;">Decided late: the interval is wide early and narrows as evidence accrues. <a href="#method">How QaL is computed ↗</a></p>
+
+  <!-- ===== ROBUSTNESS: QaL across reference classes ===== -->
+  <div class="card">
+    <h2>QaL across reference classes <span class="src">— a robustness check; observed percentiles are exact from OpenAlex</span></h2>
+    <table class="rc">
+      <tr><th>Reference class (2023 vintage)</th><th>QaL · 90%</th><th>observed pct</th><th>peer group</th></tr>
+      <tr class="head"><td class="rcname"><span class="star">★</span> Co-citation neighborhood</td><td class="qv">98 <span class="qi">[96–99]</span></td><td class="obs">—</td><td><span style="color:#9aa3af; font-size:12.5px;">neighborhood · phase 2</span></td></tr>
+      <tr><td class="rcname">All fields (global)</td><td class="qv">99 <span class="qi">[97–99]</span></td><td class="obs">99.90th</td><td><a href="https://openalex.org/works?filter=publication_year:2023&sort=cited_by_count:desc" target="_blank" rel="noopener">leaderboard ↗</a></td></tr>
+      <tr><td class="rcname">Computer Science</td><td class="qv">98 <span class="qi">[95–99]</span></td><td class="obs">99.82nd</td><td><a href="https://openalex.org/works?filter=publication_year:2023,primary_topic.field.id:fields/17&sort=cited_by_count:desc" target="_blank" rel="noopener">leaderboard ↗</a></td></tr>
+      <tr><td class="rcname">Social Sciences</td><td class="qv">99 <span class="qi">[98–99]</span></td><td class="obs">99.97th</td><td><a href="https://openalex.org/works?filter=publication_year:2023,primary_topic.field.id:fields/33&sort=cited_by_count:desc" target="_blank" rel="noopener">leaderboard ↗</a></td></tr>
+      <tr><td class="rcname">Business, Management &amp; Accounting</td><td class="qv">99 <span class="qi">[97–99]</span></td><td class="obs">99.93rd</td><td><a href="https://openalex.org/works?filter=publication_year:2023,primary_topic.field.id:fields/14&sort=cited_by_count:desc" target="_blank" rel="noopener">leaderboard ↗</a></td></tr>
+      <tr><td class="rcname">Field-weighted blend</td><td class="qv">98 <span class="qi">[96–99]</span></td><td class="obs">—</td><td><span style="color:#9aa3af; font-size:12.5px;">composite</span></td></tr>
+    </table>
+    <p class="robust-note"><span class="ok">Robust:</span> the estimates agree within about one point, so the field-classification ambiguity (Computer Science vs Business vs Social Sciences) barely moves QaL for this paper. For a marginal paper the spread would be larger, and that spread is itself the signal.</p>
+  </div>
+
+  <!-- ===== EVIDENCE (from OpenAlex) ===== -->
+  <div class="card">
+    <h2>Evidence behind the estimate <span class="src">— pulled live from OpenAlex</span></h2>
+    <div class="grid">
+      <div class="cell"><div class="v">166</div><div class="l">Citations (total)</div></div>
+      <div class="cell"><div class="v">top 0.2%</div><div class="l">In-field, every reference class</div></div>
+      <div class="cell"><div class="v">51</div><div class="l">References</div></div>
+      <div class="cell"><div class="v">Open</div><div class="l">Access (green OA)</div></div>
+      <div class="cell"><div class="v">None</div><div class="l">Retractions / corrections</div></div>
+      <div class="cell"><div class="v">3 yr</div><div class="l">Age since posting</div></div>
+    </div>
+    <div style="margin-top:14px;">
+      <div style="font-size:11px; color:var(--muted); margin-bottom:4px;">Citations by year (2023 → 2026)</div>
+      <svg viewBox="0 0 340 60" width="100%" height="58" preserveAspectRatio="none" aria-label="citations by year">
+        <polyline fill="none" stroke="#2166ac" stroke-width="2.5" points="8,52 113,40 218,12 332,6"/>
+        <g fill="#2166ac"><circle cx="8" cy="52" r="3"/><circle cx="113" cy="40" r="3"/><circle cx="218" cy="12" r="3"/><circle cx="332" cy="6" r="3"/></g>
+      </svg>
+      <div style="font-size:11px; color:#9aa3af;">15 · 54 · 70 · 26 (2026 partial) — still rising</div>
+    </div>
+  </div>
+
+  <!-- ===== ACCESS / RECORD (links only) ===== -->
+  <div class="card">
+    <h2>Read &amp; cite <span class="src">— the Ledger points to the record; it does not host it</span></h2>
+    <div class="links">
+      <a href="https://doi.org/10.2139/ssrn.4526071">Read at SSRN <span class="arr">↗</span></a>
+      <a href="https://doi.org/10.2139/ssrn.4526071">DOI 10.2139/ssrn.4526071 <span class="arr">↗</span></a>
+      <a href="https://openalex.org/W4385447813">OpenAlex record <span class="arr">↗</span></a>
+      <a href="https://scholar.google.com/scholar?q=Ideas+are+Dimes+a+Dozen+Large+Language+Models+Idea+Generation">Google Scholar <span class="arr">↗</span></a>
+      <a href="https://www.semanticscholar.org/search?q=Ideas%20are%20Dimes%20a%20Dozen">Semantic Scholar <span class="arr">↗</span></a>
+    </div>
+    <div class="links" style="margin-top:2px;">
+      <a href="https://openalex.org/works?filter=cites:W4385447813" target="_blank" rel="noopener">Cited by (166) ↗</a>
+      <a href="https://openalex.org/W4385447813" target="_blank" rel="noopener">References (51) ↗</a>
+    </div>
+    <div class="deposit">
+      <b>No record yet?</b> Deposit your paper to <a href="https://zenodo.org/" target="_blank" rel="noopener">Zenodo</a> to mint a permanent DOI; the Ledger indexes and rates it automatically. We point to the record and never host or archive it ourselves.
+    </div>
+  </div>
+
+  <p class="statusline" id="method"><span class="dot"></span>
+    <b>Status:</b> indexed and QaL-estimated. Refereed and Canon tiers, endorsements, and discussion require the community layer and are not part of this MVP.</p>
+
+  <footer>
+    <span class="wh">academic Ledger is an independent, non-commercial record of scholarship.</span>
+    QaL computed from open public data (OpenAlex, OpenCitations, Crossref, ORCID); method version qal-0.1; last updated 8 Jun 2026.
+    Prototype: metadata and observed percentiles are live from OpenAlex; QaL point estimates and the co-citation neighborhood are illustrative pending Level 0 calibration.
+  </footer>
+
+</div>
+</body>
+</html>

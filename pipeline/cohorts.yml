@@ -1,0 +1,16 @@
+# Communities to calibrate (Decision Sciences seed covering the OID department).
+# Optional cheap extensions flagged; enable by moving into `seed`.
+seed_subfields:
+  "1803": "Management Science & Operations Research"
+  "1802": "Information Systems & Management"
+  "1800": "General Decision Sciences"
+extension_subfields:      # same procedure; enable when desired (e.g. to cover innovation work)
+  "1405": "Management of Technology & Innovation"
+  "1804": "Statistics, Probability and Uncertainty"
+
+# Vintages to SCORE (display QaL for these).
+score_years:  [2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026]
+# Historical vintages to CALIBRATE on (must be mature enough to observe eventual standing).
+calibration_years: [2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016]
+
+long_horizon_years: 10     # definition of "eventual"

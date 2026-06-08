@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Explore · academic Ledger (MVP)</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23111'/%3E%3Ctext x='51' y='70' text-anchor='middle' fill='white' font-family='Georgia,serif' font-size='58'%3E%3Ctspan font-style='italic'%3Ea%3C/tspan%3E%3Ctspan%3EL%3C/tspan%3E%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+  :root{ --navy:#16243d; --green:#2e8b57; --ink:#1c2433; --muted:#6b7280; --line:#e7e9ee; --bg:#fafbfc; --card:#fff; --amber:#b06a00; }
+  *{box-sizing:border-box;}
+  html,body{margin:0; background:var(--bg); color:var(--ink); line-height:1.5;
+            font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+  a{color:#2166ac; text-decoration:none;} a:hover{text-decoration:underline;}
+
+  .brand{background:#fff; border-bottom:1px solid var(--line); padding:11px 22px; display:flex; align-items:center; justify-content:space-between;}
+  .brand .left{display:flex; align-items:center; gap:13px;}
+  .brand .lock{display:inline-flex; align-items:center; gap:11px; text-decoration:none;}
+  .brand .al{width:30px; height:30px; border-radius:22%; background:#111; color:#fff; display:inline-flex; align-items:center; justify-content:center; font-family:"Cormorant Garamond",Georgia,serif; font-weight:600; font-size:21px; line-height:1;}
+  .brand .al .i{font-style:italic; font-weight:500;}
+  .brand .nm{font-family:"Cormorant Garamond",Garamond,serif; font-size:25px; line-height:1;}
+  .brand .nm .ac{font-style:italic; font-weight:400; color:#555; font-size:.95em;}
+  .brand .nm .le{font-weight:500; color:#111;}
+  .brand .nav a{color:var(--muted); margin-left:15px; font-size:13px;}
+  .brand .nav a.on{color:#111; font-weight:600;}
+  .proto{font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:#b06a00; background:#fff5d6; border:1px solid #e6cf7a; padding:2px 9px; border-radius:11px;}
+
+  .wrap{max-width:1180px; margin:0 auto; padding:20px 22px 60px;}
+  h1{font-size:22px; color:var(--navy); margin:0 0 2px;}
+  .lede{color:var(--muted); font-size:13.5px; margin:0 0 14px;}
+
+  /* controls */
+  .controls{display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end; background:#fff; border:1px solid var(--line); border-radius:11px; padding:13px 15px;}
+  .controls label{display:flex; flex-direction:column; font-size:11px; color:var(--muted); gap:4px; text-transform:uppercase; letter-spacing:.3px;}
+  .controls input[type=text], .controls select{font-size:13.5px; padding:7px 9px; border:1px solid #ccd2da; border-radius:7px; background:#fff; color:var(--ink); text-transform:none; letter-spacing:0;}
+  #q{width:240px;}
+  .controls .chk{flex-direction:row; align-items:center; gap:6px; font-size:12.5px; color:#333; text-transform:none; letter-spacing:0; padding-bottom:7px;}
+  .controls .chk input{width:15px; height:15px;}
+  .presets{display:flex; flex-wrap:wrap; gap:7px; margin:12px 0 4px;}
+  .presets .pl{font-size:11px; text-transform:uppercase; letter-spacing:.4px; color:var(--muted); align-self:center; margin-right:2px;}
+  .presets button{font-size:12px; padding:6px 11px; border:1px solid #cfd5dc; background:#fff; border-radius:18px; cursor:pointer; color:#33415a;}
+  .presets button:hover{background:#f1f4f8;}
+  .presets button.lead{border-color:#bfe0c9; background:#f0f8f2; color:#1f6b40;}
+  .count{font-size:12.5px; color:var(--muted); margin:12px 2px 8px;}
+  .rcnote{font-size:11.5px; color:var(--muted); margin:4px 2px 0;}
+
+  /* shared record table */
+  .tbl-scroll{overflow-x:auto; border:1px solid var(--line); border-radius:12px;}
+  table.recs{border-collapse:collapse; width:100%; font-size:13px; min-width:980px; background:#fff;}
+  table.recs thead th{position:sticky; top:0; background:#f4f6f8; color:#3a4250; text-align:left; font-weight:700;
+        font-size:11px; text-transform:uppercase; letter-spacing:.4px; padding:10px 10px; border-bottom:1px solid #dde1e7; white-space:nowrap; cursor:pointer; user-select:none;}
+  table.recs thead th.num{text-align:right;}
+  table.recs thead th.act{color:#111;}
+  table.recs tbody td{padding:9px 10px; border-bottom:1px solid #f1f3f5; vertical-align:top;}
+  table.recs tbody tr:hover{background:#fafbfc;}
+  .rtitle{font-weight:600; color:var(--navy); line-height:1.3;}
+  .rmeta{color:#8a93a3; font-size:11.5px; margin-top:2px;}
+  td.num{text-align:right; white-space:nowrap; font-variant-numeric:tabular-nums;}
+  td.rank{color:#aab0bb; text-align:right; width:30px;}
+  .ftagsm{font-size:11.5px; color:#5a6675;}
+  .seeddot,.penddot{display:inline-block; font-size:10px; padding:1px 6px; border-radius:8px; margin-top:3px; letter-spacing:.3px;}
+  .seeddot{color:var(--green); background:#f0f8f2; border:1px solid #bfe0c9;}
+  .penddot{color:var(--amber); background:#fff8e6; border:1px solid #e6cf7a;}
+  .qcell .pt{font-weight:800; color:var(--green); font-size:16px; font-variant-numeric:tabular-nums;}
+  .qcell .ci{color:#aab0bb; font-size:11.5px; font-variant-numeric:tabular-nums;}
+  .qcell .pend{color:var(--amber); font-size:12px;}
+  .obsv{color:var(--navy); font-weight:700; font-variant-numeric:tabular-nums;}
+  .obsv .pc{color:#aab0bb; font-weight:500; font-size:11px;}
+  footer{color:#9aa3af; font-size:12px; border-top:1px solid var(--line); margin-top:24px; padding-top:14px;}
+  footer .wh{color:#555;}
+
+  /* responsive / mobile-friendly */
+  @media(max-width:600px){
+    .brand{flex-wrap:wrap; gap:8px 12px; padding:10px 16px;}
+    .brand .nav{margin-top:2px;}
+    .brand .nav a{margin-left:0; margin-right:14px;}
+    .wrap{padding-left:16px; padding-right:16px;}
+  }
+
+  @media(max-width:600px){
+    #q{width:100%;}
+    .controls{gap:10px;}
+    .controls label{flex:1 1 100%;}
+  }
+</style>
+</head>
+<body>
+
+<header class="brand">
+  <div class="left">
+    <a class="lock" href="talk.html" title="academic Ledger"><span class="al"><span class="i">a</span>L</span>
+      <span class="nm"><span class="ac">academic</span><span class="le">Ledger</span></span></a>
+    <span class="proto" title="Level 0 prototype; QaL forecasts are illustrative pending calibration">prototype · MVP</span>
+  </div>
+  <span class="nav"><a class="on" href="explore.html">Explore</a><a href="author.html">Author</a><a href="about.html">About</a><a href="talk.html">Talk</a></span>
+</header>
+
+<div class="wrap">
+  <h1>Explore the Ledger</h1>
+  <p class="lede">Search and rank records by QaL within a stated reference class and vintage. Leaderboards are just this view with a fixed filter and a QaL sort.</p>
+
+  <div class="controls">
+    <label>Search title or author<input id="q" type="text" placeholder="e.g. bandit, Terwiesch"></label>
+    <label>Field
+      <select id="field"><option value="">All fields</option></select>
+    </label>
+    <label>Vintage (since)
+      <select id="year"><option value="0">Any</option></select>
+    </label>
+    <label>Reference class
+      <select id="rc">
+        <option value="neigh">Co-citation neighborhood (official)</option>
+        <option value="field">Detected field (exploration)</option>
+      </select>
+    </label>
+    <label class="chk"><input id="calonly" type="checkbox"> Calibrated only</label>
+  </div>
+
+  <div class="presets">
+    <span class="pl">Leaderboards</span>
+    <button class="lead" data-sf="Management Science &amp; OR" data-sort="qal">Top QaL · MS&amp;OR</button>
+    <button class="lead" data-sf="Information Systems &amp; Management" data-sort="qal">Top QaL · Info Systems</button>
+    <button class="lead" data-sf="General Decision Sciences" data-sort="qal">Top QaL · Decision Sciences</button>
+    <span class="pl" style="margin-left:6px;">Sort</span>
+    <button data-sort="qal">By QaL</button>
+    <button data-sort="cites">Most cited</button>
+    <button data-sort="year">Newest</button>
+  </div>
+
+  <p class="rcnote" id="rcnote"></p>
+  <div class="count" id="count"></div>
+
+  <div class="tbl-scroll">
+    <table class="recs" id="tbl">
+      <thead><tr id="hrow"></tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+
+  <footer>
+    <span class="wh">academic Ledger</span> &middot; explore view, Level 0 prototype. Records, citations, fields and open-access status from OpenAlex (CC0); observed percentiles are exact within-(subfield, year) standing. The official reference class is the co-citation neighborhood; in this prototype the displayed standing is the within-detected-field percentile as a stand-in, and QaL forecast intervals are <em>illustrative pending calibration</em> (QaL_spec.md). The official number is fixed; the reference-class selector is for exploration only.
+  </footer>
+</div>
+
+<script src="exploreData.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const DATA=window.EXPLORE.slice();
+const NOW=2026;
+let sortKey="qal", sortDir=-1;
+
+function qal(rec){
+  if(rec.obs==null) return null;
+  const pt=Math.round(rec.obs);
+  const age=Math.max(1, NOW-(rec.year||NOW)+1);
+  const hw=Math.min(19, Math.max(3, Math.round((1-Math.min(age,10)/10)*16+3)));
+  return {pt, lo:Math.max(0,pt-hw), hi:Math.min(100, pt+Math.max(1,Math.round(hw/3)))};
+}
+
+// populate field + year dropdowns
+[...new Set(DATA.map(d=>d.subfield))].sort().forEach(f=>{
+  const o=document.createElement("option"); o.value=f; o.textContent=f; $("field").appendChild(o);
+});
+[...new Set(DATA.map(d=>d.year))].sort((a,b)=>b-a).forEach(y=>{
+  const o=document.createElement("option"); o.value=y; o.textContent=y; $("year").appendChild(o);
+});
+
+const COLS=[
+ {k:"_r",  t:"#",        cls:"rank", type:"rank"},
+ {k:"title",t:"Title",   type:"str"},
+ {k:"subfield",t:"Field",type:"str"},
+ {k:"year", t:"Yr",      cls:"num", type:"num"},
+ {k:"cites",t:"Cites",   cls:"num", type:"num"},
+ {k:"obs",  t:"Observed %",cls:"num", type:"num"},
+ {k:"qal",  t:"QaL (eventual %)", cls:"num", type:"num"},
+];
+function hdr(){
+  $("hrow").innerHTML=COLS.map(c=>{
+    const act=c.k===sortKey?" act":"";
+    const ar=c.k===sortKey?(sortDir<0?" ▼":" ▲"):"";
+    return `<th class="${c.cls||''}${act}" data-k="${c.k}" data-t="${c.type}">${c.t}${ar}</th>`;
+  }).join("");
+  $("hrow").querySelectorAll("th").forEach(th=>{
+    if(th.dataset.t==="rank")return;
+    th.onclick=()=>{const k=th.dataset.k; if(k===sortKey)sortDir*=-1; else{sortKey=k; sortDir=(th.dataset.t==="str"?1:-1);} render();};
+  });
+}
+function sortVal(w){ if(sortKey==="qal"){const q=qal(w); return q?q.pt:-1;} return w[sortKey]; }
+function filtered(){
+  const q=$("q").value.trim().toLowerCase();
+  const f=$("field").value, y=+$("year").value, cal=$("calonly").checked;
+  return DATA.filter(d=>{
+    if(q && !((d.title||"").toLowerCase().includes(q)||(d.authors||"").toLowerCase().includes(q))) return false;
+    if(f && d.subfield!==f) return false;
+    if(y && (d.year||0)<y) return false;
+    if(cal && !d.calibrated) return false;
+    return true;
+  });
+}
+function render(){
+  const rows=filtered().sort((a,b)=>{
+    const c=COLS.find(x=>x.k===sortKey);
+    let va=sortVal(a), vb=sortVal(b);
+    if(c.type==="str"){va=(va||"").toString(); vb=(vb||"").toString(); return va.localeCompare(vb)*sortDir;}
+    return ((va??-1)-(vb??-1))*sortDir;
+  });
+  $("tbody").innerHTML=rows.map((w,i)=>{
+    const q=qal(w);
+    const qcell = w.calibrated && q
+      ? `<span class="pt">${q.pt}</span> <span class="ci">[${q.lo}–${q.hi}]</span>`
+      : `<span class="pend">calibration-pending</span>`;
+    const alink="paper-mvp.html?w="+w.oaid;
+    const src=w.doi||("https://openalex.org/"+w.oaid);
+    const obs = w.obs==null?"—":`<span class="obsv">${w.obs}<span class="pc">%</span></span>`;
+    return `<tr>
+      <td class="rank">${i+1}</td>
+      <td><div class="rtitle"><a href="${alink}" title="open the academic Ledger paper page">${w.title}</a></div>
+          <div class="rmeta">${w.authors||""}${w.venue?" · "+w.venue:""}${w.oa?' · <span style="color:#2e8b57">OA</span>':''} · <a href="${src}" target="_blank" rel="noopener">source ↗</a></div></td>
+      <td><span class="ftagsm">${w.subfield||"—"}</span><br>${w.calibrated?'<span class="seeddot">calibrated</span>':'<span class="penddot">pending</span>'}</td>
+      <td class="num">${w.year||""}</td>
+      <td class="num">${(w.cites||0).toLocaleString()}</td>
+      <td class="num">${obs}</td>
+      <td class="num qcell">${qcell}</td>
+    </tr>`;
+  }).join("");
+  $("count").textContent=`${rows.length} of ${DATA.length} records · sorted by ${COLS.find(c=>c.k===sortKey).t} ${sortDir<0?"↓":"↑"}`;
+}
+function setRcNote(){
+  $("rcnote").innerHTML = $("rc").value==="neigh"
+    ? "Reference class: <b>co-citation neighborhood</b> (official). In this prototype the figure shown is the within-detected-field percentile as a stand-in for the neighborhood."
+    : "Reference class: <b>detected field</b> — exploration only; the official QaL is fixed to the co-citation neighborhood to prevent reference-class shopping.";
+}
+$("q").addEventListener("input",render);
+["field","year","calonly"].forEach(id=>$(id).addEventListener("change",render));
+$("rc").addEventListener("change",setRcNote);
+document.querySelectorAll(".presets button").forEach(b=>b.onclick=()=>{
+  if(b.dataset.sf){ $("field").value=b.dataset.sf; $("calonly").checked=true; }
+  sortKey=b.dataset.sort||"qal"; sortDir=-1; render();
+});
+hdr(); setRcNote(); render();
+</script>
+</body>
+</html>

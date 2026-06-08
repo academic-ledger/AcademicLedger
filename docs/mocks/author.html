@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Author · academic Ledger (MVP)</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23111'/%3E%3Ctext x='51' y='70' text-anchor='middle' fill='white' font-family='Georgia,serif' font-size='58'%3E%3Ctspan font-style='italic'%3Ea%3C/tspan%3E%3Ctspan%3EL%3C/tspan%3E%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+  :root{ --navy:#16243d; --green:#2e8b57; --ink:#1c2433; --muted:#6b7280; --line:#e7e9ee; --bg:#fafbfc; --card:#fff; --amber:#b06a00; }
+  *{box-sizing:border-box;}
+  html,body{margin:0; background:var(--bg); color:var(--ink); line-height:1.55;
+            font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+  a{color:#2166ac; text-decoration:none;} a:hover{text-decoration:underline;}
+
+  .brand{background:#fff; border-bottom:1px solid var(--line); padding:11px 22px; display:flex; align-items:center; justify-content:space-between;}
+  .brand .left{display:flex; align-items:center; gap:13px;}
+  .brand .lock{display:inline-flex; align-items:center; gap:11px; text-decoration:none;}
+  .brand .al{width:30px; height:30px; border-radius:22%; background:#111; color:#fff; display:inline-flex; align-items:center; justify-content:center; font-family:"Cormorant Garamond",Georgia,serif; font-weight:600; font-size:21px; line-height:1;}
+  .brand .al .i{font-style:italic; font-weight:500;}
+  .brand .nm{font-family:"Cormorant Garamond",Garamond,serif; font-size:25px; line-height:1;}
+  .brand .nm .ac{font-style:italic; font-weight:400; color:#555; font-size:.95em;}
+  .brand .nm .le{font-weight:500; color:#111;}
+  .brand .nav a{color:var(--muted); margin-left:15px; font-size:13px;}
+  .brand .nav a.on{color:#111; font-weight:600;}
+  .proto{font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:#b06a00; background:#fff5d6; border:1px solid #e6cf7a; padding:2px 9px; border-radius:11px;}
+
+  .wrap{max-width:1060px; margin:0 auto; padding:24px 24px 70px;}
+
+  /* author header */
+  .ahead{display:flex; flex-wrap:wrap; align-items:flex-start; gap:18px; justify-content:space-between;}
+  h1.name{font-size:28px; color:var(--navy); margin:2px 0 6px; font-weight:700; line-height:1.15;}
+  .affil{color:var(--muted); font-size:14px; margin:0 0 8px;}
+  .ids{font-size:12.5px; color:#3a4658;}
+  .ids a{margin-right:14px;}
+  .orcd{color:#a6ce39; font-weight:700;}
+  .astat{display:flex; gap:1px; background:var(--line); border:1px solid var(--line); border-radius:10px; overflow:hidden; min-width:260px;}
+  .astat .c{background:#fff; padding:11px 16px; text-align:center; flex:1;}
+  .astat .v{font-size:22px; font-weight:700; color:var(--navy); line-height:1; font-variant-numeric:tabular-nums;}
+  .astat .l{font-size:10.5px; color:var(--muted); margin-top:4px; text-transform:uppercase; letter-spacing:.4px;}
+
+  .card{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px 20px; margin:16px 0;}
+  .card h2{font-size:13px; letter-spacing:.5px; text-transform:uppercase; color:var(--muted); margin:0 0 12px; font-weight:700;}
+  .twocol{display:grid; grid-template-columns:1.15fr 1fr; gap:18px;}
+  @media(max-width:780px){ .twocol{grid-template-columns:1fr;} }
+
+  /* portfolio distribution */
+  .dist .row{display:flex; align-items:center; gap:10px; margin:6px 0; font-size:13px;}
+  .dist .lab{width:108px; color:#3a4658; font-variant-numeric:tabular-nums;}
+  .dist .track{flex:1; background:#eef2f5; border-radius:6px; height:16px; overflow:hidden;}
+  .dist .fill{height:100%; background:#cfe0d4; border-radius:6px;}
+  .dist .row.hot .fill{background:var(--green);}
+  .dist .n{width:30px; text-align:right; color:var(--navy); font-weight:700; font-variant-numeric:tabular-nums;}
+  .distcap{font-size:11.5px; color:var(--muted); margin-top:8px;}
+
+  /* fields */
+  .fields .frow{display:flex; align-items:center; gap:8px; margin:5px 0; font-size:12.5px;}
+  .fields .ftag{flex:1; color:#3a4658;}
+  .fields .seedb{font-size:10px; text-transform:uppercase; letter-spacing:.4px; color:var(--green); border:1px solid #bfe0c9; background:#f0f8f2; border-radius:9px; padding:1px 7px;}
+  .fields .pendb{font-size:10px; text-transform:uppercase; letter-spacing:.4px; color:var(--amber); border:1px solid #e6cf7a; background:#fff8e6; border-radius:9px; padding:1px 7px;}
+  .fields .fn{width:26px; text-align:right; color:var(--navy); font-weight:700;}
+
+  .noscore{font-size:12.5px; color:#3a4658; background:#f7f9fb; border:1px solid var(--line); border-left:3px solid var(--navy); border-radius:7px; padding:10px 13px; margin-top:4px;}
+  .coverline{font-size:12.5px; color:var(--muted); margin:6px 2px 0;}
+
+  /* works table (shared record list) */
+  .tbl-scroll{overflow-x:auto; border:1px solid var(--line); border-radius:12px;}
+  table.recs{border-collapse:collapse; width:100%; font-size:13px; min-width:820px; background:#fff;}
+  table.recs thead th{position:sticky; top:0; background:#f4f6f8; color:#3a4250; text-align:left; font-weight:700;
+        font-size:11px; text-transform:uppercase; letter-spacing:.4px; padding:10px 10px; border-bottom:1px solid #dde1e7; white-space:nowrap; cursor:pointer; user-select:none;}
+  table.recs thead th.num{text-align:right;}
+  table.recs thead th.act{color:#111;}
+  table.recs tbody td{padding:9px 10px; border-bottom:1px solid #f1f3f5; vertical-align:top;}
+  table.recs tbody tr:hover{background:#fafbfc;}
+  .rtitle{font-weight:600; color:var(--navy); line-height:1.3;}
+  .rmeta{color:#8a93a3; font-size:11.5px; margin-top:2px;}
+  td.num{text-align:right; white-space:nowrap; font-variant-numeric:tabular-nums;}
+  td.rank{color:#aab0bb; text-align:right; width:30px;}
+  .ftagsm{font-size:11.5px; color:#5a6675;}
+  .seeddot,.penddot{display:inline-block; font-size:10px; padding:1px 6px; border-radius:8px; margin-top:3px; letter-spacing:.3px;}
+  .seeddot{color:var(--green); background:#f0f8f2; border:1px solid #bfe0c9;}
+  .penddot{color:var(--amber); background:#fff8e6; border:1px solid #e6cf7a;}
+  /* QaL cell */
+  .qcell .pt{font-weight:800; color:var(--green); font-size:16px; font-variant-numeric:tabular-nums;}
+  .qcell .ci{color:#aab0bb; font-size:11.5px; font-variant-numeric:tabular-nums;}
+  .qcell .pend{color:var(--amber); font-size:12px;}
+  .obsv{color:var(--navy); font-weight:700; font-variant-numeric:tabular-nums;}
+  .obsv .pc{color:#aab0bb; font-weight:500; font-size:11px;}
+
+  .links a{margin-right:14px; font-size:13px;}
+  footer{color:#9aa3af; font-size:12px; border-top:1px solid var(--line); margin-top:26px; padding-top:14px;}
+  footer .wh{color:#555;}
+
+  /* responsive / mobile-friendly */
+  @media(max-width:600px){
+    .brand{flex-wrap:wrap; gap:8px 12px; padding:10px 16px;}
+    .brand .nav{margin-top:2px;}
+    .brand .nav a{margin-left:0; margin-right:14px;}
+    .wrap{padding-left:16px; padding-right:16px;}
+  }
+</style>
+</head>
+<body>
+
+<header class="brand">
+  <div class="left">
+    <a class="lock" href="talk.html" title="academic Ledger"><span class="al"><span class="i">a</span>L</span>
+      <span class="nm"><span class="ac">academic</span><span class="le">Ledger</span></span></a>
+    <span class="proto" title="Level 0 prototype; QaL forecasts are illustrative pending calibration">prototype · MVP</span>
+  </div>
+  <span class="nav"><a href="explore.html">Explore</a><a class="on" href="author.html">Author</a><a href="about.html">About</a><a href="talk.html">Talk</a></span>
+</header>
+
+<div class="wrap">
+
+  <!-- ===== AUTHOR HEADER (from OpenAlex) ===== -->
+  <div class="ahead">
+    <div>
+      <h1 class="name" id="aname">—</h1>
+      <p class="affil" id="aaffil"></p>
+      <p class="ids" id="aids"></p>
+    </div>
+    <div class="astat">
+      <div class="c"><div class="v" id="sWorks">—</div><div class="l">works</div></div>
+      <div class="c"><div class="v" id="sCites">—</div><div class="l">citations</div></div>
+      <div class="c"><div class="v" id="sShown">—</div><div class="l">shown here</div></div>
+    </div>
+  </div>
+
+  <div class="twocol">
+    <!-- portfolio distribution -->
+    <div class="card dist">
+      <h2>Portfolio &mdash; where the work stands <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#aab0bb;font-size:11px;">· observed percentile, within field &amp; vintage</span></h2>
+      <div id="distRows"></div>
+      <div class="distcap">Distribution of the shown works by observed within-field-and-vintage percentile. This is the universal layer and is available for every paper.</div>
+      <div class="noscore" style="margin-top:12px;"><b>No single author score.</b> academic Ledger reports quality per paper, with an interval, and deliberately does not roll a scholar up to one number. A personal scalar would recreate the h-index incentives the project rejects.</div>
+    </div>
+    <!-- fields / coverage -->
+    <div class="card fields">
+      <h2>Fields represented &amp; calibration coverage</h2>
+      <div id="fieldRows"></div>
+      <div class="coverline" id="coverLine"></div>
+    </div>
+  </div>
+
+  <!-- ===== WORKS LIST (shared record component) ===== -->
+  <div class="card">
+    <h2>Works <span class="src" style="font-weight:400;text-transform:none;letter-spacing:0;">· click a column to sort · titles link to the record</span></h2>
+    <div class="tbl-scroll">
+      <table class="recs" id="tbl">
+        <thead><tr id="hrow"></tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <p class="coverline"><b>Disambiguation.</b> Works are clustered by OpenAlex&rsquo;s author ID, which is imperfect; some records may be mis-attributed. A later release lets an author claim and curate the profile via ORCID, which becomes the verified-identity layer.</p>
+
+  <footer>
+    <span class="wh">academic Ledger</span> &middot; author view, Level 0 prototype. Identity, works, citations, fields and open-access status from OpenAlex (CC0). Observed percentiles computed live by exact within-(subfield, year) count queries. QaL forecast intervals are <em>illustrative pending calibration</em> (QaL_spec.md, &sect;5). No participant data; no conferred tiers in the MVP.
+  </footer>
+
+</div>
+
+<script src="authorData.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const D=window.AUTHOR, W=D.works.slice();
+const NOW=2026;
+
+// ---- header ----
+$("aname").textContent=D.author.name;
+$("aaffil").textContent=D.author.aff||"";
+const orc=D.author.orcid?`<a href="${D.author.orcid}" title="ORCID (verified-identity overlay)"><span class="orcd">iD</span> ${D.author.orcid.replace('https://','')}</a>`:"";
+$("aids").innerHTML=`${orc}<a href="https://openalex.org/${D.author.oaid}" title="OpenAlex author entity (the canonical key)">OpenAlex ${D.author.oaid}</a>`;
+$("sWorks").textContent=D.author.works_count;
+$("sCites").textContent=(D.author.cites||0).toLocaleString();
+$("sShown").textContent=W.length;
+
+// ---- illustrative QaL from observed percentile + age ----
+function qal(rec){
+  if(rec.obs==null) return null;
+  const pt=Math.round(rec.obs);
+  const age=Math.max(1, NOW-(rec.year||NOW)+1);
+  const hw=Math.min(19, Math.max(3, Math.round((1-Math.min(age,10)/10)*16+3)));
+  return {pt, lo:Math.max(0,pt-hw), hi:Math.min(100, pt+Math.max(1,Math.round(hw/3)))};
+}
+
+// ---- portfolio distribution (observed) ----
+const bins=[
+ {l:"Top 1% (≥99)",  t:x=>x>=99},
+ {l:"1–5% (95–99)",  t:x=>x>=95&&x<99},
+ {l:"5–10% (90–95)", t:x=>x>=90&&x<95},
+ {l:"10–25% (75–90)",t:x=>x>=75&&x<90},
+ {l:"Below 75",      t:x=>x<75},
+];
+const obsvals=W.map(w=>w.obs).filter(x=>x!=null);
+const counts=bins.map(b=>obsvals.filter(b.t).length);
+const mx=Math.max(1,...counts);
+$("distRows").innerHTML=bins.map((b,i)=>`
+  <div class="row ${i<=1?'hot':''}">
+    <div class="lab">${b.l}</div>
+    <div class="track"><div class="fill" style="width:${Math.round(100*counts[i]/mx)}%"></div></div>
+    <div class="n">${counts[i]}</div>
+  </div>`).join("");
+
+// ---- fields represented ----
+const fmap={};
+W.forEach(w=>{const k=w.subfield||"Unclassified"; (fmap[k]=fmap[k]||{n:0,cal:w.calibrated,field:w.field}).n++;});
+const frows=Object.entries(fmap).sort((a,b)=>b[1].n-a[1].n);
+$("fieldRows").innerHTML=frows.map(([sf,o])=>`
+  <div class="frow">
+    <span class="ftag">${sf} <span style="color:#aab0bb">· ${o.field||''}</span></span>
+    ${o.cal?'<span class="seedb">calibrated</span>':'<span class="pendb">pending</span>'}
+    <span class="fn">${o.n}</span>
+  </div>`).join("");
+const calN=W.filter(w=>w.calibrated).length;
+$("coverLine").innerHTML=`<b>${calN} of ${W.length}</b> shown works are in a calibrated community (Decision&nbsp;Sciences seed: Management&nbsp;Science&nbsp;&amp;&nbsp;OR, Information&nbsp;Systems&nbsp;&amp;&nbsp;Management, General&nbsp;Decision&nbsp;Sciences). The rest show observed standing only and carry a <span class="penddot">calibration-pending</span> forecast until their community is calibrated.`;
+
+// ---- works table ----
+const COLS=[
+ {k:"_r",  t:"#",        cls:"rank", type:"rank"},
+ {k:"title",t:"Title",   type:"str"},
+ {k:"subfield",t:"Field",type:"str"},
+ {k:"year", t:"Yr",      cls:"num", type:"num"},
+ {k:"cites",t:"Cites",   cls:"num", type:"num"},
+ {k:"obs",  t:"Observed %",cls:"num", type:"num"},
+ {k:"qal",  t:"QaL (eventual %)", cls:"num", type:"num"},
+];
+let sortKey="cites", sortDir=-1;
+function hdr(){
+  $("hrow").innerHTML=COLS.map(c=>{
+    const act=c.k===sortKey?" act":"";
+    const ar=c.k===sortKey?(sortDir<0?" ▼":" ▲"):"";
+    return `<th class="${c.cls||''}${act}" data-k="${c.k}" data-t="${c.type}">${c.t}${ar}</th>`;
+  }).join("");
+  $("hrow").querySelectorAll("th").forEach(th=>{
+    if(th.dataset.t==="rank")return;
+    th.onclick=()=>{const k=th.dataset.k; if(k===sortKey)sortDir*=-1; else{sortKey=k; sortDir=(th.dataset.t==="str"?1:-1);} render();};
+  });
+}
+function sortVal(w){ if(sortKey==="qal"){const q=qal(w); return q?q.pt:-1;} return w[sortKey]; }
+function render(){
+  const rows=W.slice().sort((a,b)=>{
+    const c=COLS.find(x=>x.k===sortKey);
+    let va=sortVal(a), vb=sortVal(b);
+    if(c.type==="str"){va=(va||"").toString(); vb=(vb||"").toString(); return va.localeCompare(vb)*sortDir;}
+    return ((va??-1)-(vb??-1))*sortDir;
+  });
+  $("tbody").innerHTML=rows.map((w,i)=>{
+    const q=qal(w);
+    const qcell = w.calibrated && q
+      ? `<span class="pt">${q.pt}</span> <span class="ci">[${q.lo}–${q.hi}]</span>`
+      : `<span class="pend">calibration-pending</span>`;
+    const alink="paper-mvp.html?w="+w.oaid;
+    const src=w.doi||("https://openalex.org/"+w.oaid);
+    const obs = w.obs==null?"—":`<span class="obsv">${w.obs}<span class="pc">%</span></span>`;
+    return `<tr>
+      <td class="rank">${i+1}</td>
+      <td><div class="rtitle"><a href="${alink}" title="open the academic Ledger paper page">${w.title}</a></div>
+          <div class="rmeta">${w.venue?w.venue+" · ":""}${w.year||""}${w.oa?' · <span style="color:#2e8b57">open access</span>':''} · <a href="${src}" target="_blank" rel="noopener">source ↗</a></div></td>
+      <td><span class="ftagsm">${w.subfield||"—"}</span><br>${w.calibrated?'<span class="seeddot">calibrated</span>':'<span class="penddot">pending</span>'}</td>
+      <td class="num">${w.year||""}</td>
+      <td class="num">${(w.cites||0).toLocaleString()}</td>
+      <td class="num">${obs}</td>
+      <td class="num qcell">${qcell}</td>
+    </tr>`;
+  }).join("");
+}
+hdr(); render();
+</script>
+</body>
+</html>

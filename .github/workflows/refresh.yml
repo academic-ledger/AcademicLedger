@@ -1,0 +1,27 @@
+name: monthly-refresh
+# Heavy compute runs HERE (not on Vercel): pull cohorts, build percentile tables,
+# fit calibration, recompute served QaL records into Postgres. Vercel only reads.
+on:
+  schedule:
+    - cron: '0 6 1 * *'      # 06:00 UTC on the 1st of each month
+  workflow_dispatch: {}       # allow manual runs
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      OPENALEX_MAILTO: ${{ secrets.OPENALEX_MAILTO }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install -r pipeline/requirements.txt
+      - name: Pull seed cohorts (Decision Sciences seed + historical calibration cohorts)
+        run: python pipeline/pull_cohort.py --config pipeline/cohorts.yml
+      - name: Build per-(subfield,year) percentile tables
+        run: python pipeline/build_percentiles.py
+      - name: Fit / refresh Layer-B calibration
+        run: python pipeline/calibrate.py
+      - name: Recompute served QaL records
+        run: python pipeline/compute_qal.py
