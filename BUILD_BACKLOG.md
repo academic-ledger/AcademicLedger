@@ -14,14 +14,14 @@ Goal: paper / author / explore / about as a Next.js app on academic-ledger.org, 
 ## MVP — real headline metric for the seed, cached
 Goal: the real co-citation-neighborhood headline and a back-tested calibrated posterior for the seed communities, served from Postgres.
 
-- [ ] **M1 Datastore.** Provision Neon; run `db/schema.sql`.
-- [ ] **M2 Ingest.** `pull_cohort.py` over the seed subfields (1803/1802/1800) for score years + historical calibration years (`cohorts.yml`).
-- [ ] **M3 Percentile tables.** `build_percentiles.py` → `cohort_percentiles` (O(1) lookups).
-- [ ] **M4 Calibrate Layer B.** `calibrate.py` on the mature historical cohorts; **then back-test that the 90% interval covers ~90%** (QaL_spec.md §10 acceptance). This is the gate.
+- [x] **M1 Datastore.** Neon provisioned; `db/schema.sql` applied (+ `author_works`, `authors.seed`).
+- [~] **M2 Ingest.** `pull_cohort.py` run for **1800** (General Decision Sciences, ~31.9k works, score + calibration years). **1803 and 1802 still to pull** (larger; same code, `--subfields`).
+- [x] **M3 Percentile tables.** `build_percentiles.py` → `cohort_percentiles` for the 17 pulled 1800 cohorts (min-cohort-size guard added).
+- [x] **M4 Calibrate Layer B.** `calibrate.py` pools across vintages + applies per-age split-conformal widening (`calib_lib.py`). **Back-test PASSES** for 1800: leave-one-vintage-out coverage 0.886 (raw was 0.80 — overconfident; conformal fixed it). `backtest.py` is the gate.
 - [ ] **M5 Co-citation neighborhood (RCR).** Batch-assemble each seed paper's neighborhood; this becomes the official reference class.
-- [ ] **M6 Compose + serve.** Implement `compute_qal.py` (the join to `qal_records`); switch the API to read-through cache; monthly cron via `.github/workflows/refresh.yml`.
+- [~] **M6 Compose + serve.** `compute_qal.py` implemented (the join to `qal_records`); API already read-through from Neon. **Still: monthly cron wiring (`.github/workflows/refresh.yml`) to call pull→percentile→calibrate→compute.**
 - [ ] **M7 Retraction overlay** (Retraction Watch via Crossref) and the Zenodo "deposit a new record" affordance.
-- [ ] **M8 Make the paper page parameter-aware** so `paper/:id` loads the clicked work (closes the author→paper click-through).
+- [x] **M8 Paper page is parameter-aware** — `paper/[oaid]` loads the clicked work (done in the POC scaffold).
 
 ## V1.0 — the Lens at scale
 - [ ] Ingest the OpenAlex bulk snapshot into the owned store (drop live-API dependency).
