@@ -164,6 +164,8 @@ The dividing line is clean: the cheap metrics can run on demand; the graph metri
 
 **Interface requirements (all versions).** The web surfaces (the paper, author, and explore views, and the About page) must be responsive and mobile-friendly: a fluid layout that collapses to a single column below roughly 700px, tap-friendly controls, type legible on a phone without zooming, and wide data tables that scroll horizontally within their container rather than overflowing the page. The POC and MVP acceptance criteria include correct rendering on a phone-width viewport (about 380px) in addition to desktop.
 
+**Author display.** List every co-author when a work has fewer than 11 authors (i.e. ten or fewer); for eleven or more, show the first author followed by "et al." This keeps full credit visible for normally-authored work while avoiding unreadably long bylines on large-collaboration papers.
+
 ## 13. Open parameters to settle before building
 
 - Field granularity: settled. The co-citation neighborhood is the official scoring reference class (Section 3); the OpenAlex Decision Sciences subfields covering the department define the seed calibration cohort (Section 5).

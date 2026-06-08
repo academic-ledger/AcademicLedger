@@ -17,10 +17,16 @@ SELECT = ("id,doi,title,publication_year,primary_topic,primary_location,authorsh
 def _row(w):
     pt = w.get("primary_topic") or {}
     sub = (pt.get("subfield") or {})
-    # lean display fields stored in raw (authors as "First Author et al.", venue)
+    # display fields stored in raw. Author rule (QaL_spec.md §12, Author display):
+    # list all co-authors when fewer than 11; otherwise first author + "et al."
     auths = w.get("authorships") or []
-    first = ((auths[0].get("author") or {}).get("display_name")) if auths else None
-    authors_str = (first + (" et al." if len(auths) > 1 else "")) if first else None
+    names = [n for n in ((a.get("author") or {}).get("display_name") for a in auths) if n]
+    if not names:
+        authors_str = None
+    elif len(names) < 11:
+        authors_str = ", ".join(names)
+    else:
+        authors_str = names[0] + " et al."
     venue = (((w.get("primary_location") or {}).get("source") or {}).get("display_name"))
     return {
         "oaid": w["id"].split("/")[-1],
