@@ -36,33 +36,40 @@ def main():
     communities = list(cfg["seed_subfields"])
     conn = psycopg.connect(db)
     model_version = os.environ.get("MODEL_VERSION", "qal-0.1")
+    min_bin = int(os.environ.get("CALIB_MIN_BIN", "20"))
     with conn.cursor() as cur:
         for sid in communities:
+            # Pool eventual-percentile samples across ALL calibration vintages before fitting,
+            # keyed by (age, observed-pct decile). Pooling (not per-vintage overwrite) is what
+            # gives each cell enough support and matches the back-test procedure.
+            bins = {}  # (age, obs_bin) -> [eventual_pct, ...]
             for yr in cal_years:
                 cur.execute("""SELECT counts_by_year FROM works
                                WHERE primary_subfield=%s AND publication_year=%s""", (sid, yr))
                 cbys = [r[0] for r in cur.fetchall()]
-                if len(cbys) < 200:   # need support
+                if len(cbys) < 200:   # need support to define within-cohort percentiles
                     continue
                 eventual = [cum_at_age(c, yr, H) for c in cbys]
+                eve_pct = [percentile_of(eventual, x) for x in eventual]
                 for age in range(1, H):
                     obs = [cum_at_age(c, yr, age) for c in cbys]
                     obs_pct = [percentile_of(obs, x) for x in obs]
-                    eve_pct = [percentile_of(eventual, x) for x in eventual]
-                    # bin observed pct into deciles, store conditional eventual distribution
-                    for lo in range(0, 100, 10):
-                        idx = [i for i, p in enumerate(obs_pct) if lo <= p < lo + 10]
-                        if len(idx) < 20:
-                            continue
-                        ev = np.array([eve_pct[i] for i in idx])
-                        row = dict(community=sid, age_years=age, obs_pct_bin=lo,
-                                   eventual_median=float(np.median(ev)),
-                                   ci_lo=float(np.percentile(ev, 5)), ci_hi=float(np.percentile(ev, 95)),
-                                   n_train=len(idx), model_version=model_version)
-                        for c in CUTS:
-                            row[f"p_ge{c}"] = float(np.mean(ev >= c))
-                        upsert_model(cur, row)
-            print(f"  calibrated {sid}")
+                    for op, ep in zip(obs_pct, eve_pct):
+                        bins.setdefault((age, min(90, int(op // 10) * 10)), []).append(ep)
+            n_cells = 0
+            for (age, lo), ev_list in bins.items():
+                if len(ev_list) < min_bin:
+                    continue
+                ev = np.asarray(ev_list)
+                row = dict(community=sid, age_years=age, obs_pct_bin=lo,
+                           eventual_median=float(np.median(ev)),
+                           ci_lo=float(np.percentile(ev, 5)), ci_hi=float(np.percentile(ev, 95)),
+                           n_train=len(ev), model_version=model_version)
+                for c in CUTS:
+                    row[f"p_ge{c}"] = float(np.mean(ev >= c))
+                upsert_model(cur, row)
+                n_cells += 1
+            print(f"  calibrated {sid}: {n_cells} cells")
     conn.commit(); conn.close()
 
 def upsert_model(cur, row):

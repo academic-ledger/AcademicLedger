@@ -23,7 +23,8 @@ const RECORD_SELECT = `
          q.qal_point        as qal_point,
          q.qal_ci_lo        as qal_ci_lo,
          q.qal_ci_hi        as qal_ci_hi,
-         q.reference_class  as reference_class
+         q.reference_class  as reference_class,
+         q.class_prob       as class_prob
   from works w
   left join qal_records q on q.oaid = w.oaid
 `;
@@ -135,7 +136,9 @@ export async function getQalRecord(oaid: string) {
     return { ...base, status: "calibration-pending" as const };
   }
 
-  const cp = classProb(rec.qal);
+  // Prefer the real calibration masses stored by compute_qal; fall back to the
+  // normal-approximation only when they're absent (e.g. demo-seeded rows).
+  const cp = raw.class_prob ?? classProb(rec.qal);
   return {
     ...base,
     qal: {
