@@ -15,9 +15,9 @@ Goal: paper / author / explore / about as a Next.js app on academic-ledger.org, 
 Goal: the real co-citation-neighborhood headline and a back-tested calibrated posterior for the seed communities, served from Postgres.
 
 - [x] **M1 Datastore.** Neon provisioned; `db/schema.sql` applied (+ `author_works`, `authors.seed`).
-- [~] **M2 Ingest.** `pull_cohort.py` run for **1800** (General Decision Sciences, ~31.9k works, score + calibration years). **1803 and 1802 still to pull** (larger; same code, `--subfields`).
-- [x] **M3 Percentile tables.** `build_percentiles.py` → `cohort_percentiles` for the 17 pulled 1800 cohorts (min-cohort-size guard added).
-- [x] **M4 Calibrate Layer B.** `calibrate.py` pools across vintages + applies per-age split-conformal widening (`calib_lib.py`). **Back-test PASSES** for 1800: leave-one-vintage-out coverage 0.886 (raw was 0.80 — overconfident; conformal fixed it). `backtest.py` is the gate.
+- [x] **M2 Ingest.** All three seed communities: **1800** full (~31.9k), **1803 & 1802** as 10k/cohort uniform random samples (full subfields are ~716k/~526k — too big for the free tier; sample is statistically sufficient). `pull_cohort.py --sample`.
+- [x] **M3 Percentile tables.** `build_percentiles.py` → `cohort_percentiles` for all pulled cohorts (min-cohort-size guard).
+- [x] **M4 Calibrate Layer B.** `calibrate.py` pools across vintages + per-age split-conformal widening (`calib_lib.py`). **Back-test PASSES for all three communities** (`backtest.py`): overall coverage **0.911** (1803 0.923, 1802 0.903, 1800 0.886) over 1.76M LOVO test points. Raw was ~0.80 (overconfident); conformal fixed it.
 - [ ] **M5 Co-citation neighborhood (RCR).** Batch-assemble each seed paper's neighborhood; this becomes the official reference class.
 - [~] **M6 Compose + serve.** `compute_qal.py` implemented (the join to `qal_records`); API already read-through from Neon. **Still: monthly cron wiring (`.github/workflows/refresh.yml`) to call pull→percentile→calibrate→compute.**
 - [ ] **M7 Retraction overlay** (Retraction Watch via Crossref) and the Zenodo "deposit a new record" affordance.

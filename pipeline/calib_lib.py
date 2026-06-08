@@ -13,7 +13,7 @@ CUTS = [50, 75, 90, 95, 99]
 
 
 def cum_at_age(cby, pub_year, age):
-    return sum(v for y, v in cby.items() if int(y) <= pub_year + age)
+    return sum(v for y, v in (cby or {}).items() if int(y) <= pub_year + age)
 
 
 def pct_of_all(values):

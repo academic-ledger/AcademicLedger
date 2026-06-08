@@ -59,7 +59,7 @@ def main():
             prepared = {}
             for yr in cal_years:
                 cur.execute(
-                    "SELECT counts_by_year FROM works WHERE primary_subfield=%s AND publication_year=%s",
+                    "SELECT counts_by_year FROM works WHERE primary_subfield=%s AND publication_year=%s AND counts_by_year IS NOT NULL",
                     (sid, yr),
                 )
                 cby = [r[0] for r in cur.fetchall()]

@@ -102,6 +102,23 @@ def main():
         )
         rows = cur.fetchall()
 
+    UPSERT = """INSERT INTO qal_records
+                 (oaid, reference_class, obs_percentile, calibrated,
+                  qal_point, qal_ci_lo, qal_ci_hi, class_prob, method_version, data_snapshot)
+               VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+               ON CONFLICT (oaid) DO UPDATE SET
+                 reference_class=EXCLUDED.reference_class, obs_percentile=EXCLUDED.obs_percentile,
+                 calibrated=EXCLUDED.calibrated, qal_point=EXCLUDED.qal_point,
+                 qal_ci_lo=EXCLUDED.qal_ci_lo, qal_ci_hi=EXCLUDED.qal_ci_hi,
+                 class_prob=EXCLUDED.class_prob, method_version=EXCLUDED.method_version,
+                 data_snapshot=EXCLUDED.data_snapshot, computed_at=now()"""
+    batch = []
+
+    def flush(wcur):
+        if batch:
+            wcur.executemany(UPSERT, batch)
+            batch.clear()
+
     with conn.cursor() as wcur:
         for oaid, sid, year, cites in rows:
             key = (sid, year)
@@ -137,22 +154,15 @@ def main():
                 qal_point = ci_lo = ci_hi = class_prob = None
                 calibrated = False
 
-            wcur.execute(
-                """INSERT INTO qal_records
-                     (oaid, reference_class, obs_percentile, calibrated,
-                      qal_point, qal_ci_lo, qal_ci_hi, class_prob, method_version, data_snapshot)
-                   VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-                   ON CONFLICT (oaid) DO UPDATE SET
-                     reference_class=EXCLUDED.reference_class, obs_percentile=EXCLUDED.obs_percentile,
-                     calibrated=EXCLUDED.calibrated, qal_point=EXCLUDED.qal_point,
-                     qal_ci_lo=EXCLUDED.qal_ci_lo, qal_ci_hi=EXCLUDED.qal_ci_hi,
-                     class_prob=EXCLUDED.class_prob, method_version=EXCLUDED.method_version,
-                     data_snapshot=EXCLUDED.data_snapshot, computed_at=now()""",
+            batch.append(
                 (oaid, json.dumps(ref), obs, calibrated, qal_point, ci_lo, ci_hi,
                  json.dumps(class_prob) if class_prob else None, model_version,
-                 snapshot or "latest"),
+                 snapshot or "latest")
             )
             n_written += 1
+            if len(batch) >= 1000:
+                flush(wcur)
+        flush(wcur)
     conn.commit()
     conn.close()
     print(f"compute_qal: wrote {n_written} records ({n_calibrated} calibrated, "
