@@ -23,6 +23,11 @@ Goal: the real co-citation-neighborhood headline and a back-tested calibrated po
 - [ ] **M7 Retraction overlay** (Retraction Watch via Crossref) and the Zenodo "deposit a new record" affordance.
 - [x] **M8 Paper page is parameter-aware** — `paper/[oaid]` loads the clicked work (done in the POC scaffold).
 
+## Display & UX backlog
+- [ ] **U1 "Working" indicator for slow operations.** Any web action or page load that exceeds ~1s shows a clear working/loading state — a route-transition indicator plus skeleton rows for the explore/author tables and the paper page, and a spinner on the explore fetch (today it only shows a "Loading records…" line; server-rendered pages show nothing during navigation). Goal: the UI never looks frozen.
+- [ ] **U2 Dual-metric rows: show field AND neighborhood QaL side by side.** Compute and store *both* the field-cohort QaL and the co-citation-neighborhood QaL for each paper (extend `compute_qal` + `qal_records` to carry both, not just the official one), and show both in the shared record-list row (and in the paper page). This is the table-level form of §3's required robustness display — agreement signals a robust estimate, divergence flags a field-sensitive one (the Longoni case: field 100 vs neighborhood 68). Requires neighborhoods for the displayed papers (currently the ~325 prefilled set; others show field only until their neighborhood is computed). Supersedes / merges with the M5 robustness-panel item.
+- [ ] **U3 Headline-metric toggle (checkbox).** A checkbox lets the reader choose which single metric — field or co-citation neighborhood — is emphasized as the paper's headline. **Constraint (do not relitigate, QaL_spec.md §3):** the *official, citable* QaL is fixed to the co-citation neighborhood to prevent reference-class shopping; a UI toggle may only change the reader's displayed emphasis "for exploration," clearly labeled, and must never relabel or export the official number. Build it as a view preference over U2's dual metrics, not as a change to the stored official record. Confirm the framing with the principals before shipping.
+
 ## V1.0 — the Lens at scale
 - [ ] Ingest the OpenAlex bulk snapshot into the owned store (drop live-API dependency).
 - [ ] Full-corpus cohort tables, neighborhoods, and authority-weighting (PageRank).
