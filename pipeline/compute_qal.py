@@ -127,15 +127,17 @@ def main():
     with conn.cursor() as wcur:
         for oaid, sid, year, cites in rows:
             key = (sid, year)
-            if key not in cohorts:
-                continue  # no percentile table for this cohort -> leave any existing record
-            n, cdf = cohorts[key]
-            field_obs = round(obs_percentile(cdf, cites or 0), 2)
+            has_cohort = key in cohorts
+            has_neigh = oaid in neigh
+            if not has_cohort and not has_neigh:
+                continue  # nothing to say (no field cohort, no neighborhood) -> leave as is
+            field_obs = round(obs_percentile(cohorts[key][1], cites or 0), 2) if has_cohort else None
+            field_n = cohorts[key][0] if has_cohort else None
             age = max(1, min(H - 1, as_of - year))
 
             # Official reference class = co-citation neighborhood when cached; else the
             # within-field percentile is the stand-in (labeled), per §3's thin-data fallback.
-            if oaid in neigh:
+            if has_neigh:
                 n_nbr, neigh_obs = neigh[oaid]
                 obs = neigh_obs
                 ref = {"field": "co-citation-neighborhood", "field_label": "co-citation neighborhood",
@@ -144,7 +146,7 @@ def main():
             else:
                 obs = field_obs
                 ref = {"field": f"subfields/{sid}", "field_label": labels.get(sid),
-                       "kind": "field", "vintage_year": year, "n": n}
+                       "kind": "field", "vintage_year": year, "n": field_n}
             obs_bin = min(90, int(obs // 10) * 10)
 
             cell = calib.get((sid, age, obs_bin)) if sid in seed else None
