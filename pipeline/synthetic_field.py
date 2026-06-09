@@ -30,6 +30,7 @@ import requests
 
 API = "https://api.openalex.org/works"
 MAILTO = os.environ.get("OPENALEX_MAILTO", "")
+API_KEY = os.environ.get("OPENALEX_API_KEY", "")  # premium key: lifts the daily list budget
 AS_OF = int(os.environ.get("AS_OF_YEAR", "2026"))
 SNAPSHOT = os.environ.get("OPENALEX_SNAPSHOT", "openalex-dev")
 UA = {"User-Agent": f"al-pipeline/1.0 ({MAILTO})"}
@@ -46,6 +47,8 @@ _COHORT = {}            # (subfield, year) -> {"total", "p0", "base"} cached coh
 def _get(params, tries=6):
     if MAILTO:
         params["mailto"] = MAILTO
+    if API_KEY:
+        params["api_key"] = API_KEY
     for attempt in range(tries):
         r = requests.get(API, params=params, timeout=60, headers=UA)
         if r.status_code == 429 or r.status_code >= 500:

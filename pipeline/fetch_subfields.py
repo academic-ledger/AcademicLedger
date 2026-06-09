@@ -12,6 +12,7 @@ import requests
 
 API = "https://api.openalex.org/subfields"
 MAILTO = os.environ.get("OPENALEX_MAILTO", "")
+API_KEY = os.environ.get("OPENALEX_API_KEY", "")  # premium key: lifts the daily list budget
 
 
 def fetch_all():
@@ -20,6 +21,8 @@ def fetch_all():
         params = {"per-page": 200, "page": page, "select": "id,display_name"}
         if MAILTO:
             params["mailto"] = MAILTO
+        if API_KEY:
+            params["api_key"] = API_KEY
         r = requests.get(API, params=params, headers={"User-Agent": f"al-pipeline/1.0 ({MAILTO})"}, timeout=60)
         if r.status_code == 429 or r.status_code >= 500:
             time.sleep(min(30, 2 ** page))

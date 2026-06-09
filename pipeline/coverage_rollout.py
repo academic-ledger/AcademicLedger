@@ -43,6 +43,7 @@ import pull_cohort as pc
 
 API = "https://api.openalex.org"
 MAILTO = os.environ.get("OPENALEX_MAILTO", "")
+API_KEY = os.environ.get("OPENALEX_API_KEY", "")  # premium key: lifts the daily list budget
 UA = {"User-Agent": f"al-pipeline/1.0 ({MAILTO})"}
 AS_OF = int(os.environ.get("AS_OF_YEAR", "2026"))
 H = int(os.environ.get("H_LONG_HORIZON", "10"))
@@ -89,6 +90,8 @@ def GET(path, **params):
         raise BudgetExhausted(f"hit local MAX_REQUESTS cap ({MAX_REQUESTS})")
     if MAILTO:
         params["mailto"] = MAILTO
+    if API_KEY:
+        params["api_key"] = API_KEY
     url = f"{API}/{path.lstrip('/')}"
     for attempt in range(5):
         _req_count += 1

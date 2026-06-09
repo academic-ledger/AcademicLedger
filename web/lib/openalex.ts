@@ -3,6 +3,8 @@
 // via Next fetch revalidation so repeat views don't re-hit the API.
 
 const MAILTO = process.env.OPENALEX_MAILTO || "ktulrich@gmail.com";
+const API_KEY = process.env.OPENALEX_API_KEY || ""; // premium key: lifts the daily list budget
+const AUTH = `&mailto=${encodeURIComponent(MAILTO)}${API_KEY ? `&api_key=${encodeURIComponent(API_KEY)}` : ""}`;
 const REVALIDATE = 60 * 60 * 24; // 1 day
 
 export interface Work {
@@ -57,7 +59,7 @@ export async function fetchWork(oaid: string): Promise<Work | null> {
     "cited_by_count,biblio,open_access,is_retracted,referenced_works";
   const url =
     `https://api.openalex.org/works/${encodeURIComponent(oaid)}` +
-    `?select=${select}&mailto=${encodeURIComponent(MAILTO)}`;
+    `?select=${select}${AUTH}`;
   let r: Response;
   try {
     r = await fetch(url, {
@@ -87,7 +89,7 @@ async function searchOne(filter: string): Promise<any[]> {
     "cited_by_count,open_access,is_retracted";
   const url =
     `https://api.openalex.org/works?filter=${filter}&select=${select}` +
-    `&per-page=${SEARCH_PER}&sort=cited_by_count:desc&mailto=${encodeURIComponent(MAILTO)}`;
+    `&per-page=${SEARCH_PER}&sort=cited_by_count:desc${AUTH}`;
   try {
     const r = await fetch(url, {
       headers: { "User-Agent": `al-web/1.0 (${MAILTO})` },

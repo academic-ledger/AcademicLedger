@@ -9,6 +9,7 @@ import os, sys, time, json, argparse, yaml, requests
 
 API = "https://api.openalex.org/works"
 MAILTO = os.environ.get("OPENALEX_MAILTO", "")
+API_KEY = os.environ.get("OPENALEX_API_KEY", "")  # premium key: lifts the daily list budget
 
 SELECT = ("id,doi,title,publication_year,primary_topic,primary_location,authorships,"
           "cited_by_count,counts_by_year,open_access,is_retracted")
@@ -62,6 +63,7 @@ def fetch_cohort(subfield, year, sample=0, seed=42):
             params = {"filter": flt, "select": SELECT, "sample": n, "seed": seed,
                       "per-page": per, "page": page}
             if MAILTO: params["mailto"] = MAILTO
+            if API_KEY: params["api_key"] = API_KEY
             r = requests.get(API, params=params, timeout=60,
                              headers={"User-Agent": f"al-pipeline/1.0 ({MAILTO})"})
             r.raise_for_status()
@@ -76,6 +78,7 @@ def fetch_cohort(subfield, year, sample=0, seed=42):
     while cursor:
         params = {"filter": flt, "per-page": 200, "cursor": cursor, "select": SELECT}
         if MAILTO: params["mailto"] = MAILTO
+        if API_KEY: params["api_key"] = API_KEY
         r = requests.get(API, params=params, timeout=60, headers={"User-Agent": f"al-pipeline/1.0 ({MAILTO})"})
         r.raise_for_status()
         d = r.json()
