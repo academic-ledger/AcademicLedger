@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
-import { getQalRecord } from "@/lib/queries";
+import { getPaperRecord } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(_req: Request, { params }: { params: { oaid: string } }) {
   try {
-    const rec = await getQalRecord(params.oaid);
+    const rec = await getPaperRecord(params.oaid);
     if (!rec) return NextResponse.json({ error: "not found" }, { status: 404 });
     return NextResponse.json(rec);
   } catch (e: any) {

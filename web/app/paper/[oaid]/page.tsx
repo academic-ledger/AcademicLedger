@@ -1,6 +1,6 @@
 import Brand from "@/components/Brand";
 import CitationCard from "@/components/CitationCard";
-import { getQalRecord } from "@/lib/queries";
+import { getPaperRecord } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +14,7 @@ const BUCKET_DEFS = [
 ] as const;
 
 export default async function PaperPage({ params }: { params: { oaid: string } }) {
-  const rec: any = await getQalRecord(params.oaid);
+  const rec: any = await getPaperRecord(params.oaid);
   if (!rec) {
     return (
       <>
