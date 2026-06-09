@@ -89,17 +89,19 @@ def main():
         # ci_lo/ci_hi are already the conformally-widened interval; map them to q5/q95.
         cur.execute(
             """SELECT community, age_years, obs_pct_bin, eventual_median, ci_lo, ci_hi,
-                      p_ge50, p_ge75, p_ge90, p_ge95, p_ge99
+                      p_ge50, p_ge75, p_ge90, p_ge95, p_ge99, confidence
                  FROM calibration_models WHERE model_version=%s""",
             (model_version,),
         )
         calib_by_comm = {}
+        confidence_by_comm = {}  # community -> tier (parametric|fitted|gate-passed)
         for r in cur.fetchall():
             calib_by_comm.setdefault(r[0], {})[(r[1], float(r[2]))] = dict(
                 median=float(r[3]), q5=float(r[4]), q95=float(r[5]), n=1,
                 p_ge50=float(r[6]), p_ge75=float(r[7]), p_ge90=float(r[8]),
                 p_ge95=float(r[9]), p_ge99=float(r[10]),
             )
+            confidence_by_comm[r[0]] = r[11]
 
         # Preload the cached synthetic field — the OFFICIAL reference class where available
         # (QaL_spec.md §5). {oaid: (n_citers, synthetic_percentile)}.
@@ -136,20 +138,26 @@ def main():
             batch.clear()
 
     def metric(obs, age):
-        """A QaL computation from one observed percentile, via continuous calibration lookup."""
+        """A QaL computation from one observed percentile, via continuous calibration lookup.
+
+        Confidence-gated (QaL_spec §11): a forecast is shown ONLY for a 'gate-passed' community
+        (back-test ~0.90). Lower tiers ('fitted', 'parametric') and observed-only cohorts stay
+        calibration-pending; the served record still carries the tier in `coverage` so the UI can
+        label it honestly. Never promotes a community to a forecast without the back-test."""
         if obs is None:
             return None
-        cell = cl.predict_cell(calib_by_comm.get(sid, {}), age, obs) if sid in seed else None
-        if cell:
+        conf = confidence_by_comm.get(sid)
+        cell = cl.predict_cell(calib_by_comm.get(sid, {}), age, obs) if sid in calib_by_comm else None
+        if cell and conf == "gate-passed":
             return {
-                "obs": obs, "calibrated": True,
+                "obs": obs, "calibrated": True, "coverage": "gate-passed",
                 "point": round(cell["median"], 1),
                 "ci_lo": round(cell["q5"], 1), "ci_hi": round(cell["q95"], 1),
                 "class_prob": {f"ge{c}": round(float(cell[f"p_ge{c}"]), 4)
                                for c in (50, 75, 90, 95, 99)},
             }
-        return {"obs": obs, "calibrated": False, "point": None,
-                "ci_lo": None, "ci_hi": None, "class_prob": None}
+        return {"obs": obs, "calibrated": False, "coverage": conf or "observed",
+                "point": None, "ci_lo": None, "ci_hi": None, "class_prob": None}
 
     with conn.cursor() as wcur:
         for (oaid, sid, year, cites, title, doi, p_field, is_oa, is_retr,
@@ -190,6 +198,7 @@ def main():
             else:
                 ref = {"field": f"subfields/{sid}", "field_label": labels.get(sid),
                        "kind": "field", "vintage_year": year, "n": field_n}
+            ref["coverage"] = off.get("coverage")  # confidence tier of the official metric
 
             obs = off["obs"]
             calibrated = off["calibrated"]

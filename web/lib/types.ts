@@ -6,6 +6,7 @@ export interface MetricView {
   calibrated: boolean;
   qal: QalPoint | null; // null when calibration-pending
   n?: number; // neighborhood size (neighborhood metric only)
+  coverage?: string | null; // confidence tier: parametric | fitted | gate-passed | observed
 }
 
 export interface Metrics {

@@ -90,6 +90,21 @@ export default async function PaperPage({ params }: { params: { oaid: string } }
                   <b>{rec.obs_percentile != null ? `${rec.obs_percentile}th percentile` : "—"}</b> in
                   field &amp; vintage. A calibrated QaL forecast is shown once this community passes the
                   Layer-B back-test.
+                  {(() => {
+                    const cov = rec.reference_class?.coverage;
+                    const note: Record<string, string> = {
+                      parametric:
+                        "Coverage tier: interim parametric model (citation half-life + tail, shrunk to a discipline prior).",
+                      fitted: "Coverage tier: fitted to matured data, awaiting back-test confirmation.",
+                      observed: "Coverage tier: observed standing only (no calibration model yet).",
+                    };
+                    return cov && note[cov] ? (
+                      <>
+                        <br />
+                        {note[cov]}
+                      </>
+                    ) : null;
+                  })()}
                 </div>
               </>
             )}

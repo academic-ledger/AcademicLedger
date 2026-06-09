@@ -31,6 +31,7 @@ function toMetric(m: any): MetricView | null {
     obs: Number(m.obs),
     calibrated: !!m.calibrated,
     n: m.n != null ? Number(m.n) : undefined,
+    coverage: m.coverage ?? null, // confidence tier: parametric|fitted|gate-passed|observed
     qal: m.point != null ? { point: Number(m.point), lo: Number(m.ci_lo), hi: Number(m.ci_hi) } : null,
   };
 }
