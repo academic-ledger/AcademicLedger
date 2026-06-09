@@ -47,19 +47,21 @@ function toMetrics(raw: any): Metrics | null {
 // The seed subfields covering the OID department (QaL_spec.md §5).
 export const SEED_SUBFIELDS = ["1803", "1802", "1800"];
 
+// Served entirely from qal_records (the cache); display fields are folded into q.display, so
+// serving no longer reads the raw works snapshot (caching_architecture.md).
 const RECORD_SELECT = `
-  select w.oaid,
-         w.title,
-         w.doi,
-         w.publication_year as year,
-         w.primary_subfield as sid,
-         w.primary_field    as field,
-         w.cited_by_count   as cites,
-         w.is_oa            as oa,
-         w.is_retracted     as retracted,
-         w.raw->>'authors'        as authors,
-         w.raw->>'venue'          as venue,
-         w.raw->>'subfield_label' as subfield,
+  select q.oaid,
+         q.display->>'title'                as title,
+         q.display->>'doi'                  as doi,
+         (q.display->>'year')::int          as year,
+         q.display->>'sid'                  as sid,
+         q.display->>'field'                as field,
+         (q.display->>'cites')::int         as cites,
+         (q.display->>'oa')::boolean        as oa,
+         (q.display->>'retracted')::boolean as retracted,
+         q.display->>'authors'              as authors,
+         q.display->>'venue'                as venue,
+         q.display->>'subfield'             as subfield,
          q.obs_percentile   as obs,
          q.calibrated       as calibrated,
          q.qal_point        as qal_point,
@@ -68,8 +70,7 @@ const RECORD_SELECT = `
          q.reference_class  as reference_class,
          q.class_prob       as class_prob,
          q.metrics          as metrics
-  from works w
-  left join qal_records q on q.oaid = w.oaid
+  from qal_records q
 `;
 
 function mapRow(r: any): RecordItem {
@@ -111,25 +112,25 @@ export async function getExplore(p: ExploreParams): Promise<RecordItem[]> {
   const args: any[] = [];
   if (p.field) {
     args.push(p.field);
-    where.push(`w.primary_subfield = $${args.length}`);
+    where.push(`q.display->>'sid' = $${args.length}`);
   }
   if (p.since) {
     args.push(p.since);
-    where.push(`w.publication_year >= $${args.length}`);
+    where.push(`(q.display->>'year')::int >= $${args.length}`);
   }
   if (p.q) {
     args.push(`%${p.q.toLowerCase()}%`);
-    where.push(`(lower(w.title) like $${args.length} or lower(w.raw->>'authors') like $${args.length})`);
+    where.push(`(lower(q.display->>'title') like $${args.length} or lower(q.display->>'authors') like $${args.length})`);
   }
   if (p.calibrated_only) {
     where.push(`q.calibrated is true`);
   }
   const order =
     p.sort === "cites"
-      ? "w.cited_by_count desc nulls last"
+      ? "(q.display->>'cites')::int desc nulls last"
       : p.sort === "year"
-      ? "w.publication_year desc nulls last"
-      : "q.qal_point desc nulls last, w.cited_by_count desc nulls last";
+      ? "(q.display->>'year')::int desc nulls last"
+      : "q.qal_point desc nulls last, (q.display->>'cites')::int desc nulls last";
   const limit = Math.min(Math.max(p.limit ?? 200, 1), 1000);
   args.push(limit);
   const sql =
@@ -165,20 +166,14 @@ async function getComposition(oaid: string) {
 // Fall back to the stored snapshot when the live fetch fails (OpenAlex down / rate-limited /
 // unknown id) so the page always renders — live when possible, cached otherwise.
 async function storedWork(oaid: string) {
-  const rows = await query<any>(
-    `select doi, title, publication_year, primary_subfield, primary_field, cited_by_count,
-            is_oa, is_retracted, raw->>'authors' as authors, raw->>'venue' as venue,
-            raw->>'subfield_label' as subfield
-       from works where oaid = $1`,
-    [oaid]
-  );
-  if (!rows.length) return null;
-  const r = rows[0];
+  const rows = await query<any>(`select display from qal_records where oaid = $1`, [oaid]);
+  const d = rows.length ? rows[0].display : null;
+  if (!d) return null;
   return {
-    oaid, doi: r.doi, title: r.title, year: r.publication_year, authors: r.authors,
-    venue: r.venue, sid: r.primary_subfield, subfield: r.subfield, field: r.primary_field,
-    cites: r.cited_by_count ?? 0, is_oa: !!r.is_oa, is_retracted: !!r.is_retracted,
-    n_refs: 0, biblio: null,
+    oaid, doi: d.doi ?? null, title: d.title ?? null, year: d.year ?? null,
+    authors: d.authors ?? null, venue: d.venue ?? null, sid: d.sid ?? null,
+    subfield: d.subfield ?? null, field: d.field ?? null, cites: d.cites ?? 0,
+    is_oa: !!d.oa, is_retracted: !!d.retracted, n_refs: 0, biblio: null,
   };
 }
 
@@ -263,9 +258,9 @@ export async function getAuthor(oaid: string): Promise<AuthorPayload | null> {
   const h = headers[0];
   const works = await query(
     RECORD_SELECT +
-      ` join author_works aw on aw.work_oaid = w.oaid
+      ` join author_works aw on aw.work_oaid = q.oaid
         where aw.author_oaid = $1
-        order by w.cited_by_count desc nulls last`,
+        order by (q.display->>'cites')::int desc nulls last`,
     [oaid]
   );
   return {

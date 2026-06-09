@@ -106,22 +106,26 @@ def main():
         cur.execute("SELECT oaid, n_citers, obs_percentile FROM synthetic_field")
         synth = {r[0]: (r[1], float(r[2])) for r in cur.fetchall()}
 
-        # Walk every work whose cohort we have a percentile table for.
+        # Walk every work whose cohort we have a percentile table for. Pull the display fields
+        # too so qal_records is self-sufficient for serving (the cache; works is just staging).
         cur.execute(
-            "SELECT oaid, primary_subfield, publication_year, cited_by_count FROM works "
-            "WHERE primary_subfield IS NOT NULL AND publication_year IS NOT NULL"
+            "SELECT oaid, primary_subfield, publication_year, cited_by_count, title, doi, "
+            "       primary_field, is_oa, is_retracted, raw->>'authors', raw->>'venue', "
+            "       raw->>'subfield_label' "
+            "FROM works WHERE primary_subfield IS NOT NULL AND publication_year IS NOT NULL"
         )
         rows = cur.fetchall()
 
     UPSERT = """INSERT INTO qal_records
                  (oaid, reference_class, obs_percentile, calibrated,
-                  qal_point, qal_ci_lo, qal_ci_hi, class_prob, metrics, method_version, data_snapshot)
-               VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                  qal_point, qal_ci_lo, qal_ci_hi, class_prob, metrics, display,
+                  method_version, data_snapshot)
+               VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
                ON CONFLICT (oaid) DO UPDATE SET
                  reference_class=EXCLUDED.reference_class, obs_percentile=EXCLUDED.obs_percentile,
                  calibrated=EXCLUDED.calibrated, qal_point=EXCLUDED.qal_point,
                  qal_ci_lo=EXCLUDED.qal_ci_lo, qal_ci_hi=EXCLUDED.qal_ci_hi,
-                 class_prob=EXCLUDED.class_prob, metrics=EXCLUDED.metrics,
+                 class_prob=EXCLUDED.class_prob, metrics=EXCLUDED.metrics, display=EXCLUDED.display,
                  method_version=EXCLUDED.method_version,
                  data_snapshot=EXCLUDED.data_snapshot, computed_at=now()"""
     batch = []
@@ -148,12 +152,16 @@ def main():
                 "ci_lo": None, "ci_hi": None, "class_prob": None}
 
     with conn.cursor() as wcur:
-        for oaid, sid, year, cites in rows:
+        for (oaid, sid, year, cites, title, doi, p_field, is_oa, is_retr,
+             authors, venue, subfield_label) in rows:
             key = (sid, year)
             has_cohort = key in cohorts
             has_synth = oaid in synth
             if not has_cohort and not has_synth:
                 continue  # nothing to say (no field cohort, no synthetic field) -> leave as is
+            display = {"title": title, "authors": authors, "venue": venue, "year": year,
+                       "cites": cites, "sid": sid, "subfield": subfield_label, "field": p_field,
+                       "oa": bool(is_oa), "doi": doi, "retracted": bool(is_retr)}
             field_obs = round(obs_percentile(cohorts[key][1], cites or 0), 2) if has_cohort else None
             field_n = cohorts[key][0] if has_cohort else None
             age = max(1, min(H - 1, as_of - year))
@@ -193,7 +201,7 @@ def main():
             batch.append(
                 (oaid, json.dumps(ref), obs, calibrated, qal_point, ci_lo, ci_hi,
                  json.dumps(class_prob) if class_prob else None, json.dumps(metrics),
-                 model_version, snapshot or "latest")
+                 json.dumps(display), model_version, snapshot or "latest")
             )
             n_written += 1
             if len(batch) >= 1000:

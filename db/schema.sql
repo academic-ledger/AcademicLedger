@@ -55,6 +55,7 @@ CREATE TABLE IF NOT EXISTS qal_records (
   qal_ci_hi       NUMERIC,
   class_prob      JSONB,                          -- {ge50,ge75,ge90,ge95,ge99} (official)
   metrics         JSONB,                          -- both reference classes: {field:{obs,calibrated,point,ci_lo,ci_hi}, synthetic:{...,n}, official:'synthetic'|'field'}
+  display         JSONB,                          -- folded-in display fields (title,authors,venue,year,cites,sid,subfield,field,oa,doi,retracted) so serving needs no raw works snapshot
   method_version  TEXT,
   data_snapshot   TEXT,
   computed_at     TIMESTAMPTZ DEFAULT now()
