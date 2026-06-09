@@ -7,7 +7,7 @@ academic Ledger (aL) reframes academic publishing by separating **distribution**
 
 ## Sources of truth (do not contradict these; update them if a decision changes)
 - `docs/QaL_spec.md` — THE PRD. The estimand, reference class, estimator, data sources, architecture, the three versions (POC/MVP/V1.0), and acceptance criteria.
-- `docs/mocks/` — the UI contract. `paper-mvp.html`, `author.html`, `explore.html`, `about.html` plus their data (`authorData.js`, `exploreData.js`). Port these into the Next.js app; match them.
+- `web/` (the live Next.js app, deployed at academic-ledger.org) — **the UI source of truth.** The pages have been built and have moved past the early mocks; design from the live pages, not the mocks. `docs/mocks/` (`paper-mvp.html`, etc.) is a **frozen historical design reference only** — do not port from it or sync it.
 - `docs/data_sourcing.md` — the open data spine and the terms-of-use boundary (notably: do NOT scrape SSRN).
 - `web/API_CONTRACT.md` — the read-API shape the web app consumes.
 

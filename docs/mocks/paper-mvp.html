@@ -85,6 +85,16 @@
   .cell{background:#fff; padding:11px 13px;}
   .cell .v{font-size:20px; font-weight:700; color:var(--navy); line-height:1;}
   .cell .l{font-size:11px; color:var(--muted); margin-top:4px;}
+  .cell.tbd{ } /* reserved slot, intentionally empty */
+  .sfstrip{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:13px 18px; margin:14px 0;}
+  .sfstrip .sfhead{font-size:12.5px; color:#3a4658; margin-bottom:9px;}
+  .sfstrip .sfhead b{color:var(--navy);}
+  .sfstrip .sflink{float:right;} .sfstrip .sflink a{font-size:12px;}
+  .sfbar{display:flex; height:14px; border-radius:5px; overflow:hidden; margin-bottom:9px;}
+  .sfbar span{display:block; height:100%;}
+  .sfleg{display:flex; flex-wrap:wrap; gap:6px 16px; font-size:12px; color:#3a4a5e;}
+  .sfleg span{display:inline-flex; align-items:center; gap:6px;}
+  .sfleg i{width:10px; height:10px; border-radius:2px; display:inline-block;}
 
   .links a{display:inline-flex; align-items:center; gap:5px; margin:0 16px 8px 0; font-size:14px;}
   .links .arr{color:#9aa3af;}
@@ -130,10 +140,10 @@
     <span class="chip">Innovation &amp; Knowledge Management <span class="f">· Business</span></span>
     <span class="chip">Knowledge Management &amp; Sharing <span class="f">· Social Sciences</span></span>
     <span class="chip">Open-Source Software Innovations <span class="f">· Computer Science</span></span>
-    <div class="note">OpenAlex assigns three near-tied topics (scores 0.97–0.99). QaL normalizes against the paper's co-citation neighborhood rather than a single primary field, and the cross-field check is shown below.</div>
+    <div class="note">OpenAlex assigns three near-tied topics (scores 0.97–0.99). QaL normalizes against a synthetic field built from the subfields this paper draws on, rather than a single primary field, and the cross-field check is shown below.</div>
   </div>
 
-  <!-- ===== QaL HERO (headline = co-citation neighborhood) ===== -->
+  <!-- ===== QaL HERO (headline = synthetic field) ===== -->
   <div class="qhero">
     <div>
       <div class="qal-tag">Quality on the academic Ledger</div>
@@ -144,7 +154,7 @@
         <span class="qal-hi" title="upper bound, 90% interval">99</span>
       </div>
       <div class="qal-cap">eventual percentile · point estimate with 90% interval · <em>illustrative</em></div>
-      <div class="qal-rc"><b>Reference class:</b> co-citation neighborhood<br>(the papers this one travels with) · the headline view</div>
+      <div class="qal-rc"><b>Reference class:</b> synthetic field<br>(a blend of the subfields this paper draws on) · the headline view</div>
     </div>
     <div>
       <div class="bkt">
@@ -160,12 +170,33 @@
   </div>
   <p class="qal-cap" style="margin:-4px 2px 0;">Decided late: the interval is wide early and narrows as evidence accrues. <a href="#method">How QaL is computed ↗</a></p>
 
+  <!-- ===== SYNTHETIC FIELD (the official reference class) ===== -->
+  <div class="sfstrip">
+    <div class="sfhead"><b>Synthetic field</b> &middot; the official reference class &middot; weighted toward recent references <em>(illustrative)</em><span class="sflink"><a href="#robust">full mixture ↗</a></span></div>
+    <div class="sfbar">
+      <span style="width:36%; background:#2e8b57"></span>
+      <span style="width:24%; background:#5aa97a"></span>
+      <span style="width:18%; background:#88c4a1"></span>
+      <span style="width:12%; background:#b6dcc6"></span>
+      <span style="width:6%;  background:#d8eede"></span>
+      <span style="width:4%;  background:#eef5f0"></span>
+    </div>
+    <div class="sfleg">
+      <span><i style="background:#2e8b57"></i>Artificial Intelligence 36%</span>
+      <span><i style="background:#5aa97a"></i>Mgmt of Technology &amp; Innovation 24%</span>
+      <span><i style="background:#88c4a1"></i>Management Science &amp; OR 18%</span>
+      <span><i style="background:#b6dcc6"></i>Strategy &amp; Management 12%</span>
+      <span><i style="background:#d8eede"></i>Social Psychology 6%</span>
+      <span><i style="background:#eef5f0; border:1px solid #d8eede"></i>+1 more 4%</span>
+    </div>
+  </div>
+
   <!-- ===== ROBUSTNESS: QaL across reference classes ===== -->
   <div class="card">
     <h2>QaL across reference classes <span class="src">— a robustness check; observed percentiles are exact from OpenAlex</span></h2>
     <table class="rc">
       <tr><th>Reference class (2023 vintage)</th><th>QaL · 90%</th><th>observed pct</th><th>peer group</th></tr>
-      <tr class="head"><td class="rcname"><span class="star">★</span> Co-citation neighborhood</td><td class="qv">98 <span class="qi">[96–99]</span></td><td class="obs">—</td><td><span style="color:#9aa3af; font-size:12.5px;">neighborhood · phase 2</span></td></tr>
+      <tr class="head"><td class="rcname"><span class="star">★</span> Synthetic field</td><td class="qv">98 <span class="qi">[96–99]</span></td><td class="obs">—</td><td><span style="color:#9aa3af; font-size:12.5px;">blended subfields · see strip above</span></td></tr>
       <tr><td class="rcname">All fields (global)</td><td class="qv">99 <span class="qi">[97–99]</span></td><td class="obs">99.90th</td><td><a href="https://openalex.org/works?filter=publication_year:2023&sort=cited_by_count:desc" target="_blank" rel="noopener">leaderboard ↗</a></td></tr>
       <tr><td class="rcname">Computer Science</td><td class="qv">98 <span class="qi">[95–99]</span></td><td class="obs">99.82nd</td><td><a href="https://openalex.org/works?filter=publication_year:2023,primary_topic.field.id:fields/17&sort=cited_by_count:desc" target="_blank" rel="noopener">leaderboard ↗</a></td></tr>
       <tr><td class="rcname">Social Sciences</td><td class="qv">99 <span class="qi">[98–99]</span></td><td class="obs">99.97th</td><td><a href="https://openalex.org/works?filter=publication_year:2023,primary_topic.field.id:fields/33&sort=cited_by_count:desc" target="_blank" rel="noopener">leaderboard ↗</a></td></tr>
@@ -182,9 +213,9 @@
       <div class="cell"><div class="v">166</div><div class="l">Citations (total)</div></div>
       <div class="cell"><div class="v">top 0.2%</div><div class="l">In-field, every reference class</div></div>
       <div class="cell"><div class="v">51</div><div class="l">References</div></div>
-      <div class="cell"><div class="v">Open</div><div class="l">Access (green OA)</div></div>
       <div class="cell"><div class="v">None</div><div class="l">Retractions / corrections</div></div>
       <div class="cell"><div class="v">3 yr</div><div class="l">Age since posting</div></div>
+      <div class="cell tbd" title="reserved for a future signal"></div>
     </div>
     <div style="margin-top:14px;">
       <div style="font-size:11px; color:var(--muted); margin-bottom:4px;">Citations by year (2023 → 2026)</div>
@@ -221,7 +252,7 @@
   <footer>
     <span class="wh">academic Ledger is an independent, non-commercial record of scholarship.</span>
     QaL computed from open public data (OpenAlex, OpenCitations, Crossref, ORCID); method version qal-0.1; last updated 8 Jun 2026.
-    Prototype: metadata and observed percentiles are live from OpenAlex; QaL point estimates and the co-citation neighborhood are illustrative pending Level 0 calibration.
+    Prototype: metadata and observed percentiles are live from OpenAlex; QaL point estimates and the synthetic field are illustrative pending Level 0 calibration.
   </footer>
 
 </div>
