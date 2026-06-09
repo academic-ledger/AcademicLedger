@@ -150,31 +150,31 @@ export default async function PaperPage({ params }: { params: { oaid: string } }
           </p>
         )}
 
-        {/* ===== REFERENCE-CLASS COMPOSITION (synthetic field) ===== */}
-        {rec.composition && rec.composition.length > 0 && (
-          <div className="card">
-            <h2>
-              Reference-class composition{" "}
-              <span className="src">— the synthetic field, weighted by subfield</span>
-            </h2>
-            <div className="comp">
-              {rec.composition.map((c: any) => (
-                <div className="comprow" key={c.sid}>
-                  <div className="complab">{c.name}</div>
-                  <div className="comptrack">
-                    <div className="compfill" style={{ width: `${Math.max(2, Math.round(c.weight * 100))}%` }} />
-                  </div>
-                  <div className="compw">{Math.round(c.weight * 100)}%</div>
-                </div>
-              ))}
+        {/* ===== REFERENCE-CLASS COMPOSITION — flat strip, no bars ===== */}
+        {rec.composition && rec.composition.length > 0 && (() => {
+          const shown = rec.composition.filter((c: any) => c.weight >= 0.02);
+          const rolled = rec.composition.filter((c: any) => c.weight < 0.02);
+          const rolledPct = Math.round(rolled.reduce((s: number, c: any) => s + c.weight, 0) * 100);
+          return (
+            <div className="compstrip">
+              <span className="compstrip-label">Synthetic field · weighted by recent references</span>
+              <span className="compstrip-list">
+                {shown.map((c: any, i: number) => (
+                  <span key={c.sid}>
+                    {i > 0 ? " · " : ""}
+                    {c.name} ({Math.round(c.weight * 100)}%)
+                  </span>
+                ))}
+                {rolled.length > 0 ? ` · +${rolled.length} more (${rolledPct}%)` : ""}
+              </span>
+              <span className="compstrip-note">
+                The official reference class is this recency-weighted blend of the communities the
+                paper actually draws on (QaL_spec §5), not OpenAlex&rsquo;s single label
+                {rec.field ? ` (“${rec.field}”)` : ""}. Divergence is the signal.
+              </span>
             </div>
-            <p className="note" style={{ fontSize: 12, color: "var(--muted)", marginTop: 10 }}>
-              The official reference class is this recency-weighted blend of the communities the paper
-              actually draws on (QaL_spec §5), not OpenAlex&rsquo;s single label
-              {rec.field ? ` (“${rec.field}”)` : ""}. Divergence between the two is itself the signal.
-            </p>
-          </div>
-        )}
+          );
+        })()}
 
         {/* ===== EVIDENCE ===== */}
         <div className="card">
@@ -193,10 +193,8 @@ export default async function PaperPage({ params }: { params: { oaid: string } }
                 {rec.reference_class?.kind === "synthetic" ? "(synthetic field)" : "(field & vintage)"}
               </div>
             </div>
-            <div className="cell">
-              <div className="v">{rec.evidence.is_oa ? "Open" : "Closed"}</div>
-              <div className="l">Access</div>
-            </div>
+            {/* U5: Access (oa_status) cell removed — Unpaywall's OA label is not reader-useful and
+                understates real availability. is_oa/oa_url kept in the data layer. */}
             <div className="cell">
               <div className="v">{rec.evidence.is_retracted ? "Retracted" : "None"}</div>
               <div className="l">Retractions / corrections</div>
