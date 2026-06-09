@@ -26,12 +26,13 @@ Sungu: A5011118717          # Alp Sungu — junior faculty
 Tambe: A5085743615          # Prasanna Tambe — IS / economics of AI & labor
 Terwiesch: A5089214194      # Christian Terwiesch — healthcare operations / innovation
 Ulrich: A5040079549         # Karl T. Ulrich — product development (seeded author)
+Santoro: A5059117848        # Erik Santoro — social/behavioral (junior; prior affil. Columbia)
+Smitizsky: A5036689707      # Gal Smitizsky — decision-making / behavioral (junior)
 Veeraraghavan: A5050144457  # Senthil K. Veeraraghavan — supply chain / OM
 Watts: A5000679279          # Duncan J. Watts — computational social science (97,852 cites)
 Wu: A5030027972             # Lynn Wu — IS / innovation
+Yu: A5003754623             # Sophie H. Yu — bandit algorithms / optimization (Penn-affiliated)
 
-# TODO — surname search is ambiguous; please confirm the OpenAlex author id:
-# Santoro:   ?              # resolver got "Kari Santoro-Beer" (oid 0.0) — almost certainly wrong
-# Sharma:    ?              # resolver got "Shoba Sharma" — unverified
-# Smitizsky: A5036689707    # Gal Smitizsky (global match) — likely a PhD student; please confirm
-# Yu:        ?              # resolver got "David Zhang" — clearly wrong
+# TODO — still unresolved (no confident OpenAlex match; please supply an ORCID or a paper DOI):
+# Sharma:    ?              # Neha Sharma (Assistant Professor) — only namesakes (agriculture /
+#                          #   particle physics) surface; no Penn-affiliated cluster found.

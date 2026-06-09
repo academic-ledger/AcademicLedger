@@ -2,279 +2,272 @@
   "as_of": 2026,
   "n_faculty_resolved": 30,
   "n_faculty_total": 30,
-  "cover_90_at_subfield": "2711",
-  "cover_95_at_subfield": "1802",
+  "cover_90_at_subfield": "2210",
+  "cover_95_at_subfield": "3304",
   "subfields": [
     {
       "sid": "1404",
       "name": "Management Information Systems",
-      "share": 0.1303,
-      "cumulative": 0.1303,
+      "share": 0.1355,
+      "cumulative": 0.1355,
       "is_seed": false
     },
     {
       "sid": "2002",
       "name": "Economics and Econometrics",
       "share": 0.0975,
-      "cumulative": 0.2278,
+      "cumulative": 0.233,
       "is_seed": false
     },
     {
       "sid": "1406",
       "name": "Marketing",
       "share": 0.0909,
-      "cumulative": 0.3187,
+      "cumulative": 0.3239,
       "is_seed": false
     },
     {
       "sid": "3312",
       "name": "Sociology and Political Science",
-      "share": 0.0599,
-      "cumulative": 0.3786,
-      "is_seed": false
-    },
-    {
-      "sid": "1408",
-      "name": "Strategy and Management",
-      "share": 0.056,
-      "cumulative": 0.4345,
+      "share": 0.0718,
+      "cumulative": 0.3957,
       "is_seed": false
     },
     {
       "sid": "1803",
       "name": "Management Science and Operations Research",
-      "share": 0.0543,
-      "cumulative": 0.4888,
+      "share": 0.0616,
+      "cumulative": 0.4573,
       "is_seed": true
+    },
+    {
+      "sid": "1408",
+      "name": "Strategy and Management",
+      "share": 0.056,
+      "cumulative": 0.5132,
+      "is_seed": false
     },
     {
       "sid": "1702",
       "name": "Artificial Intelligence",
       "share": 0.0462,
-      "cumulative": 0.535,
+      "cumulative": 0.5594,
       "is_seed": false
     },
     {
       "sid": "3311",
       "name": "Safety Research",
       "share": 0.039,
-      "cumulative": 0.574,
-      "is_seed": false
-    },
-    {
-      "sid": "1707",
-      "name": "Computer Vision and Pattern Recognition",
-      "share": 0.038,
-      "cumulative": 0.612,
+      "cumulative": 0.5984,
       "is_seed": false
     },
     {
       "sid": "1800",
       "name": "General Decision Sciences",
       "share": 0.0361,
-      "cumulative": 0.6481,
+      "cumulative": 0.6345,
       "is_seed": true
+    },
+    {
+      "sid": "3202",
+      "name": "Applied Psychology",
+      "share": 0.0295,
+      "cumulative": 0.664,
+      "is_seed": false
     },
     {
       "sid": "3604",
       "name": "Emergency Medical Services",
       "share": 0.0291,
-      "cumulative": 0.6772,
+      "cumulative": 0.6931,
       "is_seed": false
     },
     {
-      "sid": "3202",
-      "name": "Applied Psychology",
-      "share": 0.0247,
-      "cumulative": 0.702,
+      "sid": "1707",
+      "name": "Computer Vision and Pattern Recognition",
+      "share": 0.0273,
+      "cumulative": 0.7204,
+      "is_seed": false
+    },
+    {
+      "sid": "3109",
+      "name": "Statistical and Nonlinear Physics",
+      "share": 0.026,
+      "cumulative": 0.7464,
       "is_seed": false
     },
     {
       "sid": "3313",
       "name": "Transportation",
       "share": 0.0215,
-      "cumulative": 0.7235,
-      "is_seed": false
-    },
-    {
-      "sid": "3109",
-      "name": "Statistical and Nonlinear Physics",
-      "share": 0.0197,
-      "cumulative": 0.7432,
+      "cumulative": 0.7679,
       "is_seed": false
     },
     {
       "sid": "2214",
       "name": "Media Technology",
       "share": 0.0192,
-      "cumulative": 0.7624,
+      "cumulative": 0.7871,
+      "is_seed": false
+    },
+    {
+      "sid": "1705",
+      "name": "Computer Networks and Communications",
+      "share": 0.0161,
+      "cumulative": 0.8032,
       "is_seed": false
     },
     {
       "sid": "1405",
       "name": "Management of Technology and Innovation",
       "share": 0.016,
-      "cumulative": 0.7784,
+      "cumulative": 0.8192,
       "is_seed": false
     },
     {
       "sid": "2209",
       "name": "Industrial and Manufacturing Engineering",
       "share": 0.0145,
-      "cumulative": 0.7929,
+      "cumulative": 0.8337,
       "is_seed": false
     },
     {
       "sid": "3207",
       "name": "Social Psychology",
       "share": 0.0131,
-      "cumulative": 0.806,
-      "is_seed": false
-    },
-    {
-      "sid": "1710",
-      "name": "Information Systems",
-      "share": 0.0123,
-      "cumulative": 0.8183,
+      "cumulative": 0.8468,
       "is_seed": false
     },
     {
       "sid": "3320",
       "name": "Political Science and International Relations",
       "share": 0.0122,
-      "cumulative": 0.8305,
-      "is_seed": false
-    },
-    {
-      "sid": "1711",
-      "name": "Signal Processing",
-      "share": 0.0118,
-      "cumulative": 0.8423,
-      "is_seed": false
-    },
-    {
-      "sid": "2712",
-      "name": "Endocrinology, Diabetes and Metabolism",
-      "share": 0.0111,
-      "cumulative": 0.8535,
-      "is_seed": false
-    },
-    {
-      "sid": "2720",
-      "name": "Hematology",
-      "share": 0.0111,
-      "cumulative": 0.8646,
-      "is_seed": false
-    },
-    {
-      "sid": "2705",
-      "name": "Cardiology and Cardiovascular Medicine",
-      "share": 0.0111,
-      "cumulative": 0.8757,
+      "cumulative": 0.859,
       "is_seed": false
     },
     {
       "sid": "3205",
       "name": "Experimental and Cognitive Psychology",
       "share": 0.0098,
-      "cumulative": 0.8855,
+      "cumulative": 0.8689,
       "is_seed": false
     },
     {
       "sid": "2203",
       "name": "Automotive Engineering",
       "share": 0.0091,
-      "cumulative": 0.8946,
+      "cumulative": 0.878,
       "is_seed": false
     },
     {
       "sid": "2711",
       "name": "Emergency Medicine",
       "share": 0.0088,
-      "cumulative": 0.9035,
+      "cumulative": 0.8868,
       "is_seed": false
     },
     {
-      "sid": "1705",
-      "name": "Computer Networks and Communications",
+      "sid": "1710",
+      "name": "Information Systems",
       "share": 0.0088,
-      "cumulative": 0.9123,
+      "cumulative": 0.8956,
       "is_seed": false
     },
     {
       "sid": "2210",
       "name": "Mechanical Engineering",
       "share": 0.008,
-      "cumulative": 0.9202,
+      "cumulative": 0.9036,
+      "is_seed": false
+    },
+    {
+      "sid": "1203",
+      "name": "Language and Linguistics",
+      "share": 0.0071,
+      "cumulative": 0.9107,
       "is_seed": false
     },
     {
       "sid": "2741",
       "name": "Radiology, Nuclear Medicine and Imaging",
       "share": 0.0067,
-      "cumulative": 0.9269,
+      "cumulative": 0.9174,
       "is_seed": false
     },
     {
       "sid": "1804",
       "name": "Statistics, Probability and Uncertainty",
       "share": 0.0067,
-      "cumulative": 0.9336,
+      "cumulative": 0.9241,
       "is_seed": false
     },
     {
       "sid": "1402",
       "name": "Accounting",
       "share": 0.0059,
-      "cumulative": 0.9395,
+      "cumulative": 0.93,
       "is_seed": false
     },
     {
       "sid": "1703",
       "name": "Computational Theory and Mathematics",
       "share": 0.0059,
-      "cumulative": 0.9454,
+      "cumulative": 0.9359,
       "is_seed": false
     },
     {
       "sid": "1802",
       "name": "Information Systems and Management",
       "share": 0.0058,
-      "cumulative": 0.9512,
+      "cumulative": 0.9417,
       "is_seed": true
     },
     {
       "sid": "3308",
       "name": "Law",
       "share": 0.0055,
-      "cumulative": 0.9567,
+      "cumulative": 0.9472,
       "is_seed": false
     },
     {
       "sid": "3304",
       "name": "Education",
       "share": 0.0053,
-      "cumulative": 0.962,
+      "cumulative": 0.9524,
       "is_seed": false
     },
     {
       "sid": "2000",
       "name": "General Economics, Econometrics and Finance",
       "share": 0.0052,
-      "cumulative": 0.9672,
+      "cumulative": 0.9577,
       "is_seed": false
     },
     {
       "sid": "2613",
       "name": "Statistics and Probability",
       "share": 0.0052,
-      "cumulative": 0.9724,
+      "cumulative": 0.9629,
       "is_seed": false
     },
     {
       "sid": "2612",
       "name": "Numerical Analysis",
       "share": 0.0049,
+      "cumulative": 0.9678,
+      "is_seed": false
+    },
+    {
+      "sid": "2737",
+      "name": "Physiology",
+      "share": 0.0048,
+      "cumulative": 0.9725,
+      "is_seed": false
+    },
+    {
+      "sid": "3315",
+      "name": "Communication",
+      "share": 0.0048,
       "cumulative": 0.9773,
       "is_seed": false
     },
@@ -478,13 +471,13 @@
     },
     {
       "surname": "Santoro",
-      "oaid": "A5096847913",
-      "name": "Kari Santoro\u2010Beer",
-      "works": 1,
-      "cites": 11,
-      "oid_score": 0.0,
-      "confidence": "low",
-      "source": "penn",
+      "oaid": "A5059117848",
+      "name": "Erik Santoro",
+      "works": 9,
+      "cites": 337,
+      "oid_score": 0.643,
+      "confidence": "override",
+      "source": "override",
       "n_candidates": 1
     },
     {
@@ -538,8 +531,8 @@
       "works": 5,
       "cites": 24,
       "oid_score": 1.0,
-      "confidence": "medium",
-      "source": "global",
+      "confidence": "override",
+      "source": "override",
       "n_candidates": 1
     },
     {
@@ -643,14 +636,14 @@
     },
     {
       "surname": "Yu",
-      "oaid": "A5100325058",
-      "name": "David Zhang",
-      "works": 1668,
-      "cites": 87111,
-      "oid_score": 1.0,
-      "confidence": "high",
-      "source": "penn",
-      "n_candidates": 25
+      "oaid": "A5003754623",
+      "name": "Sophie H. Yu",
+      "works": 26,
+      "cites": 170,
+      "oid_score": 0.812,
+      "confidence": "override",
+      "source": "override",
+      "n_candidates": 1
     }
   ]
 }
