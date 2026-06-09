@@ -1,7 +1,7 @@
 import { query } from "./db";
 import type { AuthorPayload, Metrics, MetricView, RecordItem } from "./types";
 import { buckets, classProb, type QalPoint } from "./qal";
-import { fetchWork } from "./openalex";
+import { fetchWork, searchWorks, type Work } from "./openalex";
 
 const SEED = new Set(["1800", "1802", "1803"]);
 const H = 10;
@@ -107,7 +107,55 @@ export interface ExploreParams {
   limit?: number;
 }
 
-export async function getExplore(p: ExploreParams): Promise<RecordItem[]> {
+export interface ExploreResult {
+  items: RecordItem[];
+  live: boolean; // true when results came from the OpenAlex live fallback, not the index
+}
+
+// A live OpenAlex hit, rendered with the universal layer only: observed field percentile when
+// the paper sits in a cohort we've built, calibration-pending otherwise. No QaL point (these
+// papers were never batch-calibrated), so the QaL columns read "pending".
+async function liveRecord(w: Work): Promise<RecordItem> {
+  const obs =
+    w.sid && w.year != null ? await cohortPercentile(w.sid, w.year, w.cites) : null;
+  const metrics: Metrics = {
+    field: { obs: obs ?? 0, calibrated: false, qal: null },
+    synthetic: null,
+    official: "synthetic",
+  };
+  return {
+    oaid: w.oaid,
+    title: w.title ?? "(untitled)",
+    authors: w.authors ?? null,
+    venue: w.venue ?? null,
+    year: w.year ?? null,
+    cites: w.cites ?? 0,
+    sid: w.sid ?? null,
+    subfield: w.subfield ?? null,
+    field: w.field ?? null,
+    oa: !!w.is_oa,
+    doi: w.doi ?? null,
+    retracted: !!w.is_retracted,
+    obs,
+    calibrated: false,
+    qal: null,
+    metrics,
+  };
+}
+
+// Live fallback for explore (backlog U8): only when there's a text query and the index has no
+// match. Discovery beyond the sampled cohorts — famous authors (e.g. Cachon) live outside our
+// 10k/cohort 1803/1802 samples, and truncated bylines hide non-first co-authors. Respects the
+// field + vintage filters; results are calibration-pending (universal layer).
+async function getExploreLive(p: ExploreParams): Promise<RecordItem[]> {
+  if (!p.q || !p.q.trim()) return [];
+  let works = await searchWorks(p.q, { since: p.since ?? null });
+  if (p.field) works = works.filter((w) => w.sid === p.field);
+  const limit = Math.min(Math.max(p.limit ?? 200, 1), 1000);
+  return Promise.all(works.slice(0, limit).map(liveRecord));
+}
+
+export async function getExplore(p: ExploreParams): Promise<ExploreResult> {
   const where: string[] = [];
   const args: any[] = [];
   if (p.field) {
@@ -138,7 +186,11 @@ export async function getExplore(p: ExploreParams): Promise<RecordItem[]> {
     (where.length ? ` where ${where.join(" and ")}` : "") +
     ` order by ${order} limit $${args.length}`;
   const rows = await query(sql, args);
-  return rows.map(mapRow);
+  if (rows.length) return { items: rows.map(mapRow), live: false };
+
+  // Nothing in the index — try a live OpenAlex discovery search.
+  const live = await getExploreLive(p);
+  return { items: live, live: live.length > 0 };
 }
 
 // Synthetic-field composition (U3): the paper's reference-class blend as ranked

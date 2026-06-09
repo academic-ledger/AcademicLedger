@@ -8,7 +8,7 @@ export async function GET(req: Request) {
     const u = new URL(req.url);
     const sortRaw = u.searchParams.get("sort");
     const sort = sortRaw === "cites" || sortRaw === "year" ? sortRaw : "qal";
-    const items = await getExplore({
+    const { items, live } = await getExplore({
       field: u.searchParams.get("field") || undefined,
       since: u.searchParams.get("since") ? Number(u.searchParams.get("since")) : undefined,
       q: u.searchParams.get("q") || undefined,
@@ -16,7 +16,7 @@ export async function GET(req: Request) {
       sort,
       limit: u.searchParams.get("limit") ? Number(u.searchParams.get("limit")) : undefined,
     });
-    return NextResponse.json({ count: items.length, items });
+    return NextResponse.json({ count: items.length, items, live });
   } catch (e: any) {
     return NextResponse.json({ error: e?.message ?? "error" }, { status: 500 });
   }

@@ -16,6 +16,7 @@ const SEED_FIELDS: { sid: string; label: string }[] = [
 
 export default function ExploreClient() {
   const [all, setAll] = useState<RecordItem[]>([]);
+  const [live, setLive] = useState(false);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
   const [qDebounced, setQDebounced] = useState("");
@@ -45,8 +46,16 @@ export default function ExploreClient() {
     let cancelled = false;
     fetch("/api/explore?" + p.toString())
       .then((r) => r.json())
-      .then((d) => !cancelled && setAll(d.items ?? []))
-      .catch(() => !cancelled && setAll([]))
+      .then((d) => {
+        if (cancelled) return;
+        setAll(d.items ?? []);
+        setLive(!!d.live);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setAll([]);
+        setLive(false);
+      })
       .finally(() => !cancelled && setLoading(false));
     return () => {
       cancelled = true;
@@ -167,17 +176,30 @@ export default function ExploreClient() {
             <span className="spin" />
             Loading records…
           </>
+        ) : live ? (
+          `${all.length} live match${all.length === 1 ? "" : "es"} from OpenAlex · most cited first`
         ) : (
           `${all.length}${all.length === 500 ? "+" : ""} records · sorted by ${sortLabel} ↓`
         )}
       </div>
 
+      {!loading && live && all.length > 0 && (
+        <div className="livebanner">
+          Not in the indexed set — showing live matches from <b>OpenAlex</b>. Only the seed
+          Decision-Sciences communities are pre-computed; these papers carry their{" "}
+          <b>observed standing</b> only, with a calibrated QaL forecast{" "}
+          <em>pending</em> (the QaL columns read &ldquo;pending&rdquo;). Open any paper for its live
+          record.
+        </div>
+      )}
+
       {loading ? (
         <SkeletonTable rows={12} />
       ) : all.length === 0 ? (
         <div className="notfound" style={{ padding: "40px 24px" }}>
-          No records match{q.trim() ? ` “${q.trim()}”` : " these filters"}. Note: only the seed
-          Decision-Sciences communities are indexed so far.
+          No records match{q.trim() ? ` “${q.trim()}”` : " these filters"}
+          {q.trim() ? " — in the index or on OpenAlex" : ""}. Note: only the seed Decision-Sciences
+          communities are indexed so far.
         </div>
       ) : (
         <RecordTable key={sortKey} records={all} initialSortKey={sortKey} initialSortDir={-1} />
