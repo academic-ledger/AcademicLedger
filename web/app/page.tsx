@@ -10,10 +10,11 @@ export default function Home() {
           All you need is Q<span className="a">a</span>L
         </h1>
         <p className="lede">
-          Quality as a Ledger (<b>QaL</b>, said &ldquo;qual&rdquo;): a calibrated, continuously
-          updated estimate of a paper&rsquo;s eventual standing in its field, built on the open
-          scholarly record. It separates the two jobs academic publishing conflates — distribution
-          (solved) and certification (rebuilt here as a measurement).
+          Quality on the academic Ledger (<b>QaL</b>, said &ldquo;qual&rdquo;): a calibrated,
+          continuously updated estimate of a paper&rsquo;s eventual standing among its peers, with a
+          confidence interval, built on the open scholarly record. It splits the two jobs publishing
+          conflates: distribution (already solved by SSRN, arXiv et al.) and certification, rebuilt
+          as a measurement rather than a verdict.
         </p>
         <div className="cta">
           <Link className="primary" href="/explore">
