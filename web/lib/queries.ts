@@ -1,7 +1,7 @@
 import { query } from "./db";
 import type { AuthorPayload, Metrics, MetricView, RecordItem } from "./types";
 import { buckets, classProb, type QalPoint } from "./qal";
-import { fetchWork, searchWorks, type Work } from "./openalex";
+import { fetchWork, fetchAuthor, fetchAuthorWorks, searchWorks, type Work } from "./openalex";
 
 const SEED = new Set(["1800", "1802", "1803"]);
 const H = 10;
@@ -9,13 +9,10 @@ const AS_OF = 2026;
 
 // Full-population mid-rank percentile of `cites` within a (subfield, year) cohort, read from
 // the precomputed cohort_percentiles CDF (already mid-rank). Floor lookup; no API call.
-async function cohortPercentile(sid: string, year: number, cites: number): Promise<number | null> {
-  const rows = await query<{ cdf: { cites: number; pct: number }[] }>(
-    `select cdf from cohort_percentiles where subfield=$1 and publication_year=$2
-       order by snapshot desc limit 1`,
-    [sid, year]
-  );
-  const cdf = rows.length ? rows[0].cdf : null;
+type Cdf = { cites: number; pct: number }[];
+
+// Floor lookup on a (mid-rank) empirical CDF: the pct of the largest breakpoint <= cites.
+function cdfLookup(cdf: Cdf | null, cites: number): number | null {
   if (!cdf || !cdf.length) return null;
   let pct = 0;
   for (const bp of cdf) {
@@ -23,6 +20,15 @@ async function cohortPercentile(sid: string, year: number, cites: number): Promi
     else break;
   }
   return Math.round(pct * 100) / 100;
+}
+
+async function cohortPercentile(sid: string, year: number, cites: number): Promise<number | null> {
+  const rows = await query<{ cdf: Cdf }>(
+    `select cdf from cohort_percentiles where subfield=$1 and publication_year=$2
+       order by snapshot desc limit 1`,
+    [sid, year]
+  );
+  return cdfLookup(rows.length ? rows[0].cdf : null, cites);
 }
 
 function toMetric(m: any): MetricView | null {
@@ -61,6 +67,7 @@ const RECORD_SELECT = `
          (q.display->>'oa')::boolean        as oa,
          (q.display->>'retracted')::boolean as retracted,
          q.display->>'authors'              as authors,
+         q.display->'authorships'           as authorships,
          q.display->>'venue'                as venue,
          q.display->>'subfield'             as subfield,
          q.obs_percentile   as obs,
@@ -83,6 +90,7 @@ function mapRow(r: any): RecordItem {
     oaid: r.oaid,
     title: r.title,
     authors: r.authors ?? null,
+    authorships: r.authorships ?? null,
     venue: r.venue ?? null,
     year: r.year ?? null,
     cites: r.cites ?? 0,
@@ -224,7 +232,8 @@ async function storedWork(oaid: string) {
   if (!d) return null;
   return {
     oaid, doi: d.doi ?? null, title: d.title ?? null, year: d.year ?? null,
-    authors: d.authors ?? null, venue: d.venue ?? null, sid: d.sid ?? null,
+    authors: d.authors ?? null, authorships: d.authorships ?? null,
+    venue: d.venue ?? null, sid: d.sid ?? null,
     subfield: d.subfield ?? null, field: d.field ?? null, cites: d.cites ?? 0,
     is_oa: !!d.oa, is_retracted: !!d.retracted, n_refs: 0, biblio: null,
   };
@@ -248,6 +257,7 @@ export async function getPaperRecord(oaid: string) {
     doi: work.doi,
     title: work.title,
     authors: work.authors, // live, §12-correct byline
+    authorships: (work as any).authorships ?? null, // per-author identity (live fetch only)
     year: work.year,
     venue: work.venue,
     subfield: work.subfield, // live OpenAlex labels
@@ -297,6 +307,91 @@ export async function getPaperRecord(oaid: string) {
     obs_percentile: obs,
     calibrated: false,
     status: "calibration-pending" as const,
+  };
+}
+
+// Universal-layer observed percentile for a batch of works, in ONE query: fetch the latest CDF
+// per (subfield, year) the works touch, then floor-lookup each. (The author page would otherwise
+// do up to ~100 per-work queries.)
+async function obsForWorks(works: Work[]): Promise<Map<string, number>> {
+  const need = works.filter((w) => w.sid && w.year != null);
+  const out = new Map<string, number>();
+  if (!need.length) return out;
+  const sids = [...new Set(need.map((w) => w.sid as string))];
+  const rows = await query<{ subfield: string; publication_year: number; cdf: Cdf }>(
+    `select distinct on (subfield, publication_year) subfield, publication_year, cdf
+       from cohort_percentiles where subfield = any($1)
+       order by subfield, publication_year, snapshot desc`,
+    [sids]
+  );
+  const cdfMap = new Map(rows.map((r) => [`${r.subfield}:${r.publication_year}`, r.cdf]));
+  for (const w of need) {
+    const v = cdfLookup(cdfMap.get(`${w.sid}:${w.year}`) ?? null, w.cites);
+    if (v != null) out.set(w.oaid, v);
+  }
+  return out;
+}
+
+// On-the-fly author page (QaL_spec §11 "Author view"): live author entity + their works, each
+// shown with its cached QaL where computed (qal_records) and the universal layer otherwise. Works
+// for ANY author with no pre-seeding. Falls back to the stored (seeded) author when the live fetch
+// fails — exactly like getPaperRecord.
+export async function getAuthorRecord(oaid: string): Promise<AuthorPayload | null> {
+  const ent = await fetchAuthor(oaid);
+  if (!ent) return getAuthor(oaid);
+  const works = await fetchAuthorWorks(oaid, 100);
+
+  const ids = works.map((w) => w.oaid);
+  const cachedRows = ids.length
+    ? await query<any>(
+        `select oaid, obs_percentile, calibrated, qal_point, qal_ci_lo, qal_ci_hi, metrics
+           from qal_records where oaid = any($1)`,
+        [ids]
+      )
+    : [];
+  const cmap = new Map(cachedRows.map((r) => [r.oaid, r]));
+  const obsMap = await obsForWorks(works);
+
+  const items: RecordItem[] = works.map((w) => {
+    const c = cmap.get(w.oaid);
+    const qal: QalPoint | null =
+      c && c.qal_point != null
+        ? { point: Number(c.qal_point), lo: Number(c.qal_ci_lo), hi: Number(c.qal_ci_hi) }
+        : null;
+    const obs =
+      c && c.obs_percentile != null ? Number(c.obs_percentile) : obsMap.get(w.oaid) ?? null;
+    return {
+      oaid: w.oaid,
+      title: w.title ?? "(untitled)",
+      authors: w.authors ?? null,
+      authorships: w.authorships,
+      venue: w.venue ?? null,
+      year: w.year ?? null,
+      cites: w.cites ?? 0,
+      sid: w.sid ?? null,
+      subfield: w.subfield ?? null,
+      field: w.field ?? null,
+      oa: !!w.is_oa,
+      doi: w.doi ?? null,
+      retracted: !!w.is_retracted,
+      obs,
+      calibrated: !!(c && c.calibrated),
+      qal,
+      metrics: c ? toMetrics(c.metrics) : null,
+    };
+  });
+
+  return {
+    author: {
+      name: ent.name ?? oaid,
+      aff: ent.affiliation,
+      orcid: ent.orcid,
+      oaid: ent.oaid,
+      works_count: ent.works_count ?? works.length,
+      cites: ent.cited_by_count ?? 0,
+      seed: SEED_SUBFIELDS,
+    },
+    works: items,
   };
 }
 

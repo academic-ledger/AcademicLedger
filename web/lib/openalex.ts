@@ -2,6 +2,8 @@
 // metadata current — title, byline, citations — so stored snapshots can't go stale. Cached
 // via Next fetch revalidation so repeat views don't re-hit the API.
 
+import type { Authorship } from "./types";
+
 const MAILTO = process.env.OPENALEX_MAILTO || "ktulrich@gmail.com";
 const API_KEY = process.env.OPENALEX_API_KEY || ""; // premium key: lifts the daily list budget
 const AUTH = `&mailto=${encodeURIComponent(MAILTO)}${API_KEY ? `&api_key=${encodeURIComponent(API_KEY)}` : ""}`;
@@ -13,6 +15,7 @@ export interface Work {
   title: string | null;
   year: number | null;
   authors: string | null; // §12: all co-authors when < 11, else "First author et al."
+  authorships: Authorship[]; // per-author identity (id + orcid) for clickable bylines
   venue: string | null;
   sid: string | null; // primary subfield id
   subfield: string | null; // primary subfield label
@@ -24,23 +27,33 @@ export interface Work {
   biblio: { volume?: string | null; issue?: string | null; first_page?: string | null; last_page?: string | null } | null;
 }
 
-function byline(authorships: any[]): string | null {
-  const names = (authorships || [])
-    .map((a) => a?.author?.display_name)
-    .filter(Boolean) as string[];
-  if (!names.length) return null;
-  return names.length < 11 ? names.join(", ") : `${names[0]} et al.`;
+function mapAuthorships(raw: any[]): Authorship[] {
+  return (raw || [])
+    .map((a) => ({
+      name: a?.author?.display_name as string,
+      oaid: ((a?.author?.id || "").split("/").pop() as string) || null,
+      orcid: a?.author?.orcid || null,
+    }))
+    .filter((a) => a.name);
+}
+
+// §12 display rule: all co-authors when < 11, else "First author et al."
+function bylineStr(ships: Authorship[]): string | null {
+  if (!ships.length) return null;
+  return ships.length < 11 ? ships.map((s) => s.name).join(", ") : `${ships[0].name} et al.`;
 }
 
 function mapWork(w: any, fallbackId = ""): Work {
   const pt = w.primary_topic || {};
   const sub = pt.subfield || {};
+  const ships = mapAuthorships(w.authorships);
   return {
     oaid: (w.id || "").split("/").pop() || fallbackId,
     doi: w.doi || null,
     title: w.title || null,
     year: w.publication_year ?? null,
-    authors: byline(w.authorships),
+    authors: bylineStr(ships),
+    authorships: ships,
     venue: w.primary_location?.source?.display_name ?? null,
     sid: (sub.id || "").split("/").pop() || null,
     subfield: sub.display_name ?? null,
@@ -124,4 +137,64 @@ export async function searchWorks(
     }
   }
   return [...merged.values()].sort((a, b) => b.cites - a.cites);
+}
+
+// ---- Author entity (for the on-the-fly author page; QaL_spec §11 "Author view") -------------
+
+export interface AuthorEntity {
+  oaid: string;
+  name: string | null;
+  affiliation: string | null;
+  orcid: string | null;
+  works_count: number | null;
+  cited_by_count: number | null;
+}
+
+export async function fetchAuthor(oaid: string): Promise<AuthorEntity | null> {
+  const select = "id,display_name,orcid,last_known_institutions,works_count,cited_by_count";
+  const url =
+    `https://api.openalex.org/authors/${encodeURIComponent(oaid)}?select=${select}${AUTH}`;
+  let r: Response;
+  try {
+    r = await fetch(url, {
+      headers: { "User-Agent": `al-web/1.0 (${MAILTO})` },
+      next: { revalidate: REVALIDATE },
+    });
+  } catch {
+    return null;
+  }
+  if (!r.ok) return null;
+  const a: any = await r.json();
+  const inst = (a.last_known_institutions || [])[0];
+  return {
+    oaid: (a.id || "").split("/").pop() || oaid,
+    name: a.display_name ?? null,
+    affiliation: inst?.display_name ?? null,
+    orcid: a.orcid ?? null,
+    works_count: a.works_count ?? null,
+    cited_by_count: a.cited_by_count ?? null,
+  };
+}
+
+// The author's works, most-cited first, mapped like any other work (so each carries its own
+// byline, fields, and citations). Capped — an author page shows a portfolio, not everything.
+export async function fetchAuthorWorks(oaid: string, limit = 100): Promise<Work[]> {
+  const select =
+    "id,doi,title,publication_year,primary_topic,primary_location,authorships," +
+    "cited_by_count,open_access,is_retracted";
+  const per = Math.min(Math.max(limit, 1), 200);
+  const url =
+    `https://api.openalex.org/works?filter=authorships.author.id:${encodeURIComponent(oaid)}` +
+    `&select=${select}&per-page=${per}&sort=cited_by_count:desc${AUTH}`;
+  try {
+    const r = await fetch(url, {
+      headers: { "User-Agent": `al-web/1.0 (${MAILTO})` },
+      next: { revalidate: SEARCH_REVALIDATE },
+    });
+    if (!r.ok) return [];
+    const j: any = await r.json();
+    return (j.results || []).map((w: any) => mapWork(w));
+  } catch {
+    return [];
+  }
 }

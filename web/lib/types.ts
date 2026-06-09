@@ -1,5 +1,12 @@
 import type { QalPoint } from "./qal";
 
+// One author on a paper's byline, carrying identity so the name can link to the author page.
+export interface Authorship {
+  name: string;
+  oaid: string | null; // OpenAlex Author ID (e.g. "A5040079549")
+  orcid: string | null;
+}
+
 // One reference-class view of a paper (field cohort OR co-citation neighborhood).
 export interface MetricView {
   obs: number;
@@ -19,7 +26,8 @@ export interface Metrics {
 export interface RecordItem {
   oaid: string;
   title: string;
-  authors: string | null;
+  authors: string | null; // abbreviated display string ("A, B, C" or "First et al.")
+  authorships?: Authorship[] | null; // per-author identity for clickable bylines (when known)
   venue: string | null;
   year: number | null;
   cites: number;

@@ -1,4 +1,5 @@
 import Brand from "@/components/Brand";
+import Byline from "@/components/Byline";
 import CitationCard from "@/components/CitationCard";
 import { getPaperRecord } from "@/lib/queries";
 
@@ -45,7 +46,11 @@ export default async function PaperPage({ params }: { params: { oaid: string } }
       <Brand />
       <div className="wrap-paper">
         <h1 className="title">{rec.title}</h1>
-        {rec.authors && <p className="authors">{rec.authors}</p>}
+        {(rec.authorships?.length || rec.authors) && (
+          <p className="authors">
+            <Byline authorships={rec.authorships} fallback={rec.authors} />
+          </p>
+        )}
         <p className="meta">
           {rec.venue && <span className="pill">{rec.venue}</span>}
           {rec.reference_class?.field_label && <span className="pill">{rec.reference_class.field_label}</span>}

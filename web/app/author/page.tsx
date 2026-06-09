@@ -1,6 +1,6 @@
 import Brand from "@/components/Brand";
 import AuthorView from "@/components/AuthorView";
-import { getAuthor, getDefaultAuthorId } from "@/lib/queries";
+import { getAuthorRecord, getDefaultAuthorId } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
 
@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 // nav tab always shows something. Specific authors live at /author/:oaid.
 export default async function AuthorIndex() {
   const id = await getDefaultAuthorId();
-  const payload = id ? await getAuthor(id) : null;
+  const payload = id ? await getAuthorRecord(id) : null;
   return (
     <>
       <Brand active="author" />

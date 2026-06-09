@@ -1,11 +1,11 @@
 import Brand from "@/components/Brand";
 import AuthorView from "@/components/AuthorView";
-import { getAuthor } from "@/lib/queries";
+import { getAuthorRecord } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
 
 export default async function AuthorPage({ params }: { params: { oaid: string } }) {
-  const payload = await getAuthor(params.oaid);
+  const payload = await getAuthorRecord(params.oaid);
   return (
     <>
       <Brand active="author" />

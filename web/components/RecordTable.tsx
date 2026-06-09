@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Byline from "./Byline";
 import type { MetricView, RecordItem } from "@/lib/types";
 
 type SortKey = "_r" | "title" | "subfield" | "year" | "cites" | "qalField" | "qalSynth";
@@ -100,7 +101,15 @@ export default function RecordTable({
                     </Link>
                   </div>
                   <div className="rmeta">
-                    {w.authors ? w.authors + (w.venue ? " · " + w.venue : "") : w.venue || ""}
+                    {(() => {
+                      const hasAuth = !!(w.authorships?.length || w.authors);
+                      return (
+                        <>
+                          <Byline authorships={w.authorships} fallback={w.authors} />
+                          {w.venue ? (hasAuth ? <> · {w.venue}</> : w.venue) : null}
+                        </>
+                      );
+                    })()}
                     {w.oa ? <span style={{ color: "#2e8b57" }}> · OA</span> : null} ·{" "}
                     <a href={src} target="_blank" rel="noopener noreferrer">
                       source ↗

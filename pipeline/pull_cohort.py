@@ -28,6 +28,14 @@ def _row(w):
         authors_str = ", ".join(names)
     else:
         authors_str = names[0] + " et al."
+    # per-author identity for clickable bylines (QaL_spec §9 authorships); IDs retained even when
+    # the display string above abbreviates a long byline.
+    authorships = [
+        {"name": (a.get("author") or {}).get("display_name"),
+         "oaid": ((a.get("author") or {}).get("id") or "").split("/")[-1] or None,
+         "orcid": (a.get("author") or {}).get("orcid")}
+        for a in auths if (a.get("author") or {}).get("display_name")
+    ]
     venue = (((w.get("primary_location") or {}).get("source") or {}).get("display_name"))
     return {
         "oaid": w["id"].split("/")[-1],
@@ -41,7 +49,8 @@ def _row(w):
         "is_oa": ((w.get("open_access") or {}).get("is_oa")),
         "is_retracted": bool(w.get("is_retracted")),
         "raw": {"authors": authors_str, "venue": venue,
-                "subfield_label": sub.get("display_name")},
+                "subfield_label": sub.get("display_name"),
+                "authorships": authorships},
     }
 
 

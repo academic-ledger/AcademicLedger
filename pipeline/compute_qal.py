@@ -113,7 +113,7 @@ def main():
         cur.execute(
             "SELECT oaid, primary_subfield, publication_year, cited_by_count, title, doi, "
             "       primary_field, is_oa, is_retracted, raw->>'authors', raw->>'venue', "
-            "       raw->>'subfield_label' "
+            "       raw->>'subfield_label', raw->'authorships' "
             "FROM works WHERE primary_subfield IS NOT NULL AND publication_year IS NOT NULL"
         )
         rows = cur.fetchall()
@@ -161,7 +161,7 @@ def main():
 
     with conn.cursor() as wcur:
         for (oaid, sid, year, cites, title, doi, p_field, is_oa, is_retr,
-             authors, venue, subfield_label) in rows:
+             authors, venue, subfield_label, authorships) in rows:
             key = (sid, year)
             has_cohort = key in cohorts
             has_synth = oaid in synth
@@ -169,7 +169,8 @@ def main():
                 continue  # nothing to say (no field cohort, no synthetic field) -> leave as is
             display = {"title": title, "authors": authors, "venue": venue, "year": year,
                        "cites": cites, "sid": sid, "subfield": subfield_label, "field": p_field,
-                       "oa": bool(is_oa), "doi": doi, "retracted": bool(is_retr)}
+                       "oa": bool(is_oa), "doi": doi, "retracted": bool(is_retr),
+                       "authorships": authorships}
             field_obs = round(obs_percentile(cohorts[key][1], cites or 0), 2) if has_cohort else None
             field_n = cohorts[key][0] if has_cohort else None
             age = max(1, min(H - 1, as_of - year))
