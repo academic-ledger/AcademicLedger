@@ -6,7 +6,8 @@ const BINS: { l: string; t: (x: number) => boolean }[] = [
   { l: "1–5% (95–99)", t: (x) => x >= 95 && x < 99 },
   { l: "5–10% (90–95)", t: (x) => x >= 90 && x < 95 },
   { l: "10–25% (75–90)", t: (x) => x >= 75 && x < 90 },
-  { l: "Below 75", t: (x) => x < 75 },
+  { l: "25–50% (50–75)", t: (x) => x >= 50 && x < 75 },
+  { l: "Below 50", t: (x) => x < 50 },
 ];
 
 export default function AuthorView({ payload }: { payload: AuthorPayload }) {
