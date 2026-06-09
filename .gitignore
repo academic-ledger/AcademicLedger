@@ -9,6 +9,7 @@ data/cache/
 node_modules/
 .next/
 out/
+*.tsbuildinfo
 # env & secrets
 .env
 .env.local
