@@ -14,6 +14,12 @@ const SEED_FIELDS: { sid: string; label: string }[] = [
   { sid: "1800", label: "General Decision Sciences" },
 ];
 
+// U9: vintages are a continuous range (current year down to a floor), not the set of years that
+// happen to appear in the loaded rows — otherwise unsampled years (2024, 2025, …) drop out.
+const AS_OF = 2026;
+const MIN_VINTAGE = 2000;
+const VINTAGES: number[] = Array.from({ length: AS_OF - MIN_VINTAGE + 1 }, (_, i) => AS_OF - i);
+
 export default function ExploreClient() {
   const [all, setAll] = useState<RecordItem[]>([]);
   const [live, setLive] = useState(false);
@@ -25,7 +31,6 @@ export default function ExploreClient() {
   const [calOnly, setCalOnly] = useState(false);
   const [sort, setSort] = useState<Sort>("qalField");
   const [fieldOpts, setFieldOpts] = useState(SEED_FIELDS);
-  const [years, setYears] = useState<number[]>([]);
 
   // Debounce the search box so each keystroke doesn't hit the API.
   useEffect(() => {
@@ -62,17 +67,13 @@ export default function ExploreClient() {
     };
   }, [qDebounced, field, year, calOnly, sort]);
 
-  // Accumulate field + year dropdown options from results (union, so they never shrink).
+  // Accumulate field dropdown options from results (union, so they never shrink). Vintages are a
+  // fixed continuous range (VINTAGES), not result-driven — see U9.
   useEffect(() => {
     setFieldOpts((prev) => {
       const m = new Map(prev.map((f) => [f.sid, f.label]));
       for (const d of all) if (d.sid && d.subfield) m.set(d.sid, d.subfield);
       return [...m].map(([sid, label]) => ({ sid, label })).sort((a, b) => a.label.localeCompare(b.label));
-    });
-    setYears((prev) => {
-      const s = new Set(prev);
-      for (const d of all) if (d.year) s.add(d.year);
-      return [...s].sort((a, b) => b - a);
     });
   }, [all]);
 
@@ -120,7 +121,7 @@ export default function ExploreClient() {
           Vintage (since)
           <select value={year} onChange={(e) => setYear(Number(e.target.value))}>
             <option value={0}>Any</option>
-            {years.map((y) => (
+            {VINTAGES.map((y) => (
               <option key={y} value={y}>
                 {y}
               </option>
