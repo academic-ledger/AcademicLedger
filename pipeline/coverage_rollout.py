@@ -518,6 +518,13 @@ def report(conn):
           flush=True)
 
 
+def _connect(db):
+    """Neon connection with TCP keepalives, to survive a long run."""
+    import psycopg
+    return psycopg.connect(db, keepalives=1, keepalives_idle=30,
+                           keepalives_interval=10, keepalives_count=5)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--steps", default="123", help="which steps to run, e.g. '12' or '3'")
@@ -527,31 +534,58 @@ def main():
     if not db:
         raise SystemExit("DATABASE_URL not set")
     import psycopg
-    conn = psycopg.connect(db)
+    conn = _connect(db)
     targets = [t.strip() for t in args.targets.split(",") if t.strip()]
-    try:
-        if "1" in args.steps:
-            t = step1_footprint(conn)
-            if not targets:
-                targets = t
-        if not targets:  # resume case: rebuild target set from the persisted footprint
+
+    if "1" in args.steps:
+        t = step1_footprint(conn)
+        if not targets:
+            targets = t
+    if not targets:  # resume case: rebuild target set from the persisted footprint
+        try:
+            fp = json.load(open("data/oid_footprint.json"))
+            targets = [r["sid"] for r in fp["subfields"]
+                       if not r["is_seed"] and r["cumulative"] <= COVER_TO]
+        except Exception:
+            targets = []
+    targets = [t for t in targets if t not in SEED]
+
+    # Resilient run: Neon can drop a long-lived connection (especially under concurrent load —
+    # this is why synthetic_field.py uses short-lived connections). Every step skips
+    # checkpointed-done units, so on a drop we reconnect and resume; an in-flight subfield simply
+    # re-runs (idempotent). Budget exhaustion still stops cleanly.
+    attempt = 0
+    while True:
+        try:
+            if "2" in args.steps:
+                step2_skeletons(conn, targets)
+            if "3" in args.steps:
+                step3_calibrate(conn, targets)
+            print("\nrollout complete (all requested steps finished).", flush=True)
+            break
+        except BudgetExhausted as e:
+            print(f"\n[budget] stopping cleanly: {e}", flush=True)
+            break
+        except psycopg.OperationalError as e:
+            attempt += 1
+            if attempt > 30:
+                print(f"\n[fatal] too many reconnects ({attempt}): {e}", flush=True)
+                break
+            print(f"\n[reconnect] Neon connection lost ({e}); reconnecting and resuming "
+                  f"(attempt {attempt})", flush=True)
             try:
-                fp = json.load(open("data/oid_footprint.json"))
-                targets = [r["sid"] for r in fp["subfields"]
-                           if not r["is_seed"] and r["cumulative"] <= COVER_TO]
+                conn.close()
             except Exception:
-                targets = []
-        targets = [t for t in targets if t not in SEED]
-        if "2" in args.steps:
-            step2_skeletons(conn, targets)
-        if "3" in args.steps:
-            step3_calibrate(conn, targets)
-        print("\nrollout complete (all requested steps finished within budget).", flush=True)
-    except BudgetExhausted as e:
-        print(f"\n[budget] stopping cleanly: {e}", flush=True)
-    finally:
+                pass
+            time.sleep(min(30, 2 ** min(attempt, 5)))
+            conn = _connect(db)
+
+    try:
         report(conn)
-        conn.close()
+    except psycopg.OperationalError:
+        conn = _connect(db)
+        report(conn)
+    conn.close()
 
 
 if __name__ == "__main__":
