@@ -1,0 +1,656 @@
+{
+  "as_of": 2026,
+  "n_faculty_resolved": 30,
+  "n_faculty_total": 30,
+  "cover_90_at_subfield": "2711",
+  "cover_95_at_subfield": "1802",
+  "subfields": [
+    {
+      "sid": "1404",
+      "name": "Management Information Systems",
+      "share": 0.1303,
+      "cumulative": 0.1303,
+      "is_seed": false
+    },
+    {
+      "sid": "2002",
+      "name": "Economics and Econometrics",
+      "share": 0.0975,
+      "cumulative": 0.2278,
+      "is_seed": false
+    },
+    {
+      "sid": "1406",
+      "name": "Marketing",
+      "share": 0.0909,
+      "cumulative": 0.3187,
+      "is_seed": false
+    },
+    {
+      "sid": "3312",
+      "name": "Sociology and Political Science",
+      "share": 0.0599,
+      "cumulative": 0.3786,
+      "is_seed": false
+    },
+    {
+      "sid": "1408",
+      "name": "Strategy and Management",
+      "share": 0.056,
+      "cumulative": 0.4345,
+      "is_seed": false
+    },
+    {
+      "sid": "1803",
+      "name": "Management Science and Operations Research",
+      "share": 0.0543,
+      "cumulative": 0.4888,
+      "is_seed": true
+    },
+    {
+      "sid": "1702",
+      "name": "Artificial Intelligence",
+      "share": 0.0462,
+      "cumulative": 0.535,
+      "is_seed": false
+    },
+    {
+      "sid": "3311",
+      "name": "Safety Research",
+      "share": 0.039,
+      "cumulative": 0.574,
+      "is_seed": false
+    },
+    {
+      "sid": "1707",
+      "name": "Computer Vision and Pattern Recognition",
+      "share": 0.038,
+      "cumulative": 0.612,
+      "is_seed": false
+    },
+    {
+      "sid": "1800",
+      "name": "General Decision Sciences",
+      "share": 0.0361,
+      "cumulative": 0.6481,
+      "is_seed": true
+    },
+    {
+      "sid": "3604",
+      "name": "Emergency Medical Services",
+      "share": 0.0291,
+      "cumulative": 0.6772,
+      "is_seed": false
+    },
+    {
+      "sid": "3202",
+      "name": "Applied Psychology",
+      "share": 0.0247,
+      "cumulative": 0.702,
+      "is_seed": false
+    },
+    {
+      "sid": "3313",
+      "name": "Transportation",
+      "share": 0.0215,
+      "cumulative": 0.7235,
+      "is_seed": false
+    },
+    {
+      "sid": "3109",
+      "name": "Statistical and Nonlinear Physics",
+      "share": 0.0197,
+      "cumulative": 0.7432,
+      "is_seed": false
+    },
+    {
+      "sid": "2214",
+      "name": "Media Technology",
+      "share": 0.0192,
+      "cumulative": 0.7624,
+      "is_seed": false
+    },
+    {
+      "sid": "1405",
+      "name": "Management of Technology and Innovation",
+      "share": 0.016,
+      "cumulative": 0.7784,
+      "is_seed": false
+    },
+    {
+      "sid": "2209",
+      "name": "Industrial and Manufacturing Engineering",
+      "share": 0.0145,
+      "cumulative": 0.7929,
+      "is_seed": false
+    },
+    {
+      "sid": "3207",
+      "name": "Social Psychology",
+      "share": 0.0131,
+      "cumulative": 0.806,
+      "is_seed": false
+    },
+    {
+      "sid": "1710",
+      "name": "Information Systems",
+      "share": 0.0123,
+      "cumulative": 0.8183,
+      "is_seed": false
+    },
+    {
+      "sid": "3320",
+      "name": "Political Science and International Relations",
+      "share": 0.0122,
+      "cumulative": 0.8305,
+      "is_seed": false
+    },
+    {
+      "sid": "1711",
+      "name": "Signal Processing",
+      "share": 0.0118,
+      "cumulative": 0.8423,
+      "is_seed": false
+    },
+    {
+      "sid": "2712",
+      "name": "Endocrinology, Diabetes and Metabolism",
+      "share": 0.0111,
+      "cumulative": 0.8535,
+      "is_seed": false
+    },
+    {
+      "sid": "2720",
+      "name": "Hematology",
+      "share": 0.0111,
+      "cumulative": 0.8646,
+      "is_seed": false
+    },
+    {
+      "sid": "2705",
+      "name": "Cardiology and Cardiovascular Medicine",
+      "share": 0.0111,
+      "cumulative": 0.8757,
+      "is_seed": false
+    },
+    {
+      "sid": "3205",
+      "name": "Experimental and Cognitive Psychology",
+      "share": 0.0098,
+      "cumulative": 0.8855,
+      "is_seed": false
+    },
+    {
+      "sid": "2203",
+      "name": "Automotive Engineering",
+      "share": 0.0091,
+      "cumulative": 0.8946,
+      "is_seed": false
+    },
+    {
+      "sid": "2711",
+      "name": "Emergency Medicine",
+      "share": 0.0088,
+      "cumulative": 0.9035,
+      "is_seed": false
+    },
+    {
+      "sid": "1705",
+      "name": "Computer Networks and Communications",
+      "share": 0.0088,
+      "cumulative": 0.9123,
+      "is_seed": false
+    },
+    {
+      "sid": "2210",
+      "name": "Mechanical Engineering",
+      "share": 0.008,
+      "cumulative": 0.9202,
+      "is_seed": false
+    },
+    {
+      "sid": "2741",
+      "name": "Radiology, Nuclear Medicine and Imaging",
+      "share": 0.0067,
+      "cumulative": 0.9269,
+      "is_seed": false
+    },
+    {
+      "sid": "1804",
+      "name": "Statistics, Probability and Uncertainty",
+      "share": 0.0067,
+      "cumulative": 0.9336,
+      "is_seed": false
+    },
+    {
+      "sid": "1402",
+      "name": "Accounting",
+      "share": 0.0059,
+      "cumulative": 0.9395,
+      "is_seed": false
+    },
+    {
+      "sid": "1703",
+      "name": "Computational Theory and Mathematics",
+      "share": 0.0059,
+      "cumulative": 0.9454,
+      "is_seed": false
+    },
+    {
+      "sid": "1802",
+      "name": "Information Systems and Management",
+      "share": 0.0058,
+      "cumulative": 0.9512,
+      "is_seed": true
+    },
+    {
+      "sid": "3308",
+      "name": "Law",
+      "share": 0.0055,
+      "cumulative": 0.9567,
+      "is_seed": false
+    },
+    {
+      "sid": "3304",
+      "name": "Education",
+      "share": 0.0053,
+      "cumulative": 0.962,
+      "is_seed": false
+    },
+    {
+      "sid": "2000",
+      "name": "General Economics, Econometrics and Finance",
+      "share": 0.0052,
+      "cumulative": 0.9672,
+      "is_seed": false
+    },
+    {
+      "sid": "2613",
+      "name": "Statistics and Probability",
+      "share": 0.0052,
+      "cumulative": 0.9724,
+      "is_seed": false
+    },
+    {
+      "sid": "2612",
+      "name": "Numerical Analysis",
+      "share": 0.0049,
+      "cumulative": 0.9773,
+      "is_seed": false
+    },
+    {
+      "sid": "3203",
+      "name": "Clinical Psychology",
+      "share": 0.0045,
+      "cumulative": 0.9818,
+      "is_seed": false
+    },
+    {
+      "sid": "2805",
+      "name": "Cognitive Neuroscience",
+      "share": 0.004,
+      "cumulative": 0.9858,
+      "is_seed": false
+    },
+    {
+      "sid": "3306",
+      "name": "Health",
+      "share": 0.0038,
+      "cumulative": 0.9896,
+      "is_seed": false
+    },
+    {
+      "sid": "3318",
+      "name": "Gender Studies",
+      "share": 0.0038,
+      "cumulative": 0.9934,
+      "is_seed": false
+    },
+    {
+      "sid": "2003",
+      "name": "Finance",
+      "share": 0.0037,
+      "cumulative": 0.9972,
+      "is_seed": false
+    },
+    {
+      "sid": "1706",
+      "name": "Computer Science Applications",
+      "share": 0.0028,
+      "cumulative": 1.0,
+      "is_seed": false
+    }
+  ],
+  "resolution": [
+    {
+      "surname": "Allon",
+      "oaid": "A5005682500",
+      "name": "Gad Allon",
+      "works": 87,
+      "cites": 2666,
+      "oid_score": 0.912,
+      "confidence": "override",
+      "source": "override",
+      "n_candidates": 1
+    },
+    {
+      "surname": "Bastani",
+      "oaid": "A5075456619",
+      "name": "Hamsa Bastani",
+      "works": 80,
+      "cites": 1499,
+      "oid_score": 0.844,
+      "confidence": "override",
+      "source": "override",
+      "n_candidates": 1
+    },
+    {
+      "surname": "Cachon",
+      "oaid": "A5024587628",
+      "name": "G\u00e9rard P. Cachon",
+      "works": 96,
+      "cites": 19991,
+      "oid_score": 0.925,
+      "confidence": "override",
+      "source": "override",
+      "n_candidates": 1
+    },
+    {
+      "surname": "Duckworth",
+      "oaid": "A5034664324",
+      "name": "Angela Duckworth",
+      "works": 306,
+      "cites": 41290,
+      "oid_score": 1.0,
+      "confidence": "override",
+      "source": "override",
+      "n_candidates": 1
+    },
+    {
+      "surname": "Gallino",
+      "oaid": "A5007697214",
+      "name": "Santiago Gallino",
+      "works": 50,
+      "cites": 3931,
+      "oid_score": 1.0,
+      "confidence": "override",
+      "source": "override",
+      "n_candidates": 1
+    },
+    {
+      "surname": "Gans",
+      "oaid": "A5078369143",
+      "name": "Noah Gans",
+      "works": 49,
+      "cites": 3523,
+      "oid_score": 0.822,
+      "confidence": "override",
+      "source": "override",
+      "n_candidates": 1
+    },
+    {
+      "surname": "Harker",
+      "oaid": "A5019512091",
+      "name": "Patrick T. Harker",
+      "works": 221,
+      "cites": 11604,
+      "oid_score": 0.853,
+      "confidence": "override",
+      "source": "override",
+      "n_candidates": 1
+    },
+    {
+      "surname": "Hitt",
+      "oaid": "A5008423326",
+      "name": "Lorin M. Hitt",
+      "works": 133,
+      "cites": 22193,
+      "oid_score": 0.801,
+      "confidence": "override",
+      "source": "override",
+      "n_candidates": 1
+    },
+    {
+      "surname": "Hosanagar",
+      "oaid": "A5035743198",
+      "name": "Kartik Hosanagar",
+      "works": 107,
+      "cites": 4393,
+      "oid_score": 1.0,
+      "confidence": "override",
+      "source": "override",
+      "n_candidates": 1
+    },
+    {
+      "surname": "Kimbrough",
+      "oaid": "A5028900472",
+      "name": "Steven O. Kimbrough",
+      "works": 241,
+      "cites": 2961,
+      "oid_score": 1.0,
+      "confidence": "override",
+      "source": "override",
+      "n_candidates": 1
+    },
+    {
+      "surname": "Knox",
+      "oaid": "A5087031929",
+      "name": "Dean Knox",
+      "works": 119,
+      "cites": 2195,
+      "oid_score": 1.0,
+      "confidence": "override",
+      "source": "override",
+      "n_candidates": 1
+    },
+    {
+      "surname": "Milkman",
+      "oaid": "A5030831197",
+      "name": "Katherine L. Milkman",
+      "works": 183,
+      "cites": 12553,
+      "oid_score": 1.0,
+      "confidence": "override",
+      "source": "override",
+      "n_candidates": 1
+    },
+    {
+      "surname": "Netessine",
+      "oaid": "A5026183367",
+      "name": "Serguei Netessine",
+      "works": 172,
+      "cites": 9797,
+      "oid_score": 1.0,
+      "confidence": "override",
+      "source": "override",
+      "n_candidates": 1
+    },
+    {
+      "surname": "Rock",
+      "oaid": "A5005121779",
+      "name": "Daniel Rock",
+      "works": 26,
+      "cites": 3705,
+      "oid_score": 1.0,
+      "confidence": "override",
+      "source": "override",
+      "n_candidates": 1
+    },
+    {
+      "surname": "Santoro",
+      "oaid": "A5096847913",
+      "name": "Kari Santoro\u2010Beer",
+      "works": 1,
+      "cites": 11,
+      "oid_score": 0.0,
+      "confidence": "low",
+      "source": "penn",
+      "n_candidates": 1
+    },
+    {
+      "surname": "Savin",
+      "oaid": "A5061632613",
+      "name": "Sergei Savin",
+      "works": 86,
+      "cites": 2599,
+      "oid_score": 0.58,
+      "confidence": "override",
+      "source": "override",
+      "n_candidates": 1
+    },
+    {
+      "surname": "Schweitzer",
+      "oaid": "A5021144215",
+      "name": "Maurice E. Schweitzer",
+      "works": 258,
+      "cites": 13911,
+      "oid_score": 1.0,
+      "confidence": "override",
+      "source": "override",
+      "n_candidates": 1
+    },
+    {
+      "surname": "Sharma",
+      "oaid": "A5024975080",
+      "name": "Shoba Sharma",
+      "works": 2,
+      "cites": 488,
+      "oid_score": 0.8,
+      "confidence": "high",
+      "source": "penn",
+      "n_candidates": 25
+    },
+    {
+      "surname": "Simmons",
+      "oaid": "A5037773653",
+      "name": "Joseph P. Simmons",
+      "works": 129,
+      "cites": 19341,
+      "oid_score": 0.88,
+      "confidence": "override",
+      "source": "override",
+      "n_candidates": 1
+    },
+    {
+      "surname": "Smitizsky",
+      "oaid": "A5036689707",
+      "name": "Gal Smitizsky",
+      "works": 5,
+      "cites": 24,
+      "oid_score": 1.0,
+      "confidence": "medium",
+      "source": "global",
+      "n_candidates": 1
+    },
+    {
+      "surname": "Song",
+      "oaid": "A5027888346",
+      "name": "Hummy Song",
+      "works": 49,
+      "cites": 1247,
+      "oid_score": 0.609,
+      "confidence": "override",
+      "source": "override",
+      "n_candidates": 1
+    },
+    {
+      "surname": "Su",
+      "oaid": "A5103214705",
+      "name": "Xuanming Su",
+      "works": 52,
+      "cites": 5747,
+      "oid_score": 1.0,
+      "confidence": "override",
+      "source": "override",
+      "n_candidates": 1
+    },
+    {
+      "surname": "Sungu",
+      "oaid": "A5011118717",
+      "name": "Alp Sungu",
+      "works": 23,
+      "cites": 273,
+      "oid_score": 0.842,
+      "confidence": "override",
+      "source": "override",
+      "n_candidates": 1
+    },
+    {
+      "surname": "Tambe",
+      "oaid": "A5085743615",
+      "name": "Prasanna Tambe",
+      "works": 81,
+      "cites": 3430,
+      "oid_score": 0.781,
+      "confidence": "override",
+      "source": "override",
+      "n_candidates": 1
+    },
+    {
+      "surname": "Terwiesch",
+      "oaid": "A5089214194",
+      "name": "Christian Terwiesch",
+      "works": 143,
+      "cites": 10956,
+      "oid_score": 0.562,
+      "confidence": "override",
+      "source": "override",
+      "n_candidates": 1
+    },
+    {
+      "surname": "Ulrich",
+      "oaid": "A5040079549",
+      "name": "Karl T. Ulrich",
+      "works": 132,
+      "cites": 17401,
+      "oid_score": 0.504,
+      "confidence": "override",
+      "source": "override",
+      "n_candidates": 1
+    },
+    {
+      "surname": "Veeraraghavan",
+      "oaid": "A5050144457",
+      "name": "Senthil K. Veeraraghavan",
+      "works": 45,
+      "cites": 2052,
+      "oid_score": 1.0,
+      "confidence": "override",
+      "source": "override",
+      "n_candidates": 1
+    },
+    {
+      "surname": "Watts",
+      "oaid": "A5000679279",
+      "name": "Duncan J. Watts",
+      "works": 236,
+      "cites": 97852,
+      "oid_score": 0.408,
+      "confidence": "override",
+      "source": "override",
+      "n_candidates": 1
+    },
+    {
+      "surname": "Wu",
+      "oaid": "A5030027972",
+      "name": "Lynn Wu",
+      "works": 78,
+      "cites": 3279,
+      "oid_score": 1.0,
+      "confidence": "override",
+      "source": "override",
+      "n_candidates": 1
+    },
+    {
+      "surname": "Yu",
+      "oaid": "A5100325058",
+      "name": "David Zhang",
+      "works": 1668,
+      "cites": 87111,
+      "oid_score": 1.0,
+      "confidence": "high",
+      "source": "penn",
+      "n_candidates": 25
+    }
+  ]
+}

@@ -158,8 +158,35 @@ def _oid_score(author):
     return hit / tot
 
 
+def _load_overrides():
+    """Verified surname -> OpenAlex author id (pipeline/oid_faculty_ids.yml). Preferred over the
+    name resolver, which mis-IDs common surnames."""
+    try:
+        import yaml
+        m = yaml.safe_load(open("pipeline/oid_faculty_ids.yml")) or {}
+        return {str(k): str(v) for k, v in m.items() if v}
+    except Exception:
+        return {}
+
+
+OVERRIDES = _load_overrides()
+
+
 def resolve_author(surname, penn_id):
     sel = "id,display_name,works_count,cited_by_count,last_known_institutions,topics"
+    aid = OVERRIDES.get(surname)
+    if aid:
+        try:
+            a = GET(f"/authors/{aid}", select=sel)
+            return {"surname": surname, "oaid": a["id"].split("/")[-1],
+                    "name": a.get("display_name"), "works": a.get("works_count"),
+                    "cites": a.get("cited_by_count"), "topics": a.get("topics") or [],
+                    "oid_score": round(_oid_score(a), 3), "confidence": "override",
+                    "source": "override", "n_candidates": 1}
+        except BudgetExhausted:
+            raise
+        except Exception:
+            pass  # bad id / fetch error -> fall through to name search
     src = "penn"
     d = GET("/authors", search=surname, per_page=25, select=sel,
             filter=f"last_known_institutions.id:{penn_id}") if penn_id else {"results": []}
@@ -203,7 +230,7 @@ def step1_footprint(conn):
         tot = sum(by_sub.values()) or 1
         for sid, c in by_sub.items():
             sub_share[sid] += c / tot          # each faculty contributes equal total weight
-        flag = "" if a["confidence"] == "high" else f"  <-- {a['confidence']} confidence, review"
+        flag = "" if a["confidence"] in ("high", "override") else f"  <-- {a['confidence']} confidence, review"
         print(f"  {s:16s} -> {a['name']} ({a['oaid']}) "
               f"oid={a['oid_score']} {a['source']}{flag}", flush=True)
 

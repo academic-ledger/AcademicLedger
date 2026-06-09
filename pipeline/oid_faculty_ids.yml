@@ -1,0 +1,37 @@
+# Verified OpenAlex author IDs for the OID standing faculty. The bare-surname resolver mis-IDs
+# common surnames (it picked Ulrich Doraszelski for "Ulrich", Rachel Gans for "Gans", a herpesvirus
+# researcher for "Rock", sparse duplicate clusters for Duckworth/Harker/Cachon, etc.), so
+# coverage_rollout prefers these IDs and only falls back to name search for surnames not listed.
+# Each verified by direct fetch (name + primary topic + citation volume). surname: author_id  # name
+Allon: A5005682500          # Gad Allon — supply chain / OM
+Bastani: A5075456619        # Hamsa Bastani — bandit algorithms / OM
+Cachon: A5024587628         # Gérard P. Cachon — supply chain (19,991 cites)
+Duckworth: A5034664324      # Angela Duckworth — behavioral / grit (41,290 cites)
+Gallino: A5007697214        # Santiago Gallino — retail operations
+Gans: A5078369143           # Noah Gans — queueing / OM
+Harker: A5019512091         # Patrick T. Harker — service operations / optimization
+Hitt: A5008423326           # Lorin M. Hitt — IS / digital platforms (22,193 cites)
+Hosanagar: A5035743198      # Kartik Hosanagar — IS / pricing
+Kimbrough: A5028900472      # Steven O. Kimbrough — IS / computational
+Knox: A5087031929           # Dean Knox — political methodology / causal inference
+Milkman: A5030831197        # Katherine L. Milkman — behavioral economics
+Netessine: A5026183367      # Serguei Netessine — supply chain / OM
+Rock: A5005121779           # Daniel Rock — economics of AI / productivity
+Savin: A5061632613          # Sergei Savin — healthcare operations
+Schweitzer: A5021144215     # Maurice E. Schweitzer — behavioral economics
+Simmons: A5037773653        # Joseph P. Simmons — behavioral / decision-making
+Song: A5027888346           # Hummy Song — healthcare operations
+Su: A5103214705             # Xuanming Su — supply chain / OM
+Sungu: A5011118717          # Alp Sungu — junior faculty
+Tambe: A5085743615          # Prasanna Tambe — IS / economics of AI & labor
+Terwiesch: A5089214194      # Christian Terwiesch — healthcare operations / innovation
+Ulrich: A5040079549         # Karl T. Ulrich — product development (seeded author)
+Veeraraghavan: A5050144457  # Senthil K. Veeraraghavan — supply chain / OM
+Watts: A5000679279          # Duncan J. Watts — computational social science (97,852 cites)
+Wu: A5030027972             # Lynn Wu — IS / innovation
+
+# TODO — surname search is ambiguous; please confirm the OpenAlex author id:
+# Santoro:   ?              # resolver got "Kari Santoro-Beer" (oid 0.0) — almost certainly wrong
+# Sharma:    ?              # resolver got "Shoba Sharma" — unverified
+# Smitizsky: A5036689707    # Gal Smitizsky (global match) — likely a PhD student; please confirm
+# Yu:        ?              # resolver got "David Zhang" — clearly wrong
