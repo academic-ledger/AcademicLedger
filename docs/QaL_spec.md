@@ -126,6 +126,8 @@ Each rated entity is a thin record pointing to the canonical location(s). Sketch
   "qal_id": "openalex:W2192203593",
   "doi": "10.1287/mnsc.xxxx",
   "locations": ["doi.org/...", "arxiv.org/abs/...", "ssrn.com/..."],
+  "authorships": [{"name": "Karl T. Ulrich", "openalex_id": "A5040079549",
+                   "orcid": "0009-0000-4781-9230"}, "..."],
   "reference_class": {"field": "subfields/1803", "field_label": "Management Science & OR",
                       "vintage_year": 2015, "vintage_month": 1, "n": 8498},
   "qal": {"point": 96, "ci90": [90, 99],
@@ -137,6 +139,8 @@ Each rated entity is a thin record pointing to the canonical location(s). Sketch
 ```
 
 Transparency requires that `inputs` and `method_version` be published with every estimate, so anyone can reproduce it.
+
+The record carries **per-author identity** in `authorships` (OpenAlex Author ID, plus ORCID where available), not just display strings, so every author name can resolve to that author's page. The byline *display* rule abbreviates long lists (all co-authors when fewer than eleven, otherwise the first author and "et al."), but the underlying identities are retained for linking.
 
 ## 10. Validation and acceptance criteria (what makes it defensible)
 
@@ -167,6 +171,8 @@ The dividing line is clean: the cheap metrics can run on demand; the graph metri
 - *Adaptive budget.* Refinement is not uniform. Measure how much each subfield's estimate moves from 1k → 5k → 10k; stop refining the ones that have stabilized (usually everything but the tail) and spend the remaining quota where the estimate is still shifting or where traffic and audience demand it. Spend the early budget on the OID department's subfields (the first audience), then broaden.
 - *Snapshot supersedes.* Once the OpenAlex snapshot is ingested (V1.0) the deep pass becomes a local group-by and the sampling-budget question largely disappears; staged sampling is the bridge until then.
 
+**Author view and bylines.** Every author name shown on a paper — on the paper page and in the explore/record tables — is a **hyperlink to that author's page**, so a reader can pivot from any work to any of its displayed authors. This requires bylines to carry per-author identity (§9 `authorships`: OpenAlex Author ID, ORCID where available), not just display strings. The author page is built **on the fly for any author**, the same cheap-path pattern as the paper page: one OpenAlex call for the author entity, one for their works, then each work shown with its QaL — read from the cache where computed, universal/calibration-pending otherwise — ranked, with the author's fields and vintages summarized. No pre-seeding or author "ingest" is required; on-the-fly construction generalizes and retires that step (the former M9). Consistent with the estimand and gaming-resistance, the author page reports a **distribution of per-paper QaL and never a single rolled-up author score**. Identity is anchored on the OpenAlex Author ID (ORCID where present) for disambiguation; where a name resolves ambiguously, the link uses the work's own authorship record rather than a name search.
+
 ## 12. Three versions: POC, MVP, V1.0
 
 **POC — prove the page and the robustness check, one field, on the fly.**
@@ -196,7 +202,7 @@ This section is the baseline; the remaining work below is incremental to it. See
 
 Live on academic-ledger.org. The POC is complete. The MVP is largely built: the Neon datastore and schema (`works`, `cohort_percentiles`, `calibration_models`, `qal_records`, `authors`, `author_works`, `synthetic_field`, `subfields`); ingest of the seed communities (1800 in full, 1803 and 1802 as 10k-per-cohort uniform samples); per-(subfield, year) percentile tables under the full-population mid-rank rule; the Layer-B calibration with per-age split-conformal widening, back-tested at about 0.90 to 0.91 leave-one-vintage-out coverage across 1803/1802/1800; the synthetic-field reference class (recency-weighted staged blend) computed per paper and prefilled for the top ~480 seed and leaderboard papers; `compute_qal.py` joining works + percentiles + calibration + synthetic field into `qal_records` carrying both the field and synthetic metrics; the read API; and the paper, author, and explore pages, with dual sortable QaL columns (field and synthetic, official highlighted), the synthetic-field composition on the paper page, the calibration-pending UX, and a formatted citation.
 
-Remaining MVP increments: wire the monthly refresh cron (M6; a launchd one-shot currently resumes the synthetic prefill after the daily OpenAlex quota resets, a stopgap, not the cron); the retraction overlay and the Zenodo deposit affordance (M7); general author ingest so the author page works for any author (M9); and the small UI item of dropping the Access (oa_status) cell from the paper evidence grid (U5). Papers outside the prefilled set show the single-field percentile as a stand-in with the synthetic field pending. V1.0 (OpenAlex snapshot ingest, full-corpus compute, PageRank, public API) is the scale step.
+Remaining MVP increments: wire the monthly refresh cron (M6; a launchd one-shot currently resumes the synthetic prefill after the daily OpenAlex quota resets, a stopgap, not the cron); the retraction overlay and the Zenodo deposit affordance (M7); on-the-fly author pages with clickable, identity-carrying bylines so the author page works for any author without pre-seeding (M9, superseding the earlier "author ingest" framing); and the small UI item of dropping the Access (oa_status) cell from the paper evidence grid (U5). Papers outside the prefilled set show the single-field percentile as a stand-in with the synthetic field pending. V1.0 (OpenAlex snapshot ingest, full-corpus compute, PageRank, public API) is the scale step.
 
 ## 13. Open parameters to settle before building
 
