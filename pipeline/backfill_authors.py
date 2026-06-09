@@ -61,6 +61,13 @@ def fetch_authorships(oaids):
     return out
 
 
+def _connect(db):
+    """Neon connection with TCP keepalives, to survive a long backfill."""
+    import psycopg
+    return psycopg.connect(db, keepalives=1, keepalives_idle=30,
+                           keepalives_interval=10, keepalives_count=5)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--all", action="store_true", help="backfill every stored work")
@@ -69,7 +76,7 @@ def main():
     if not db:
         raise SystemExit("DATABASE_URL not set")
     import psycopg
-    conn = psycopg.connect(db)
+    conn = _connect(db)
     with conn.cursor() as cur:
         if args.all:
             # resumable: only works that don't already carry per-author identity
@@ -79,6 +86,8 @@ def main():
         oaids = [r[0] for r in cur.fetchall()]
     print(f"backfilling authorships for {len(oaids)} works", flush=True)
 
+    UPDATE = ("UPDATE works SET raw = coalesce(raw,'{}'::jsonb) "
+              "|| jsonb_build_object('authorships', %s::jsonb, 'authors', %s::text) WHERE oaid=%s")
     updated = 0
     for i in range(0, len(oaids), 100):
         chunk = oaids[i:i + 100]
@@ -87,12 +96,22 @@ def main():
         # other raw keys (venue, subfield_label). `||` overwrites only the two keys we set.
         params = [(json.dumps(ships), s, oid)
                   for oid, (s, ships) in mapping.items() if ships]
-        with conn.cursor() as cur:
-            cur.executemany(
-                "UPDATE works SET raw = coalesce(raw,'{}'::jsonb) "
-                "|| jsonb_build_object('authorships', %s::jsonb, 'authors', %s::text) "
-                "WHERE oaid=%s", params)
-        conn.commit()
+        # Resilient write: Neon can drop the connection on a long run; reconnect and retry the
+        # batch (resumable filter means re-runs are cheap anyway).
+        for attempt in range(6):
+            try:
+                with conn.cursor() as cur:
+                    cur.executemany(UPDATE, params)
+                conn.commit()
+                break
+            except psycopg.OperationalError as e:
+                print(f"  [reconnect] Neon dropped ({str(e)[:50]}); attempt {attempt + 1}", flush=True)
+                try:
+                    conn.close()
+                except Exception:
+                    pass
+                time.sleep(min(20, 2 ** attempt))
+                conn = _connect(db)
         updated += len(params)
         if (i // 100) % 10 == 0:
             print(f"  {updated} updated...", flush=True)
