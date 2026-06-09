@@ -1,15 +1,31 @@
 """Shared calibration math, used by both calibrate.py (fit) and backtest.py (validate)
 so the production fit and the acceptance test are guaranteed identical.
 
-The model: condition the eventual percentile r_inf on (community, age, observed-pct decile),
-read its empirical [median, 5th, 95th] and the mass above each NSF cut. Then apply a
-split-conformal correction per age: widen the [q5, q95] interval by Q_a so that held-out
-coverage of the 90% interval is ~90%, correcting the in-sample overconfidence that comes
-from vintage-to-vintage drift. The point estimate (median) is unchanged.
+The model: condition the eventual percentile r_inf on (community, age, observed percentile).
+The conditioning on observed percentile is CONTINUOUS, not coarse decile bins — a local
+linear quantile fit on a tail-dense grid (QaL_spec.md §5: "binning on (age, r_obs) or by
+quantile regression"). Coarse deciles collapsed the whole top decile (90-100) into one cell
+whose median ~95, so a paper actually at 99.97 was scored as ~95; the local fit conditions on
+~99.97 instead. Because at maturity r_inf ~= r_obs, the local slope -> 1 and the residuals
+-> 0, so the posterior converges to identity (point ~= observed, interval ~= 0) as age -> H.
+
+Then a per-age split-conformal correction widens the [q5, q95] interval so held-out coverage
+of the 90% interval is ~90% (vintage-drift correction). The point estimate is unchanged.
 """
+import bisect
+
 import numpy as np
 
 CUTS = [50, 75, 90, 95, 99]
+
+# Evaluation grid for the conditioning variable (observed percentile), tail-dense so the
+# upper tail — where the citation distribution is heaviest and a decile is far too coarse —
+# is resolved. The local fit is evaluated at each grid point; predict_cell interpolates.
+GRID = [2.5, 7.5, 12.5, 17.5, 22.5, 27.5, 32.5, 37.5, 42.5, 47.5,
+        52.5, 57.5, 62.5, 67.5, 72.5, 77.5, 82.5, 87.5, 91.0, 94.0,
+        96.5, 98.0, 99.0, 99.5, 99.8, 99.95]
+
+KNN = 400  # window size: the K nearest observed-pct points to a grid point (adaptive width)
 
 
 def cum_at_age(cby, pub_year, age):
@@ -19,13 +35,12 @@ def cum_at_age(cby, pub_year, age):
 def pct_of_all(values):
     """Vectorized within-cohort MID-RANK percentile for every element (QaL_spec.md §5,
     'one convention'): ties — the uncited atom included — take the average rank, so the
-    uncited mass at the bottom sits at 100·p0/2 rather than at the top of its block. The
-    same convention is used for r_obs and r∞, so calibration coverage is comparable."""
+    uncited mass sits at 100·p0/2. Same convention for r_obs and r_inf."""
     values = np.asarray(values, dtype=float)
     s = np.sort(values)
-    below = np.searchsorted(s, values, side="left")   # # strictly below
-    upper = np.searchsorted(s, values, side="right")  # # at or below
-    midrank = below + (upper - below) / 2.0           # average rank within ties
+    below = np.searchsorted(s, values, side="left")
+    upper = np.searchsorted(s, values, side="right")
+    midrank = below + (upper - below) / 2.0
     return 100.0 * midrank / len(values)
 
 
@@ -40,48 +55,77 @@ def prepare(cby_list, vintage, H):
     return per_age
 
 
-def _bin(op):
-    return min(90, int(op // 10) * 10)
+def _local_cell(x, y, g, knn):
+    """Local linear fit of eventual (y) on observed (x) using the knn nearest x to grid
+    point g; return the conditional posterior of r_inf AT g: median (point), 5th/95th, and
+    the mass above each NSF cut. Local-linear (not local-mean) is what makes the maturity
+    limit exact identity: when y~=x the slope is ~1 and the prediction at g is ~g."""
+    idx = np.argsort(np.abs(x - g))[: min(knn, len(x))]
+    xw, yw = x[idx], y[idx]
+    if len(xw) >= 8 and np.ptp(xw) > 1e-6:
+        b, a = np.polyfit(xw, yw, 1)
+        m = a + b * g
+        resid = yw - (a + b * xw)
+    else:
+        m = float(np.median(yw))
+        resid = yw - m
+    pd = np.clip(m + resid, 0.0, 100.0)  # predicted r_inf distribution at g
+    cell = {
+        "median": float(np.clip(m, 0.0, 100.0)),
+        "q5": float(np.percentile(pd, 5)),
+        "q95": float(np.percentile(pd, 95)),
+        "n": int(len(xw)),
+    }
+    for c in CUTS:
+        cell[f"p_ge{c}"] = float(np.mean(pd >= c))
+    return cell
 
 
-def fit_cells(prepared, vintages, H, min_bin=20):
-    """Pool eventual-pct samples across `vintages` -> cells keyed (age, obs_bin)."""
-    pool = {}
-    for v in vintages:
-        pa = prepared[v]
-        for a in range(1, H):
-            obs_pct, eve_pct = pa[a]
-            for op, ep in zip(obs_pct, eve_pct):
-                pool.setdefault((a, _bin(op)), []).append(ep)
+def fit_cells(prepared, vintages, H, knn=KNN, **_):
+    """Pool (obs_pct, eventual_pct) across vintages and fit a local cell at every grid
+    point, per age. Keyed (age, grid_point)."""
     cells = {}
-    for key, ev_list in pool.items():
-        if len(ev_list) < min_bin:
+    for a in range(1, H):
+        xs = np.concatenate([prepared[v][a][0] for v in vintages])
+        ys = np.concatenate([prepared[v][a][1] for v in vintages])
+        if len(xs) < 10:
             continue
-        ev = np.asarray(ev_list)
-        cell = dict(
-            median=float(np.median(ev)),
-            q5=float(np.percentile(ev, 5)),
-            q95=float(np.percentile(ev, 95)),
-            n=len(ev),
-        )
-        for c in CUTS:
-            cell[f"p_ge{c}"] = float(np.mean(ev >= c))
-        cells[key] = cell
+        for g in GRID:
+            cells[(a, g)] = _local_cell(xs, ys, g, knn)
     return cells
 
 
-def conformal_q(prepared, fit_vintages, cal_vintages, H, alpha=0.10, min_bin=20):
-    """Per-age conformal radius Q_a from a fit/cal split.
-    Score E = max(q5 - y, y - q95); Q_a = the (1-alpha) quantile of E (small-sample
-    corrected). Widening [q5, q95] by Q_a restores ~ (1-alpha) coverage."""
-    cells = fit_cells(prepared, fit_vintages, H, min_bin)
+def predict_cell(cells, age, r_obs):
+    """Posterior cell for a focal observed percentile, linearly interpolated between the
+    two bracketing grid points (continuous in r_obs)."""
+    gs = sorted(g for (a, g) in cells if a == age)
+    if not gs:
+        return None
+    if r_obs <= gs[0]:
+        return cells[(age, gs[0])]
+    if r_obs >= gs[-1]:
+        return cells[(age, gs[-1])]
+    i = bisect.bisect_right(gs, r_obs)
+    g0, g1 = gs[i - 1], gs[i]
+    c0, c1 = cells[(age, g0)], cells[(age, g1)]
+    t = (r_obs - g0) / (g1 - g0)
+    out = {k: c0[k] * (1 - t) + c1[k] * t for k in ("median", "q5", "q95",
+           "p_ge50", "p_ge75", "p_ge90", "p_ge95", "p_ge99")}
+    out["n"] = min(c0["n"], c1["n"])
+    return out
+
+
+def conformal_q(prepared, fit_vintages, cal_vintages, H, alpha=0.10, knn=KNN):
+    """Per-age conformal radius Q_a from a fit/cal split, using the continuous predict_cell
+    interval. Score E = max(q5 - y, y - q95); Q_a = the (1-alpha) quantile of E."""
+    cells = fit_cells(prepared, fit_vintages, H, knn)
     scores = {a: [] for a in range(1, H)}
     for v in cal_vintages:
         pa = prepared[v]
         for a in range(1, H):
             obs_pct, eve_pct = pa[a]
             for op, y in zip(obs_pct, eve_pct):
-                cell = cells.get((a, _bin(op)))
+                cell = predict_cell(cells, a, op)
                 if cell is None:
                     continue
                 scores[a].append(max(cell["q5"] - y, y - cell["q95"]))
@@ -92,7 +136,7 @@ def conformal_q(prepared, fit_vintages, cal_vintages, H, alpha=0.10, min_bin=20)
             continue
         sc = np.asarray(sc)
         n = len(sc)
-        level = min(1.0, np.ceil((n + 1) * (1 - alpha)) / n)  # conformal quantile level
+        level = min(1.0, np.ceil((n + 1) * (1 - alpha)) / n)
         Q[a] = float(np.quantile(sc, level, method="higher"))
     return Q
 

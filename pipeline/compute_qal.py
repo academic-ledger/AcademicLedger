@@ -18,6 +18,8 @@ import os
 import json
 import bisect
 
+import calib_lib as cl
+
 CUTS = [50, 75, 90, 95, 99]
 
 
@@ -81,18 +83,22 @@ def main():
             conn.close()
             return
 
-        # Preload calibration cells: {(community, age, obs_bin): row}.
+        # Preload calibration grid cells per community: {community: {(age, grid_pt): cell}}.
+        # The conditioning on observed percentile is continuous — predict_cell interpolates
+        # between grid points — so a paper at 99.97 is conditioned on ~99.97, not "top decile".
+        # ci_lo/ci_hi are already the conformally-widened interval; map them to q5/q95.
         cur.execute(
             """SELECT community, age_years, obs_pct_bin, eventual_median, ci_lo, ci_hi,
                       p_ge50, p_ge75, p_ge90, p_ge95, p_ge99
                  FROM calibration_models WHERE model_version=%s""",
             (model_version,),
         )
-        calib = {}
+        calib_by_comm = {}
         for r in cur.fetchall():
-            calib[(r[0], r[1], r[2])] = dict(
-                median=float(r[3]), ci_lo=float(r[4]), ci_hi=float(r[5]),
-                p_ge50=r[6], p_ge75=r[7], p_ge90=r[8], p_ge95=r[9], p_ge99=r[10],
+            calib_by_comm.setdefault(r[0], {})[(r[1], float(r[2]))] = dict(
+                median=float(r[3]), q5=float(r[4]), q95=float(r[5]), n=1,
+                p_ge50=float(r[6]), p_ge75=float(r[7]), p_ge90=float(r[8]),
+                p_ge95=float(r[9]), p_ge99=float(r[10]),
             )
 
         # Preload the cached synthetic field — the OFFICIAL reference class where available
@@ -126,16 +132,15 @@ def main():
             batch.clear()
 
     def metric(obs, age):
-        """A QaL computation from one observed percentile, via the (field-fit) calibration."""
+        """A QaL computation from one observed percentile, via continuous calibration lookup."""
         if obs is None:
             return None
-        obs_bin = min(90, int(obs // 10) * 10)
-        cell = calib.get((sid, age, obs_bin)) if sid in seed else None
+        cell = cl.predict_cell(calib_by_comm.get(sid, {}), age, obs) if sid in seed else None
         if cell:
             return {
                 "obs": obs, "calibrated": True,
                 "point": round(cell["median"], 1),
-                "ci_lo": round(cell["ci_lo"], 1), "ci_hi": round(cell["ci_hi"], 1),
+                "ci_lo": round(cell["q5"], 1), "ci_hi": round(cell["q95"], 1),
                 "class_prob": {f"ge{c}": round(float(cell[f"p_ge{c}"]), 4)
                                for c in (50, 75, 90, 95, 99)},
             }

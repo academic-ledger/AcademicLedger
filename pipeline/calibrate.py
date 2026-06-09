@@ -58,12 +58,12 @@ def main():
             pooled_scores = {a: [] for a in range(1, H)}
             for held in vintages:
                 fit_v = [v for v in vintages if v != held]
-                cells = cl.fit_cells(prepared, fit_v, H, min_bin)
+                cells = cl.fit_cells(prepared, fit_v, H)
                 pa = prepared[held]
                 for a in range(1, H):
                     obs_pct, eve_pct = pa[a]
                     for op, y in zip(obs_pct, eve_pct):
-                        cell = cells.get((a, min(90, int(op // 10) * 10)))
+                        cell = cl.predict_cell(cells, a, op)
                         if cell is not None:
                             pooled_scores[a].append(max(cell["q5"] - y, y - cell["q95"]))
             alpha = 0.10
@@ -76,12 +76,12 @@ def main():
                 else:
                     Q[a] = 0.0
 
-            # Final cells fit on ALL vintages, widened by the conformal radius.
-            cells = cl.fit_cells(prepared, vintages, H, min_bin)
+            # Final cells fit on ALL vintages (grid points), widened by the conformal radius.
+            cells = cl.fit_cells(prepared, vintages, H)
             n_written = 0
-            for (age, lo_bin), cell in cells.items():
+            for (age, grid_pt), cell in cells.items():
                 lo, hi = cl.predict_interval(cell, Q.get(age, 0.0))
-                row = dict(community=sid, age_years=age, obs_pct_bin=lo_bin,
+                row = dict(community=sid, age_years=age, obs_pct_bin=grid_pt,
                            eventual_median=cell["median"], ci_lo=lo, ci_hi=hi,
                            n_train=cell["n"], model_version=model_version,
                            p_ge50=cell["p_ge50"], p_ge75=cell["p_ge75"], p_ge90=cell["p_ge90"],

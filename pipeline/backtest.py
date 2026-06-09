@@ -20,12 +20,12 @@ def conformal_from_train(prepared, train_vintages, H, min_bin):
     pooled = {a: [] for a in range(1, H)}
     for held in train_vintages:
         fit_v = [v for v in train_vintages if v != held]
-        cells = cl.fit_cells(prepared, fit_v, H, min_bin)
+        cells = cl.fit_cells(prepared, fit_v, H)
         pa = prepared[held]
         for a in range(1, H):
             obs_pct, eve_pct = pa[a]
             for op, y in zip(obs_pct, eve_pct):
-                cell = cells.get((a, min(90, int(op // 10) * 10)))
+                cell = cl.predict_cell(cells, a, op)
                 if cell is not None:
                     pooled[a].append(max(cell["q5"] - y, y - cell["q95"]))
     Q = {}
@@ -79,12 +79,12 @@ def main():
         for test_v in vintages:
             train = [v for v in vintages if v != test_v]
             Q = conformal_from_train(prepared, train, H, min_bin)   # train-only radius
-            cells = cl.fit_cells(prepared, train, H, min_bin)       # train-only bins
+            cells = cl.fit_cells(prepared, train, H)                # train-only fit
             pa = prepared[test_v]
             for a in range(1, H):
                 obs_pct, eve_pct = pa[a]
                 for op, y in zip(obs_pct, eve_pct):
-                    cell = cells.get((a, min(90, int(op // 10) * 10)))
+                    cell = cl.predict_cell(cells, a, op)
                     if cell is None:
                         continue
                     lo, hi = cl.predict_interval(cell, Q.get(a, 0.0))

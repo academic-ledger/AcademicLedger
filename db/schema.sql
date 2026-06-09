@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS cohort_percentiles (
 CREATE TABLE IF NOT EXISTS calibration_models (
   community       TEXT,                         -- subfield id or community key
   age_years       INT,
-  obs_pct_bin     INT,                          -- lower edge of observed-percentile bin
+  obs_pct_bin     NUMERIC,                      -- observed-percentile grid point (continuous conditioning)
   eventual_median NUMERIC,
   ci_lo           NUMERIC,
   ci_hi           NUMERIC,
