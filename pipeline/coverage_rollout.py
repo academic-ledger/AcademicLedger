@@ -47,7 +47,8 @@ API_KEY = os.environ.get("OPENALEX_API_KEY", "")  # premium key: lifts the daily
 UA = {"User-Agent": f"al-pipeline/1.0 ({MAILTO})"}
 AS_OF = int(os.environ.get("AS_OF_YEAR", "2026"))
 H = int(os.environ.get("H_LONG_HORIZON", "10"))
-SAMPLE_N = int(os.environ.get("SAMPLE_N", "1000"))
+SAMPLE_N = int(os.environ.get("SAMPLE_N", "1000"))   # light score-year sample, for serving only
+CALIB_N = int(os.environ.get("CALIB_N", "10000"))    # DEEP matured-cohort pull, for calibration
 COVER_TO = float(os.environ.get("COVER_TO", "0.95"))
 MAX_REQUESTS = int(os.environ.get("MAX_REQUESTS", "0")) or None
 SNAP = os.environ.get("OPENALEX_SNAPSHOT", "rollout-2026-06")
@@ -353,47 +354,38 @@ def step2_skeletons(conn, targets):
         print(f"  {sid}: skeletons across {len(ALL_VINTAGES)} vintages", flush=True)
 
 
-# ----- STEP 3: interior sampling + hybrid calibration -----------------------------------------
+# ----- STEP 3: deep in-memory calibration + light serving sample ------------------------------
+# Budget is no longer the constraint, so this step is restructured for QUALITY:
+#   * Percentiles stay EXACT (the Step-2 skeletons); they are NOT superseded by sampled CDFs.
+#   * Calibration pulls the matured cohorts DEEPLY (~CALIB_N, the seed's proven depth) and holds
+#     them IN MEMORY only — fit-and-discard, so Neon doesn't bloat (the M10 discipline) — which
+#     lets subfields actually reach the back-test gate (gate-passed) instead of the parametric tier.
+#   * A light score-year sample is stored to `works` ONLY so the subfield's papers appear in the
+#     served explore list; their percentile still comes from the exact skeleton, not the sample.
 
-def _sample_cohort(conn, sid, v):
-    """Uniform random sample of a cohort into `works`; returns the sampled rows (dicts)."""
+def _pull_cohort_mem(sid, v, n):
+    """Up to n works of a cohort, uniform-random, held IN MEMORY (never stored): [(cites, cby)]."""
     try:
-        rows = list(pc.fetch_cohort(sid, v, sample=SAMPLE_N, seed=42))
+        rows = pc.fetch_cohort(sid, v, sample=n, seed=42)
+        return [(r["cited_by_count"] or 0, r["counts_by_year"] or {}) for r in rows]
     except requests.HTTPError as e:
         if "429" in str(e):
-            raise BudgetExhausted("sampling hit 429")
+            raise BudgetExhausted("matured-cohort pull hit 429")
+        raise
+
+
+def _store_serving_sample(conn, sid, v, n):
+    """Store a light score-year sample to `works` so the subfield's papers are served in explore
+    (percentile comes from the exact skeleton, not this sample). Returns the row count."""
+    try:
+        rows = list(pc.fetch_cohort(sid, v, sample=n, seed=42))
+    except requests.HTTPError as e:
+        if "429" in str(e):
+            raise BudgetExhausted("serving-sample pull hit 429")
         raise
     if rows:
         pc.upsert(conn, rows)
-    return rows
-
-
-def _interior_cdf(conn, sid, v):
-    """Build the sampled interior CDF from the cohort's works rows; write source='sampled'."""
-    with conn.cursor() as cur:
-        cur.execute("SELECT cited_by_count FROM works WHERE primary_subfield=%s AND publication_year=%s",
-                    (sid, v))
-        cites = [r[0] or 0 for r in cur.fetchall()]
-    if len(cites) < 50:
-        return 0
-    n, cdf = bp.cdf_breakpoints(cites)
-    with conn.cursor() as cur:
-        cur.execute(
-            """INSERT INTO cohort_percentiles (subfield,publication_year,n,cdf,snapshot,source)
-               VALUES (%s,%s,%s,%s,%s,'sampled')
-               ON CONFLICT (subfield,publication_year,snapshot)
-               DO UPDATE SET n=EXCLUDED.n, cdf=EXCLUDED.cdf, source='sampled'""",
-            (sid, v, n, json.dumps(cdf), SNAP_SAMP))
-    conn.commit()
-    return n
-
-
-def _cohort_cby(conn, sid, v):
-    """{counts_by_year} list + cites for a cohort's sampled works (for calibration)."""
-    with conn.cursor() as cur:
-        cur.execute("SELECT cited_by_count, counts_by_year FROM works "
-                    "WHERE primary_subfield=%s AND publication_year=%s", (sid, v))
-        return [(r[0] or 0, r[1] or {}) for r in cur.fetchall()]
+    return len(rows)
 
 
 def _write_calib_cells(conn, sid, cells, confidence):
@@ -420,43 +412,44 @@ def _write_calib_cells(conn, sid, cells, confidence):
 
 
 def _calibrate_subfield(conn, sid):
-    """Hybrid calibration for one subfield. Nonparametric (calib_lib) + LOVO back-test where
-    matured data allows -> fitted/gate-passed; parametric fallback (calib_parametric) otherwise."""
-    matured = [v for v in MATURE_YEARS]
-    prepared, used_vintages = {}, []
-    for v in matured:
-        rows = _cohort_cby(conn, sid, v)
+    """Hybrid calibration for one subfield from DEEP in-memory matured cohorts. Nonparametric
+    (calib_lib) + LOVO back-test where >=3 matured vintages have data -> fitted/gate-passed;
+    parametric fallback (calib_parametric §7) otherwise. The pulled works are never persisted."""
+    prepared, used_vintages, allrows = {}, [], []
+    for v in MATURE_YEARS:
+        rows = _pull_cohort_mem(sid, v, CALIB_N)
+        cp_mark(conn, "sample", sid, v, "done" if rows else "empty", detail={"n": len(rows)})
+        allrows.extend({"cites": c, "counts_by_year": cby, "vintage": v} for c, cby in rows)
         if len(rows) >= 50:
-            prepared[v] = cl.prepare([r[1] for r in rows], v, H)
+            prepared[v] = cl.prepare([cby for _, cby in rows], v, H)
             used_vintages.append(v)
 
     if len(used_vintages) >= 3:
         # nonparametric fit on the matured vintages, conformally widened, then back-tested.
         cells = cl.fit_cells(prepared, used_vintages, H)
         cov = _backtest_coverage(prepared, used_vintages)
-        # widen with a leave-one-out conformal radius computed across the matured vintages
         Q = cl.conformal_q(prepared, used_vintages[:-1], used_vintages[-1:], H)
         for (a, g), c in cells.items():
             lo, hi = cl.predict_interval(c, Q.get(a, 0.0))
             c["q5"], c["q95"] = lo, hi
-        confidence = "gate-passed" if (cov is not None and 0.86 <= cov <= 0.94) else "fitted"
+        # Asymmetric gate. The danger is UNDER-coverage (overconfident intervals), so the floor is
+        # firm at 0.88 (~the seed's 0.90 target). Mild OVER-coverage just means slightly wide,
+        # conservative intervals — safe and on-brand ("decide late, honest uncertainty") — so the
+        # ceiling is generous (0.97); only gross over-widening is rejected. Single-subfield conformal
+        # runs a touch wider than the pooled seed. Below the floor -> 'fitted' (pending), no forecast.
+        confidence = "gate-passed" if (cov is not None and 0.88 <= cov <= 0.97) else "fitted"
         _write_calib_cells(conn, sid, cells, confidence)
-        return confidence, {"vintages": len(used_vintages), "coverage": cov}
+        return confidence, {"vintages": len(used_vintages),
+                            "coverage": round(cov, 3) if cov is not None else None,
+                            "n_train": len(allrows)}
 
-    # parametric fallback: fit (half_life, tail) from whatever we've sampled, shrunk to prior.
-    samples = []
-    for v in ALL_VINTAGES:
-        for cites, cby in _cohort_cby(conn, sid, v):
-            samples.append({"cites": cites, "counts_by_year": cby, "vintage": v})
-    if len(samples) < 50:
-        return None, {"reason": "insufficient samples"}
-    params = cp.fit_params(samples)
-    cells = {}
-    for a in range(1, H):
-        for g in cl.GRID:
-            cells[(a, g)] = cp.cell(a, g, params, H)
-    _write_calib_cells(conn, sid, cells, "parametric")
-    return "parametric", {"params": params, "samples": len(samples)}
+    # parametric fallback: fit (half_life, tail) from whatever matured data we got, shrunk to prior.
+    if len(allrows) >= 50:
+        params = cp.fit_params(allrows)
+        cells = {(a, g): cp.cell(a, g, params, H) for a in range(1, H) for g in cl.GRID}
+        _write_calib_cells(conn, sid, cells, "parametric")
+        return "parametric", {"params": params, "samples": len(allrows)}
+    return None, {"reason": "insufficient matured data"}
 
 
 def _backtest_coverage(prepared, vintages):
@@ -481,23 +474,25 @@ def _backtest_coverage(prepared, vintages):
     return hits / tot if tot else None
 
 
-def step3_refine(conn, targets):
-    print("STEP 3 — interior sampling + hybrid calibration", flush=True)
-    sampled_done = cp_get_done(conn, "sample")
+def step3_calibrate(conn, targets):
+    print("STEP 3 — deep matured-cohort calibration (in-memory) + light serving sample", flush=True)
     calib_done = cp_get_done(conn, "calibrate")
+    serve_done = cp_get_done(conn, "serve")
     for sid in targets:
-        for v in ALL_VINTAGES:
-            if (sid, v) in sampled_done:
+        # calibration is atomic per subfield (the matured cohorts must be fit together), so on
+        # resume an interrupted subfield re-pulls; finished subfields are skipped.
+        if (sid, 0) not in calib_done:
+            conf, detail = _calibrate_subfield(conn, sid)
+            cp_mark(conn, "calibrate", sid, 0, "done" if conf else "empty",
+                    confidence=conf, detail=detail)
+            print(f"  {sid}: calibration -> {conf} {detail}", flush=True)
+        # light score-year serving sample so the subfield's papers appear in the explore cache
+        # (resumable per vintage; percentile comes from the exact skeleton, not this sample).
+        for v in SCORE_YEARS:
+            if (sid, v) in serve_done:
                 continue
-            rows = _sample_cohort(conn, sid, v)
-            n = _interior_cdf(conn, sid, v) if rows else 0
-            cp_mark(conn, "sample", sid, v, "done" if n else "empty", detail={"n": n})
-        if (sid, 0) in calib_done:
-            continue
-        conf, detail = _calibrate_subfield(conn, sid)
-        cp_mark(conn, "calibrate", sid, 0, "done" if conf else "empty",
-                confidence=conf, detail=detail)
-        print(f"  {sid}: calibration -> {conf} {detail}", flush=True)
+            k = _store_serving_sample(conn, sid, v, SAMPLE_N)
+            cp_mark(conn, "serve", sid, v, "done" if k else "empty", detail={"n": k})
 
 
 # ----- coverage report ------------------------------------------------------------------------
@@ -506,9 +501,9 @@ def report(conn):
     print("\n===== COVERAGE REPORT =====", flush=True)
     with conn.cursor() as cur:
         cur.execute("SELECT status,count(*) FROM coverage_progress WHERE step='skeleton' GROUP BY 1")
-        print("skeletons:", dict(cur.fetchall()))
-        cur.execute("SELECT status,count(*) FROM coverage_progress WHERE step='sample' GROUP BY 1")
-        print("samples:  ", dict(cur.fetchall()))
+        print("skeleton cohorts (exact percentiles):", dict(cur.fetchall()))
+        cur.execute("SELECT status,count(*) FROM coverage_progress WHERE step='serve' GROUP BY 1")
+        print("serving samples (score-year):", dict(cur.fetchall()))
         cur.execute("SELECT confidence,count(*) FROM coverage_progress WHERE step='calibrate' "
                     "AND status='done' GROUP BY 1")
         print("calibrated subfields by tier:", dict(cur.fetchall()))
@@ -550,7 +545,7 @@ def main():
         if "2" in args.steps:
             step2_skeletons(conn, targets)
         if "3" in args.steps:
-            step3_refine(conn, targets)
+            step3_calibrate(conn, targets)
         print("\nrollout complete (all requested steps finished within budget).", flush=True)
     except BudgetExhausted as e:
         print(f"\n[budget] stopping cleanly: {e}", flush=True)

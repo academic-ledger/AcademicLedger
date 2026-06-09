@@ -12,7 +12,7 @@ cd "$PROJ" || exit 1
   echo "=== coverage rollout: $(date) ==="
   source .venv/bin/activate
   set -a; source .env 2>/dev/null; set +a
-  export AS_OF_YEAR=2026 H_LONG_HORIZON=10 SAMPLE_N=1000 MODEL_VERSION=qal-0.1 \
+  export AS_OF_YEAR=2026 H_LONG_HORIZON=10 SAMPLE_N=1000 CALIB_N=10000 MODEL_VERSION=qal-0.1 \
          OPENALEX_SNAPSHOT=rollout-2026-06 H_HALFLIFE=6
   python pipeline/coverage_rollout.py --steps 123
   echo "-- compose served records (compute_qal) --"

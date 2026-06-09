@@ -17,14 +17,21 @@ daily launchd fire (`pipeline/run_coverage.sh`) resumes the next day.
    `group_by=cited_by_count` histogram (the populous head) plus a few `cited_by_count:>X` tail
    counts. Covers the whole head immediately at ~4 requests/cohort; `cohort_percentiles.source =
    'skeleton'`.
-3. **Refine + hybrid calibration** — per cohort, a **uniform random** 1k sample fills the interior
-   CDF (`source = 'sampled'`, written under a higher-sorting snapshot so it supersedes the
-   skeleton). Per subfield, calibration is **hybrid**:
+3. **Deep calibration (in-memory, fit-and-discard)** — once OpenAlex budget is no longer the
+   constraint, percentiles stay **exact** (the Step-2 skeletons — never superseded by sampled CDFs),
+   and calibration pulls each matured vintage **deeply** (`CALIB_N` ≈ 10k, the seed's proven depth)
+   held **in memory only**: the raw works are fit then discarded, so Neon never bloats (the M10
+   discipline). Per subfield, calibration is **hybrid**:
    - the proven **nonparametric** fit (`calib_lib`: tail-dense local-linear + per-age split-conformal)
-     where ≥3 matured vintages each have ≥50 sampled works, then the leave-one-vintage-out
-     back-test → `fitted`, or `gate-passed` when LOVO coverage ≈ 0.90;
+     where ≥3 matured vintages each have ≥50 works, then the leave-one-vintage-out back-test →
+     `gate-passed` when LOVO coverage is in **[0.88, 0.97]** (asymmetric: the floor guards against
+     overconfident under-coverage; mild over-coverage is just conservative intervals), else `fitted`;
    - the **parametric** fallback (`calib_parametric`: citation half-life + tail, shrunk to a
-     discipline prior, §7) otherwise → `parametric`.
+     discipline prior, §7) when matured data is too thin → `parametric`.
+
+   A light score-year sample (`SAMPLE_N` ≈ 1k) is the *only* thing stored to `works`, so the
+   subfield's papers appear in the served explore list; their percentile still comes from the exact
+   skeleton, not the sample.
 
 ## Confidence tiers (`calibration_models.confidence`, surfaced on every served record)
 
