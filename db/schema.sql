@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS qal_records (
   qal_ci_lo       NUMERIC,
   qal_ci_hi       NUMERIC,
   class_prob      JSONB,                          -- {ge50,ge75,ge90,ge95,ge99} (official)
-  metrics         JSONB,                          -- both reference classes: {field:{obs,calibrated,point,ci_lo,ci_hi,class_prob}, neighborhood:{...,n}, official:'neighborhood'|'field'}
+  metrics         JSONB,                          -- both reference classes: {field:{obs,calibrated,point,ci_lo,ci_hi}, synthetic:{...,n}, official:'synthetic'|'field'}
   method_version  TEXT,
   data_snapshot   TEXT,
   computed_at     TIMESTAMPTZ DEFAULT now()
@@ -91,23 +91,6 @@ CREATE TABLE IF NOT EXISTS synthetic_field (
   n_refs         INT,           -- usable references behind the reference-stage weights
   n_citers       INT,           -- citing works behind the community-stage weights
   weights        JSONB,         -- top synthetic-field subfield weights, for transparency
-  snapshot       TEXT,
-  computed_at    TIMESTAMPTZ DEFAULT now()
-);
-
--- Co-citation neighborhood (RCR; Hutchins et al. 2016) — the OFFICIAL reference class.
--- A graph computation, so precomputed in batch and cached here (QaL_spec.md §3, §11).
--- For a work P: scan the works that cite P, tally the works co-cited with P in their
--- reference lists -> P's neighborhood; obs_percentile is P's standing within it by
--- age-normalized citation rate. Papers with thin co-citation fall back to the field class.
-CREATE TABLE IF NOT EXISTS neighborhoods (
-  oaid           TEXT PRIMARY KEY REFERENCES works(oaid),
-  n_neighbors    INT,            -- size of the neighborhood used for the percentile
-  n_citers       INT,            -- citing works scanned to build it
-  obs_percentile NUMERIC,        -- full-population percentile r_full = p0 + (1-p0)*r_cited
-  r_cited        NUMERIC,        -- percentile among cited members only (before adding the atom)
-  p0             NUMERIC,        -- co-citation-weighted uncited fraction at the focal vintage
-  members        JSONB,          -- top co-cited works [{oaid,cocite,rate}, ...] for transparency
   snapshot       TEXT,
   computed_at    TIMESTAMPTZ DEFAULT now()
 );

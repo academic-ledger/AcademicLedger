@@ -40,7 +40,7 @@ N_MIN_REFS = 5          # usable references below which the reference stage is s
 MAX_CITERS = 1000       # cap citing works scanned for the community mixture
 NEIGH_SIZE = 200        # co-cited works kept for the community topic mixture
 
-_HIST = {}              # (subfield, year) -> {"total", "hist": {cites: count}, "p0"} cached cohorts
+_COHORT = {}            # (subfield, year) -> {"total", "p0", "base"} cached cohort metadata
 
 
 def _get(params):
@@ -78,33 +78,38 @@ def works_sub_year(oaids):
     return out
 
 
-def cohort_hist(subfield, year):
-    """Cached cited_by_count histogram of the (subfield, year) cohort, with total and p0."""
+def cohort_meta(subfield, year):
+    """Cached (total, p0, filter) for the (subfield, year) cohort. p0 is the exact zero-
+    citation share (the uncited atom). Two count queries, cached per cohort."""
     key = (subfield, year)
-    if key in _HIST:
-        return _HIST[key]
-    # per-page also caps the number of group buckets returned (up to 200) — must request 200,
-    # not 1, or only the single largest bucket (cited_by_count=0) comes back.
-    d = _get({"filter": f"primary_topic.subfield.id:subfields/{subfield},publication_year:{year}",
-              "group_by": "cited_by_count", "per-page": 200})
-    total = d["meta"]["count"]
-    hist = {int(g["key"]): g["count"] for g in (d.get("group_by") or []) if str(g["key"]).isdigit()}
-    _HIST[key] = {"total": total, "hist": hist,
-                  "p0": (hist.get(0, 0) / total if total else None)}
+    if key in _COHORT:
+        return _COHORT[key]
+    base = f"primary_topic.subfield.id:subfields/{subfield},publication_year:{year}"
+    total = _get({"filter": base, "per-page": 1})["meta"]["count"]
+    if not total:
+        _COHORT[key] = {"total": 0, "p0": None, "base": base}
+        return _COHORT[key]
+    zero = _get({"filter": base + ",cited_by_count:0", "per-page": 1})["meta"]["count"]
+    _COHORT[key] = {"total": total, "p0": zero / total, "base": base}
     time.sleep(0.1)
-    return _HIST[key]
+    return _COHORT[key]
 
 
 def pct_in_cohort(subfield, year, cites):
-    """Focal's MID-RANK percentile (fraction in [0,1]) within (subfield, year), and that
-    cohort's p0. Histogram is top-200 by frequency, so the rare high tail may be clipped;
-    immaterial for the low/mid mass that dominates the percentile."""
-    h = cohort_hist(subfield, year)
-    if not h["total"]:
+    """Focal's EXACT full-population MID-RANK percentile (fraction in [0,1]) within the
+    (subfield, year) cohort, plus that cohort's p0. No histogram, no cap, no sampling:
+    the whole cohort (cited + uncited) is the denominator (QaL_spec.md §5). Ties — the
+    uncited atom included — take the mid-rank via exact >cites / ==cites counts."""
+    m = cohort_meta(subfield, year)
+    if not m["total"]:
         return None, None
-    below = sum(c for k, c in h["hist"].items() if k < cites)
-    equal = h["hist"].get(cites, 0)
-    return (below + equal / 2.0) / h["total"], h["p0"]
+    if cites <= 0:
+        return m["p0"] / 2.0, m["p0"]  # uncited atom sits at mid-rank 100·p0/2
+    above = _get({"filter": m["base"] + f",cited_by_count:>{cites}", "per-page": 1})["meta"]["count"]
+    at = _get({"filter": m["base"] + f",cited_by_count:{cites}", "per-page": 1})["meta"]["count"]
+    below = m["total"] - above - at
+    time.sleep(0.1)
+    return (below + at / 2.0) / m["total"], m["p0"]
 
 
 def cocitation_counts(oaid):
@@ -183,8 +188,13 @@ def synthetic_field(oaid):
         return None
 
     # --- rank against the blended cohort distribution D ---
+    # Only rank against subfields carrying non-negligible weight (the rest contribute <~2%
+    # to the blend); bounds the exact count queries without changing the percentile.
+    keep = {s: w for s, w in weights.items() if w >= 0.02}
+    if not keep:
+        keep = weights
     r = p0 = wused = 0.0
-    for s, ws in weights.items():
+    for s, ws in sorted(keep.items(), key=lambda x: -x[1]):
         pct, p0s = pct_in_cohort(s, v, cites)
         if pct is None:
             continue
