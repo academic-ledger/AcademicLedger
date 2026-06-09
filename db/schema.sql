@@ -60,6 +60,13 @@ CREATE TABLE IF NOT EXISTS qal_records (
   computed_at     TIMESTAMPTZ DEFAULT now()
 );
 
+-- OpenAlex subfield id -> display name (for the synthetic-field composition display).
+-- Seeded from pulled works + cohorts.yml; completed from the OpenAlex /subfields taxonomy.
+CREATE TABLE IF NOT EXISTS subfields (
+  id   TEXT PRIMARY KEY,
+  name TEXT
+);
+
 -- Author entities (for the author page).
 CREATE TABLE IF NOT EXISTS authors (
   oaid        TEXT PRIMARY KEY,                  -- OpenAlex Author ID

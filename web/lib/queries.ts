@@ -117,12 +117,31 @@ export async function getExplore(p: ExploreParams): Promise<RecordItem[]> {
   return rows.map(mapRow);
 }
 
+// Synthetic-field composition (U3): the paper's reference-class blend as ranked
+// {subfield, name, weight}, names resolved from the `subfields` table (queried fresh —
+// small — so taxonomy fills picked up without a redeploy).
+async function getComposition(oaid: string) {
+  const rows = await query<{ weights: Record<string, number> | null }>(
+    `select weights from synthetic_field where oaid = $1`,
+    [oaid]
+  );
+  const w = rows.length ? rows[0].weights : null;
+  if (!w) return null;
+  const names = await query<{ id: string; name: string }>(`select id, name from subfields`);
+  const nameMap = new Map(names.map((r) => [r.id, r.name]));
+  return Object.entries(w)
+    .map(([sid, weight]) => ({ sid, name: nameMap.get(sid) ?? `Subfield ${sid}`, weight: Number(weight) }))
+    .sort((a, b) => b.weight - a.weight)
+    .slice(0, 8);
+}
+
 // Contract shape for GET /api/qal/:oaid
 export async function getQalRecord(oaid: string) {
   const rows = await query(RECORD_SELECT + ` where w.oaid = $1`, [oaid]);
   if (!rows.length) return null;
   const rec = mapRow(rows[0]);
   const raw = rows[0];
+  const composition = await getComposition(oaid);
 
   const reference_class = raw.reference_class ?? {
     field: rec.sid ? `subfields/${rec.sid}` : null,
@@ -141,6 +160,7 @@ export async function getQalRecord(oaid: string) {
     subfield: rec.subfield,
     field: rec.field,
     reference_class,
+    composition,
     obs_percentile: rec.obs,
     calibrated: rec.calibrated,
     evidence: {

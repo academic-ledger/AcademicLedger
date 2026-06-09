@@ -12,6 +12,8 @@ cd "$PROJ" || exit 1
   source .venv/bin/activate
   set -a; source .env 2>/dev/null; set +a
   export AS_OF_YEAR=2026 H_HALFLIFE=6 K_LAMBDA=20 OPENALEX_SNAPSHOT=openalex-2026-06 MODEL_VERSION=qal-0.1
+  echo "-- subfield names (for the composition display) --"
+  python pipeline/fetch_subfields.py
   echo "-- synthetic_field batch --"
   python pipeline/synthetic_field.py --targets seed-and-leaders --per-community 150
   echo "-- compute_qal --"

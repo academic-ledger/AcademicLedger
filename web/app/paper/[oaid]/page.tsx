@@ -1,4 +1,5 @@
 import Brand from "@/components/Brand";
+import CitationCard from "@/components/CitationCard";
 import { getQalRecord } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
@@ -26,6 +27,18 @@ export default async function PaperPage({ params }: { params: { oaid: string } }
   const calibrated = rec.calibrated && rec.qal;
   const age = rec.year ? Math.max(1, 2026 - rec.year + 1) : null;
   const src = rec.doi || `https://openalex.org/${rec.oaid}`;
+
+  // U4: a clean formatted citation from the fields we have (volume/issue/pages pending the
+  // OpenAlex `biblio` field — see backlog U4).
+  const citation = [
+    rec.authors,
+    rec.year ? `(${rec.year}).` : null,
+    rec.title ? `${rec.title}.` : null,
+    rec.venue ? `${rec.venue}.` : null,
+    rec.doi || `https://openalex.org/${rec.oaid}`,
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <>
@@ -137,6 +150,32 @@ export default async function PaperPage({ params }: { params: { oaid: string } }
           </p>
         )}
 
+        {/* ===== REFERENCE-CLASS COMPOSITION (synthetic field) ===== */}
+        {rec.composition && rec.composition.length > 0 && (
+          <div className="card">
+            <h2>
+              Reference-class composition{" "}
+              <span className="src">— the synthetic field, weighted by subfield</span>
+            </h2>
+            <div className="comp">
+              {rec.composition.map((c: any) => (
+                <div className="comprow" key={c.sid}>
+                  <div className="complab">{c.name}</div>
+                  <div className="comptrack">
+                    <div className="compfill" style={{ width: `${Math.max(2, Math.round(c.weight * 100))}%` }} />
+                  </div>
+                  <div className="compw">{Math.round(c.weight * 100)}%</div>
+                </div>
+              ))}
+            </div>
+            <p className="note" style={{ fontSize: 12, color: "var(--muted)", marginTop: 10 }}>
+              The official reference class is this recency-weighted blend of the communities the paper
+              actually draws on (QaL_spec §5), not OpenAlex&rsquo;s single label
+              {rec.field ? ` (“${rec.field}”)` : ""}. Divergence between the two is itself the signal.
+            </p>
+          </div>
+        )}
+
         {/* ===== EVIDENCE ===== */}
         <div className="card">
           <h2>
@@ -172,6 +211,9 @@ export default async function PaperPage({ params }: { params: { oaid: string } }
             </div>
           </div>
         </div>
+
+        {/* ===== CITATION ===== */}
+        <CitationCard citation={citation} />
 
         {/* ===== LINKS ===== */}
         <div className="card">
