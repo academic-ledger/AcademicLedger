@@ -264,10 +264,12 @@ def _target_oaids(conn, mode, per_community):
             cur.execute("SELECT DISTINCT work_oaid FROM author_works")
             oaids = {r[0] for r in cur.fetchall()}
             for sid in ("1803", "1802", "1800"):
+                # Order by cited_by_count (stable; doesn't shift when percentiles are recomputed)
+                # — these are the papers that sit at the top of the explore views.
                 cur.execute(
-                    """SELECT q.oaid FROM qal_records q JOIN works w ON w.oaid=q.oaid
-                       WHERE w.primary_subfield=%s AND q.obs_percentile IS NOT NULL
-                       ORDER BY q.obs_percentile DESC, w.cited_by_count DESC LIMIT %s""",
+                    """SELECT oaid FROM works
+                       WHERE primary_subfield=%s AND cited_by_count IS NOT NULL
+                       ORDER BY cited_by_count DESC LIMIT %s""",
                     (sid, per_community))
                 oaids.update(r[0] for r in cur.fetchall())
             return sorted(oaids)
