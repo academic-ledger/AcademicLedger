@@ -86,6 +86,17 @@ export default function AboutPage() {
           decision sciences, and expands from there.
         </p>
 
+        <h2>Transparency</h2>
+        <p>
+          academic Ledger is an independent, non-commercial initiative built on principles of
+          transparency. The full codebase and documentation can be viewed at{" "}
+          <a href="https://github.com/ktulrich/AcademicLedger" target="_blank" rel="noopener noreferrer">
+            our git repository
+          </a>
+          , and a white paper describing the methodology is{" "}
+          <a href="/whitepaper.html">here</a>.
+        </p>
+
         <div className="who">
           <h2>Who, and how to reach us</h2>
           <p className="names">Initiated by G&eacute;rard Cachon, Christian Terwiesch, and Karl Ulrich.</p>

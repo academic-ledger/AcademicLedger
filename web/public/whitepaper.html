@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>White paper — How QaL Works · academic Ledger</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23111'/%3E%3Ctext x='51' y='70' text-anchor='middle' fill='white' font-family='Georgia,serif' font-size='58'%3E%3Ctspan font-style='italic'%3Ea%3C/tspan%3E%3Ctspan%3EL%3C/tspan%3E%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+  :root{ --navy:#16243d; --green:#2e8b57; --ink:#1c2433; --muted:#6b7280; --line:#e7e9ee; --bg:#fafbfc; }
+  *{box-sizing:border-box;}
+  html,body{margin:0; background:var(--bg); color:var(--ink); line-height:1.62;
+            font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+  a{color:#2166ac; text-decoration:none;} a:hover{text-decoration:underline;}
+  .brand{background:#fff; border-bottom:1px solid var(--line); padding:11px 22px; display:flex; align-items:center; justify-content:space-between;}
+  .brand .left{display:flex; align-items:center; gap:13px;}
+  .brand .lock{display:inline-flex; align-items:center; gap:11px; text-decoration:none;}
+  .brand .al{width:30px; height:30px; border-radius:22%; background:#111; color:#fff; display:inline-flex; align-items:center; justify-content:center; font-family:"Cormorant Garamond",Georgia,serif; font-weight:600; font-size:21px; line-height:1;}
+  .brand .al .i{font-style:italic; font-weight:500;}
+  .brand .nm{font-family:"Cormorant Garamond",Garamond,serif; font-size:25px; line-height:1;}
+  .brand .nm .ac{font-style:italic; font-weight:400; color:#555; font-size:.95em;}
+  .brand .nm .le{font-weight:500; color:#111;}
+  .brand .nav a{color:var(--muted); margin-left:15px; font-size:13px;}
+  .brand .nav a.on{color:#111; font-weight:600;}
+  .wrap{max-width:820px; margin:0 auto; padding:34px 24px 90px;}
+  .wrap h1{font-size:34px; line-height:1.15; color:var(--navy); margin:6px 0 6px; font-weight:700;}
+  .wrap h2{font-family:"Cormorant Garamond",Georgia,serif; font-size:26px; color:var(--navy); font-weight:600; margin:36px 0 10px; padding-top:8px; border-top:1px solid var(--line);}
+  .wrap h3{font-size:16px; color:var(--navy); margin:24px 0 6px;}
+  .wrap p, .wrap li{font-size:16px;}
+  .wrap em{color:#33415a;}
+  code{background:#f1f4f8; padding:1px 5px; border-radius:4px; font-size:.92em;}
+  pre{background:#f7f9fb; border:1px solid var(--line); border-radius:8px; padding:12px 14px; overflow-x:auto;}
+  blockquote{border-left:3px solid var(--green); background:#f4f8f5; margin:16px 0; padding:10px 16px; color:#26344b; border-radius:0 8px 8px 0;}
+  table{border-collapse:collapse; width:100%; font-size:14.5px; margin:14px 0; display:block; overflow-x:auto;}
+  th,td{border:1px solid var(--line); padding:7px 10px; text-align:left; vertical-align:top;}
+  th{background:#f4f6f8; color:#3a4250; font-weight:700;}
+  hr{border:none; border-top:1px solid var(--line); margin:26px 0;}
+  footer{color:#9aa3af; font-size:12px; border-top:1px solid var(--line); margin-top:40px; padding-top:14px;}
+  @media(max-width:600px){ .brand{flex-wrap:wrap; gap:8px 12px; padding:10px 16px;} .brand .nav a{margin-left:0; margin-right:14px;} .wrap{padding-left:16px; padding-right:16px;} }
+</style>
+</head>
+<body>
+<header class="brand">
+  <div class="left">
+    <a class="lock" href="/" title="academic Ledger"><span class="al"><span class="i">a</span>L</span>
+      <span class="nm"><span class="ac">academic</span><span class="le">Ledger</span></span></a>
+  </div>
+  <nav class="nav"><a href="/explore">Explore</a><a href="/author">Author</a><a href="/about">About</a><a href="/talk.html">Talk</a></nav>
+</header>
+<div class="wrap">
+<h1 id="how-qal-works">How QaL Works</h1>
+<h3 id="a-quality-estimate-for-scholarly-papers-built-from-the-open-record">A quality estimate for scholarly papers, built from the open record</h3>
+<p><em>Draft white paper prepared by Claude Opus 4.8 from project notes and code base. Written to nail down the data science; clean enough to post on academic-ledger.org. The seed-community calibration results below are real and back-tested (OpenAlex, June 2026 snapshot); values shown in worked single-paper examples are illustrative.</em></p>
+<hr />
+<h2 id="1-what-qal-is-and-what-problem-it-solves">1. What QaL is, and what problem it solves</h2>
+<p>Academic publishing bundles two functions that need not travel together: <strong>distribution</strong> (making work available) and <strong>certification</strong> (judging how good it is). Distribution is effectively solved. Certification is not: the journal system renders a slow, expensive, and noisy binary verdict, years after the fact, and compresses a continuous question into accept-or-reject.</p>
+<p>QaL (said "qual") replaces that verdict with a measurement. For a paper <em>p</em>, QaL estimates where <em>p</em> will <strong>eventually stand among its peers</strong>, expressed as a percentile, and reports that estimate honestly with its uncertainty. It is computed from the open scholarly record, so it has no cold start and is reproducible by anyone.</p>
+<p>This document specifies the estimand, the two-layer estimator, the conformal interval correction that makes the uncertainty honest, how the calibration generalizes across fields, the validation results, and the design choices that make the metric hard to game. It assumes the reader is comfortable with percentiles and elementary probability.</p>
+<h2 id="2-the-estimand">2. The estimand</h2>
+<p>Fix a long horizon <em>H</em> (here ten years after publication). For paper <em>p</em> define its <strong>eventual percentile</strong> <em>r∞(p)</em>: the rank, in [0,100], of <em>p</em>'s cumulative citations at age <em>H</em>, within <em>p</em>'s reference class and vintage (Section 3). The horizon makes "eventual" concrete; <em>r∞</em> is the target we are trying to predict before <em>H</em> has elapsed.</p>
+<p>QaL is not a point claim about <em>r∞</em>. Because most of <em>r∞</em> is realized after the moment of evaluation, QaL is a <strong>calibrated belief</strong> about <em>r∞</em> given the evidence available so far. It reports three things, always against a stated reference class:</p>
+<ul>
+<li>a point estimate, the posterior median of <em>r∞</em>;</li>
+<li>a 90% interval, the 5th and 95th percentiles of the posterior;</li>
+<li>class probabilities, <em>P(r∞ ≥ c)</em> for the cut points <em>c</em> ∈ {50, 75, 90, 95, 99} of the NSF/Leiden percentile classes.</li>
+</ul>
+<p>The honesty of the metric lives in the interval: a young paper earns a wide one, an established paper a narrow one. "Decide late" is not a rule imposed on top of the metric; it is what the interval does on its own.</p>
+<h2 id="3-reference-class">3. Reference class</h2>
+<p>Every QaL is relative to an explicit reference class. The official one is a <strong>synthetic field</strong>: a vintage-matched blend of (topic, year) cohorts whose mixture weights describe the focal paper's intellectual community, with the percentile taken over the blended full population (Section 4). A blend rather than a single subject category is used because single-field labels misclassify interdisciplinary work badly, and field-normalization is the central difficulty in citation indicators (Waltman, 2016); the gold-standard version of this idea is algorithmic citation-network field delineation (Waltman &amp; van Eck, 2012), which OpenAlex topics approximate. <strong>Vintage</strong> is the publication year. The official number is fixed so the reference class cannot be shopped; other classes are offered only for exploration.</p>
+<p>The mixture weights are obtained in stages. At and shortly after posting, when there are no citations, they come from the focal paper's own references, weighted toward the <strong>research front</strong>: recent, specific references count more than old canonical ones, because the recent work locates the paper's live field while the canon only places it in a broad tradition. This is the long-standing distinction between a research front and an intellectual base (Persson, 1994); bibliographic coupling, the sharing of recent references, recovers the front most accurately (Boyack &amp; Klavans, 2010), and the recency of references is itself a classical front measure (the Price Index; de Solla Price, 1970). As citing papers accumulate, the weights migrate to the co-citation community, the RCR-style view of how the field situates the paper (Hutchins et al., 2016), which is harder to game. The neighborhood is never the cohort we rank against (it is a popularity-biased, cited-only sample, Section 4); it only sets the weights.</p>
+<p>In the current build the calibration is fit on field-and-vintage cohorts (OpenAlex subfield × year) as a transparent stand-in for the full synthetic-field blend; the back-tested numbers in Section 6 are on that stand-in, and recalibrating on the blend is future work.</p>
+<h2 id="4-observed-standing-layer-a">4. Observed standing (Layer A)</h2>
+<p>The first layer is a fact, not a forecast. Within a paper's (reference class, vintage) cohort, compute its <strong>observed percentile</strong> <em>r_obs</em>: the empirical-CDF rank of its cumulative citations to date. With <em>n</em> the cohort size and <em>k</em> the number with strictly more citations, <em>r_obs = 100 · (1 − k/n)</em>. The large mass of uncited papers gets a single shared rank rather than an artificial spread.</p>
+<p>This layer is exact, cheap (two count queries), and available for <strong>any</strong> indexed paper regardless of calibration. Percentiles, rather than raw counts, are the right currency because rescaled citation distributions are approximately universal across fields once normalized (Radicchi, Fortunato, &amp; Castellano, 2008), and the question is always relative standing, not absolute volume.</p>
+<h3 id="the-uncited-mass-and-the-denominator">The uncited mass and the denominator</h3>
+<p>Roughly half of every cohort has zero citations, so how the uncited are handled decides what a percentile means. In the seed, Management Science &amp; Operations Research is 53.6% uncited even at maturity (2015 cohort) and about 60% uncited at age two; General Decision Sciences runs 36% and 56%. This is not a tail, it is half the distribution.</p>
+<p>The denominator is the <strong>full population, cited and uncited</strong>, never the cited papers alone. Ranking only among the cited would be a different quantity: with half the cohort uncited, the median cited paper sits near the 75th population percentile, so a cited-only percentile silently inflates every paper by the size of the uncited mass and, worse, puts the neighborhood headline on a different denominator from the field percentile, breaking the robustness-panel comparison. We rank against the whole cohort.</p>
+<p>This is tractable, but it takes care, because the co-citation neighborhood is a <strong>popularity-biased, cited-only sample</strong>: a paper is co-cited with the focal in rough proportion to its own citation count, so the neighborhood over-represents highly-cited papers and by construction contains none of the uncited. We therefore do not rank the focal paper against its neighbors, which would compare it to an elite rather than to its community. We use the neighborhood only for what it estimates with low bias, the <strong>topic mixture</strong> of the focal paper's community (which topics, with what weights), and compute the percentile against the representative full population of that mixture: the blend of the full (topic, vintage) cohorts at the focal paper's vintage. Those cohorts already contain the uncited papers, so the uncited atom and its mass <em>p₀</em> emerge from the blend rather than being grafted on, and the misclassification robustness is preserved because the weights reflect the true intellectual community rather than a single OpenAlex label.</p>
+<p>Concretely, the synthetic percentile is the <strong>weight-average of the paper's percentile in each component subfield</strong>: for citation count <em>c</em>, <em>r_obs = Σ_t w_t · pct_t(c)</em>, where <em>pct_t(c)</em> is its standing (same tie convention, full population including uncited) against subfield <em>t</em>'s vintage-matched distribution. This is exact, not an approximation: the CDF of a mixture is the weighted average of its components' CDFs, so ranking <em>c</em> in the pooled blend and weighting its per-subfield percentiles give the identical number, and each subfield's uncited mass is carried in its own <em>pct_t</em> so <em>p₀ = Σ_t w_t · p₀(t)</em> falls out. Each <em>pct_t(c)</em> is an O(1) lookup in the per-(subfield, vintage) percentile table, so the synthetic percentile is a handful of lookups and a weighted sum.</p>
+<p>The uncited are tied, so they share one percentile. We assign the <strong>mid-rank</strong>, 100 · <em>p₀</em>/2 (about the 27th percentile for mature MS&amp;OR, the 30th at age two), so a zero-citation paper reads as mid-low and indistinguishable from its uncited peers, not as rock bottom; the fractional assignment of Waltman &amp; Schreiber (2013) is the field-standard refinement for handling this large tie mass cleanly. A focal paper that is itself uncited has no co-citation neighborhood of its own; it falls back to the universal field-and-vintage percentile (within the atom), and its neighborhood headline is marked calibration-pending rather than fabricated.</p>
+<p>One consequence is worth stating plainly: across the bottom half of any young cohort the observed percentile has almost no resolution, because those papers are tied at the atom. That is the true information content of early citations for young work, and it is exactly why the calibrated forecast and its interval carry the weight. A paper uncited at age two has an eventual-percentile posterior that runs from the atom upward, because a sizeable share of today's uncited papers are cited later, and Layer B learns that lift. The same full-population denominator is used when the eventual percentile <em>r∞</em> is computed for calibration, so the uncited atom is present identically in the fit, in the conformal radius, and in the back-tested coverage of Section 6.</p>
+<h2 id="5-calibration-from-observed-standing-to-eventual-percentile-layer-b">5. Calibration: from observed standing to eventual percentile (Layer B)</h2>
+<p>The second layer turns current standing into a calibrated forecast of eventual standing. Rather than projecting citation counts forward and re-ranking, we condition directly: for a paper of age <em>a</em> in community <em>c</em>, observed at percentile <em>r_obs</em>, we read the empirical conditional distribution</p>
+<blockquote>
+<p><em>r∞ | (community c, age a, observed percentile)</em>,</p>
+</blockquote>
+<p>estimated from <strong>matured historical cohorts</strong> (publication vintages 2008–2016, observed to the horizon <em>H</em> = 10 years). Age enters as a conditioning variable, so the partial-maturity of a young paper is handled by the data rather than by an explicit accrual rescaling. The conditioning on observed percentile is <strong>high-resolution in the upper tail</strong> (finer than deciles, or continuous via quantile regression), because the citation distribution is heaviest there: a coarse top-decile bin would collapse everything from the 90th to the 99.99th percentile into one cell and pull a clearly canonical paper toward that cell's median. The posterior is that empirical conditional distribution; from it we read the median (point), the 5th and 95th percentiles (the raw interval, corrected in Section 6), and the mass above each cut point (class probabilities). Because the early-to-eventual relationship genuinely differs by field, the mapping is fit <strong>per community</strong>, never pooled across heterogeneous fields.</p>
+<p>Two properties follow without being imposed. Young papers carry wide posteriors and old papers tight ones: as age approaches the horizon the mapping converges to identity, so a mature paper at the 99.97th percentile forecasts about 99 to 100 with a tight interval rather than a regressed-down point. This is the decide-late behavior, derived from data. And the spread at each age is anchored to measured early-signal validity: in our operations cohort the rank correlation between early and eventual standing is roughly 0.5 at one year and rises toward 1 with age. That limited early predictability is consistent with the broader finding that long-term citation prediction is hard (the predictive claims of mechanistic models such as Wang, Song, &amp; Barabási (2013) have themselves been contested), which is the reason to decide late. Correctness signals (retraction, expressions of concern) enter as an asymmetric penalty that floors or withdraws the posterior.</p>
+<h2 id="6-the-conformal-interval-correction">6. The conformal interval correction</h2>
+<p>A 90% interval makes a falsifiable promise: across many papers, the realized <em>r∞</em> should fall inside the stated interval about 90% of the time. We treat that coverage check as the primary acceptance gate, and we test it honestly. This section reports the first such back-test on the three Decision-Sciences seed communities, Management Science &amp; Operations Research (1803), Information Systems &amp; Management (1802), and General Decision Sciences (1800).</p>
+<p><strong>Back-test design: leave-one-vintage-out.</strong> The threat to coverage is not sampling noise within a cohort, since cohorts have thousands of papers, but <strong>drift across publication vintages</strong>: citation inflation, field growth, and indexing changes mean a mapping estimated on the 2008–2015 cohorts need not hold for 2016. An honest test therefore holds out an entire vintage, not a random subset of papers. For each held-out vintage <em>v</em> in 2008–2016 we fit the conditional distribution on the other eight vintages, then measure on <em>v</em> the fraction of papers whose realized <em>r∞</em> falls inside the predicted interval, and pool these out-of-sample checks.</p>
+<p><strong>The shortfall.</strong> The uncorrected estimator sets the 90% interval to the in-sample 5th–95th percentiles of <em>r∞</em> within each (age, observed-percentile) bin. By construction that achieves about 90% coverage on the training data. Out-of-sample it does not: for 1800 the pooled leave-one-vintage-out coverage was <strong>0.802</strong> against a 0.90 target (n = 152,100), with the by-age coverage ranging from 0.72 to 0.87. The intervals were systematically about ten points too narrow. This is the expected failure mode of any in-sample quantile interval applied to out-of-distribution data: the in-sample 5th/95th percentiles describe the spread within the training vintages, and when a held-out vintage's conditional distribution is shifted or wider, realized outcomes land outside the training-derived interval more than 10% of the time. The undercoverage is the measured cost of treating vintages as exchangeable when they are not, and it is largest where drift is largest.</p>
+<p><strong>The correction: per-age split-conformal widening.</strong> We restore coverage with a split-conformal adjustment, the interval analogue of conformal prediction and closely related to Conformalized Quantile Regression (Vovk, Gammerman, &amp; Shafer, 2005; Romano, Patterson, &amp; Candès, 2019; Angelopoulos &amp; Bates, 2021). It widens the interval by a data-driven amount calibrated so that out-of-sample coverage returns to nominal, <strong>without moving the point estimate</strong>. For target miscoverage α = 0.10: fit the (age, observed-percentile) cells on a fit set of vintages, giving a base interval [q5, q95] per cell; on a disjoint calibration set, compute for each paper the nonconformity score <em>E = max(q5 − y, y − q95)</em> (the signed distance by which the realized <em>r∞</em> falls outside the base interval); for each age <em>a</em> set the conformal radius <em>Q_a</em> to the finite-sample-corrected (1 − α) quantile of those scores; and widen the interval to [q5 − Q_a, q95 + Q_a], clipped to [0, 100]. The radius is computed per age because the undercoverage varied with age. The typical widening is small, a mean of about <strong>+1.6 to +1.9 percentile points per side</strong>, because most of the needed correction is concentrated in a few age bands and the bounded percentile scale makes a modest absolute widening matter near the extremes.</p>
+<p><strong>No leakage.</strong> In production the radius is estimated by leave-one-vintage-out over the calibration vintages, then the final cells are fit on all vintages and the widening applied. In validation the back-test is <strong>nested</strong>: for each held-out test vintage the conformal radius is computed only from the training vintages, so neither the bins nor the radius see the test fold.</p>
+<p><strong>Result: the gate passes.</strong> After the correction, pooled leave-one-vintage-out coverage of the nominal 90% interval is:</p>
+<table>
+<thead>
+<tr>
+<th>Community</th>
+<th>Out-of-sample coverage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1803 — Management Science &amp; OR</td>
+<td>0.923</td>
+</tr>
+<tr>
+<td>1802 — Information Systems &amp; Management</td>
+<td>0.903</td>
+</tr>
+<tr>
+<td>1800 — General Decision Sciences</td>
+<td>0.886</td>
+</tr>
+<tr>
+<td><strong>Overall</strong></td>
+<td><strong>0.911</strong> (n = 1,757,110 held-out test points)</td>
+</tr>
+</tbody>
+</table>
+<p>Every age band from one to nine years lands in [0.90, 0.94], and the overall 0.911 sits just above nominal, which is the safe direction. The before-and-after contrast, 0.80 to 0.91, is the headline: the raw method was overconfident, the back-test caught it, and the conformal layer corrected it to a calibrated, honest interval. The episode is itself a methodological argument for the transparent, reproducible gate: a one-shot in-sample fit would have shipped the overconfidence.</p>
+<h2 id="7-generalizing-across-fields-a-two-parameter-family">7. Generalizing across fields: a two-parameter family</h2>
+<p>Calibrating each subfield from a full cohort pull is feasible but unnecessary, and it does not scale to all of OpenAlex. The between-field variation in the mapping is concentrated in a low-dimensional summary: it varies <strong>a great deal in timescale</strong> and <strong>little in rescaled shape</strong>. The timescale is the citation-aging speed (the cited half-life): fast fields resolve early and their intervals narrow quickly; slow fields stay uncertain for years. The shape, once age is expressed in units of the field's own half-life, is approximately common, the calibration analogue of the distributional universality of Radicchi, Fortunato, &amp; Castellano (2008) and of the lognormal regularity of cumulative citations (Stringer, Sales-Pardo, &amp; Amaral, 2010; Wang, Song, &amp; Barabási, 2013). This motivates modeling the calibration as a parametric family indexed by roughly two interpretable parameters per field: a timescale (half-life), governing how fast the interval narrows, and a dispersion/tail parameter, governing tail heaviness and residual spread.</p>
+<p>Both are cheap to estimate, from a few hundred papers per subfield or from aggregate counts, far less than a full calibration. Consequences: <strong>universe coverage</strong> by instantiating a calibration for every subfield from its two parameters, with <strong>hierarchical shrinkage</strong> of sparse communities toward a discipline-level prior; <strong>cheap onboarding</strong> of any field; and a <strong>validation gate, not a free lunch</strong>. The family must be checked against directly-fitted calibrations in a handful of anchor subfields spanning fast and slow dynamics, confirming the mappings coincide after rescaling age by half-life; if a residual remains, add a third parameter (the asymptotic correlation) and re-test. Anchor, confirm the collapse, then extrapolate. The conformal radii of Section 6 are themselves field-specific and would be re-estimated per field under this scheme.</p>
+<h2 id="8-validation-and-acceptance">8. Validation and acceptance</h2>
+<p>QaL ships for a field only when it passes:</p>
+<ol>
+<li><strong>Calibration / coverage.</strong> On held-out mature cohorts (leave-one-vintage-out), the 90% interval covers realized <em>r∞</em> about 90% of the time, across ages and fields. <strong>Status: passed for the three seed communities at 0.911 overall</strong> (Section 6).</li>
+<li><strong>Concordance at maturity.</strong> For old papers, QaL agrees with established field-normalized indicators (RCR, mean-normalized citation scores, percentile classes), since at maturity <em>r_obs ≈ r∞</em>.</li>
+<li><strong>Manipulation robustness.</strong> Simulated self-citation and citation-cartel attacks move QaL negligibly; usage/attention inflation does not move the level at all.</li>
+<li><strong>Reproducibility.</strong> Every estimate recomputes from its published inputs, calibration cells, conformal radii, and data snapshot.</li>
+<li><strong>Coverage honesty.</strong> Coverage is reported per community and per age; low-coverage areas (law, the humanities) and parametric-only (not yet directly-fitted) fields are flagged rather than shown with false confidence. Communities outside the calibrated seed are served with the universal layer only and labeled calibration-pending.</li>
+</ol>
+<h2 id="9-why-it-resists-gaming">9. Why it resists gaming</h2>
+<p><em>Status: this section states QaL's intended gaming-resistance, not all of which the current prototype implements. Live now: the per-paper percentile basis (so volume and salami-slicing do not help), decide-late intervals for calibrated communities, a fixed and reported reference class with no user-selectable headline, the no-single-author-score rule, and open code. Not yet built: self-citation exclusion, authority-weighting of citations, and any usage or attention signal — so today's observed percentile rests on raw OpenAlex citation counts. Read the safeguards below as the target the design is built toward, not a claim about the prototype.</em></p>
+<p>Following the Leiden Manifesto (Hicks et al., 2015) and DORA (2013), robustness comes from construction and transparency, not secrecy. Self-citations are excluded; citations are authority-weighted so peripheral or mutually-citing clusters count for little; usage signals inform only the timing of the posterior, never its level; QaL is per-paper and percentile-based, so producing many weak papers raises no one's score; the reference class is fixed and reported; and deciding late means a transient spike widens uncertainty rather than locking in a high estimate. The method and inputs are open and auditable. Deliberately, QaL never rolls a scholar up into a single number; quality is reported per paper.</p>
+<h2 id="10-limits-and-open-questions">10. Limits and open questions</h2>
+<ul>
+<li><strong>Marginal, not conditional, coverage.</strong> The conformal correction guarantees coverage on average over the calibration distribution. Computing the radius per age strengthens it toward conditional validity, but we do not claim exact coverage within every (age, observed-percentile) cell.</li>
+<li><strong>Exchangeability is approximate.</strong> The conformal guarantee assumes exchangeable calibration data; vintages are not exactly exchangeable, which is the original problem. Deriving the radius by leave-one-vintage-out makes the estimate robust to cross-vintage variation rather than assuming it away, so the guarantee is empirical (validated by the back-test), not a clean finite-sample theorem.</li>
+<li><strong>Horizon truncation.</strong> "Eventual" is fixed at <em>H</em> = 10 years; citations accrue beyond that. The convention is applied identically in fit and test, so it does not bias coverage, but the estimand is "percentile at ten years," not "percentile at infinity."</li>
+<li><strong>Sampling for large communities.</strong> 1803 (about 716k works) and 1802 (about 526k) were calibrated from uniform random samples of 10,000 works per cohort; 1800 (about 32k) was pulled in full. Sample-based estimates carry about 1% sampling error, immaterial at these sizes, but are labeled as such.</li>
+<li><strong>Reference class.</strong> The current calibration is on field-and-vintage cohorts, a stand-in for the official synthetic-field blend; recalibrating on the staged blend may shift the conformal radii.</li>
+<li><strong>Non-stationarity.</strong> Calibration learned on older cohorts is applied to newer ones; it drifts slowly, so we re-fit periodically and re-test by comparing the mapping across vintages.</li>
+</ul>
+<h2 id="11-references">11. References</h2>
+<p>All entries verified against the primary record.</p>
+<ul>
+<li>Angelopoulos, A. N., &amp; Bates, S. (2021). <em>A Gentle Introduction to Conformal Prediction and Distribution-Free Uncertainty Quantification.</em> arXiv:2107.07511. (Also Foundations and Trends in Machine Learning, 2023.)</li>
+<li>Boyack, K. W., &amp; Klavans, R. (2010). Co-citation analysis, bibliographic coupling, and direct citation: Which citation approach represents the research front most accurately? <em>JASIST</em>, 61(12), 2389–2404.</li>
+<li>DORA (2013). <em>San Francisco Declaration on Research Assessment.</em></li>
+<li>de Solla Price, D. J. (1970). Citation measures of hard science, soft science, technology, and nonscience. In <em>Communication among Scientists and Engineers</em> (the Price Index).</li>
+<li>Glänzel, W., &amp; Schubert, A. (1988). Characteristic Scores and Scales in assessing citation impact. <em>Journal of Information Science</em>, 14(2), 123–127.</li>
+<li>Hicks, D., Wouters, P., Waltman, L., de Rijcke, S., &amp; Rafols, I. (2015). The Leiden Manifesto for research metrics. <em>Nature</em>, 520, 429–431.</li>
+<li>Hutchins, B. I., Yuan, X., Anderson, J. M., &amp; Santangelo, G. M. (2016). Relative Citation Ratio (RCR). <em>PLoS Biology</em>, 14(9), e1002541.</li>
+<li>Persson, O. (1994). The intellectual base and research fronts of JASIS 1986–1990. <em>Journal of the American Society for Information Science</em>, 45(1), 31–38.</li>
+<li>Radicchi, F., Fortunato, S., &amp; Castellano, C. (2008). Universality of citation distributions. <em>PNAS</em>, 105(45), 17268–17272.</li>
+<li>Romano, Y., Patterson, E., &amp; Candès, E. J. (2019). Conformalized Quantile Regression. <em>Advances in Neural Information Processing Systems (NeurIPS)</em>, 32, 3538–3548. arXiv:1905.03222.</li>
+<li>Stringer, M. J., Sales-Pardo, M., &amp; Amaral, L. A. N. (2010). Statistical validation of a global model for the distribution of the ultimate number of citations accrued by papers published in a scientific journal. <em>JASIST</em>, 61(7), 1377–1385.</li>
+<li>Vovk, V., Gammerman, A., &amp; Shafer, G. (2005). <em>Algorithmic Learning in a Random World.</em> Springer. (2nd ed., 2022.)</li>
+<li>Waltman, L. (2016). A review of the literature on citation impact indicators. <em>Journal of Informetrics</em>, 10(2), 365–391.</li>
+<li>Waltman, L., &amp; Schreiber, M. (2013). On the calculation of percentile-based bibliometric indicators. <em>JASIST</em>, 64(2), 372–379.</li>
+<li>Waltman, L., &amp; van Eck, N. J. (2012). A new methodology for constructing a publication-level classification system of science. <em>JASIST</em>, 63(12), 2378–2392.</li>
+<li>Wang, D., Song, C., &amp; Barabási, A.-L. (2013). Quantifying long-term scientific impact. <em>Science</em>, 342(6154), 127–132.</li>
+</ul>
+<p><em>Supporting internal documents: QaL_spec.md (the build specification), data_sourcing.md (the open-data spine and terms of use), and calibration_backtest_note.md (the full back-test methodology).</em></p>
+<footer>academic Ledger · methodology white paper, rendered from <a href="https://github.com/ktulrich/AcademicLedger/blob/main/docs/QaL_whitepaper.md">docs/QaL_whitepaper.md</a>. Research preview; worked single-paper values are illustrative pending calibration.</footer>
+</div>
+</body>
+</html>

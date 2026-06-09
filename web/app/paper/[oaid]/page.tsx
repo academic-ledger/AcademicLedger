@@ -252,7 +252,7 @@ export default async function PaperPage({ params }: { params: { oaid: string } }
           QaL computed from open public data (OpenAlex, OpenCitations, Crossref, ORCID); method
           version {rec.method_version}; data snapshot {rec.data_snapshot}. Prototype: metadata and
           observed percentiles are real; QaL point estimates and the synthetic field are
-          illustrative pending Level 0 calibration.
+          illustrative pending Level 0 calibration. <a href="/whitepaper.html">How QaL works ↗</a>
         </footer>
       </div>
     </>
