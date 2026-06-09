@@ -1,49 +1,71 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import type { RecordItem } from "@/lib/types";
 import RecordTable from "./RecordTable";
 import { SkeletonTable } from "./Skeleton";
 
 type Sort = "qalField" | "qalSynth" | "cites" | "year";
 
+// The calibrated seed communities, used to seed the field dropdown (others accrue from results).
+const SEED_FIELDS: { sid: string; label: string }[] = [
+  { sid: "1803", label: "Management Science and Operations Research" },
+  { sid: "1802", label: "Information Systems and Management" },
+  { sid: "1800", label: "General Decision Sciences" },
+];
+
 export default function ExploreClient() {
   const [all, setAll] = useState<RecordItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
-  const [field, setField] = useState(""); // subfield label
+  const [qDebounced, setQDebounced] = useState("");
+  const [field, setField] = useState(""); // subfield id
   const [year, setYear] = useState(0);
   const [calOnly, setCalOnly] = useState(false);
   const [sort, setSort] = useState<Sort>("qalField");
+  const [fieldOpts, setFieldOpts] = useState(SEED_FIELDS);
+  const [years, setYears] = useState<number[]>([]);
 
+  // Debounce the search box so each keystroke doesn't hit the API.
   useEffect(() => {
-    fetch("/api/explore?sort=qal&limit=1000")
+    const t = setTimeout(() => setQDebounced(q), 300);
+    return () => clearTimeout(t);
+  }, [q]);
+
+  // Server-side query: search + filters run against the FULL dataset, not a pre-fetched slice.
+  useEffect(() => {
+    const p = new URLSearchParams();
+    if (qDebounced.trim()) p.set("q", qDebounced.trim());
+    if (field) p.set("field", field);
+    if (year) p.set("since", String(year));
+    if (calOnly) p.set("calibrated_only", "true");
+    p.set("sort", sort === "cites" ? "cites" : sort === "year" ? "year" : "qal");
+    p.set("limit", "500");
+    setLoading(true);
+    let cancelled = false;
+    fetch("/api/explore?" + p.toString())
       .then((r) => r.json())
-      .then((d) => setAll(d.items ?? []))
-      .catch(() => setAll([]))
-      .finally(() => setLoading(false));
-  }, []);
+      .then((d) => !cancelled && setAll(d.items ?? []))
+      .catch(() => !cancelled && setAll([]))
+      .finally(() => !cancelled && setLoading(false));
+    return () => {
+      cancelled = true;
+    };
+  }, [qDebounced, field, year, calOnly, sort]);
 
-  const fields = useMemo(
-    () => [...new Set(all.map((d) => d.subfield).filter(Boolean) as string[])].sort(),
-    [all]
-  );
-  const years = useMemo(
-    () => [...new Set(all.map((d) => d.year).filter(Boolean) as number[])].sort((a, b) => b - a),
-    [all]
-  );
-
-  const filtered = useMemo(() => {
-    const ql = q.trim().toLowerCase();
-    return all.filter((d) => {
-      if (ql && !(d.title?.toLowerCase().includes(ql) || d.authors?.toLowerCase().includes(ql)))
-        return false;
-      if (field && d.subfield !== field) return false;
-      if (year && (d.year || 0) < year) return false;
-      if (calOnly && !d.calibrated) return false;
-      return true;
+  // Accumulate field + year dropdown options from results (union, so they never shrink).
+  useEffect(() => {
+    setFieldOpts((prev) => {
+      const m = new Map(prev.map((f) => [f.sid, f.label]));
+      for (const d of all) if (d.sid && d.subfield) m.set(d.sid, d.subfield);
+      return [...m].map(([sid, label]) => ({ sid, label })).sort((a, b) => a.label.localeCompare(b.label));
     });
-  }, [all, q, field, year, calOnly]);
+    setYears((prev) => {
+      const s = new Set(prev);
+      for (const d of all) if (d.year) s.add(d.year);
+      return [...s].sort((a, b) => b - a);
+    });
+  }, [all]);
 
   const sortKey = sort; // RecordTable understands qalField | qalNeigh | cites | year
   const sortLabel =
@@ -78,9 +100,9 @@ export default function ExploreClient() {
           Field
           <select value={field} onChange={(e) => setField(e.target.value)}>
             <option value="">All fields</option>
-            {fields.map((f) => (
-              <option key={f} value={f}>
-                {f}
+            {fieldOpts.map((f) => (
+              <option key={f.sid} value={f.sid}>
+                {f.label}
               </option>
             ))}
           </select>
@@ -105,20 +127,20 @@ export default function ExploreClient() {
       <div className="presets">
         <span className="pl">Leaderboards</span>
         {[
-          "Management Science & OR",
-          "Information Systems & Management",
-          "General Decision Sciences",
-        ].map((sf) => (
+          { sid: "1803", short: "MS&OR" },
+          { sid: "1802", short: "Info Systems" },
+          { sid: "1800", short: "Decision Sciences" },
+        ].map((f) => (
           <button
-            key={sf}
+            key={f.sid}
             className="lead"
             onClick={() => {
-              setField(sf);
+              setField(f.sid);
               setCalOnly(true);
               setSort("qalSynth");
             }}
           >
-            Top QaL · {sf.replace("Management Science & OR", "MS&OR").replace("Information Systems & Management", "Info Systems").replace("General Decision Sciences", "Decision Sciences")}
+            Top QaL · {f.short}
           </button>
         ))}
         <span className="pl" style={{ marginLeft: 6 }}>
@@ -146,14 +168,19 @@ export default function ExploreClient() {
             Loading records…
           </>
         ) : (
-          `${filtered.length} of ${all.length} records · sorted by ${sortLabel} ↓`
+          `${all.length}${all.length === 500 ? "+" : ""} records · sorted by ${sortLabel} ↓`
         )}
       </div>
 
       {loading ? (
         <SkeletonTable rows={12} />
+      ) : all.length === 0 ? (
+        <div className="notfound" style={{ padding: "40px 24px" }}>
+          No records match{q.trim() ? ` “${q.trim()}”` : " these filters"}. Note: only the seed
+          Decision-Sciences communities are indexed so far.
+        </div>
       ) : (
-        <RecordTable key={sortKey} records={filtered} initialSortKey={sortKey} initialSortDir={-1} />
+        <RecordTable key={sortKey} records={all} initialSortKey={sortKey} initialSortDir={-1} />
       )}
 
       <footer>
