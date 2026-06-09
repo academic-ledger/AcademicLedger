@@ -43,11 +43,17 @@ NEIGH_SIZE = 200        # co-cited works kept for the community topic mixture
 _COHORT = {}            # (subfield, year) -> {"total", "p0", "base"} cached cohort metadata
 
 
-def _get(params):
+def _get(params, tries=6):
     if MAILTO:
         params["mailto"] = MAILTO
-    r = requests.get(API, params=params, timeout=60, headers=UA)
-    r.raise_for_status()
+    for attempt in range(tries):
+        r = requests.get(API, params=params, timeout=60, headers=UA)
+        if r.status_code == 429 or r.status_code >= 500:
+            time.sleep(min(30, 2 ** attempt))  # back off on rate-limit / transient errors
+            continue
+        r.raise_for_status()
+        return r.json()
+    r.raise_for_status()  # retries exhausted
     return r.json()
 
 
