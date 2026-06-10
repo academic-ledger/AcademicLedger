@@ -1,9 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import type { RecordItem } from "@/lib/types";
 import RecordTable from "./RecordTable";
 import { SkeletonTable } from "./Skeleton";
+
+interface AuthorSug {
+  oaid: string;
+  name: string;
+  institution: string | null;
+  works_count: number | null;
+}
 
 type Sort = "qalField" | "qalSynth" | "cites" | "year";
 
@@ -31,12 +39,50 @@ export default function ExploreClient() {
   const [calOnly, setCalOnly] = useState(false);
   const [sort, setSort] = useState<Sort>("qalField");
   const [fieldOpts, setFieldOpts] = useState(SEED_FIELDS);
+  const router = useRouter();
+  const [authorSugs, setAuthorSugs] = useState<AuthorSug[]>([]);
+  const [authOpen, setAuthOpen] = useState(false);
+  const [authActive, setAuthActive] = useState(-1);
+  const searchRef = useRef<HTMLDivElement>(null);
 
   // Debounce the search box so each keystroke doesn't hit the API.
   useEffect(() => {
     const t = setTimeout(() => setQDebounced(q), 300);
     return () => clearTimeout(t);
   }, [q]);
+
+  // Author typeahead on the search box — same mechanism as the author-page search. A name query
+  // (e.g. "cachon") surfaces the actual author and routes to their page, where ALL their papers
+  // live; the title/keyword record search below is unaffected.
+  useEffect(() => {
+    const term = qDebounced.trim();
+    if (term.length < 2) {
+      setAuthorSugs([]);
+      return;
+    }
+    let cancelled = false;
+    fetch("/api/authors/search?q=" + encodeURIComponent(term))
+      .then((r) => r.json())
+      .then((d) => {
+        if (cancelled) return;
+        setAuthorSugs(d.items ?? []);
+        setAuthOpen(true);
+        setAuthActive(-1);
+      })
+      .catch(() => !cancelled && setAuthorSugs([]));
+    return () => {
+      cancelled = true;
+    };
+  }, [qDebounced]);
+
+  // Close the author dropdown on an outside click.
+  useEffect(() => {
+    const h = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) setAuthOpen(false);
+    };
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
+  }, []);
 
   // Server-side query: search + filters run against the FULL dataset, not a pre-fetched slice.
   useEffect(() => {
@@ -98,13 +144,54 @@ export default function ExploreClient() {
       <div className="controls">
         <label>
           Search title or author
-          <input
-            id="q"
-            type="text"
-            placeholder="e.g. bandit, Terwiesch"
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-          />
+          <div className="expl-search" ref={searchRef}>
+            <input
+              id="q"
+              type="text"
+              placeholder="e.g. bandit, Cachon, Terwiesch"
+              value={q}
+              autoComplete="off"
+              onChange={(e) => setQ(e.target.value)}
+              onFocus={() => authorSugs.length && setAuthOpen(true)}
+              onKeyDown={(e) => {
+                if (!authOpen || !authorSugs.length) return;
+                if (e.key === "ArrowDown") {
+                  e.preventDefault();
+                  setAuthActive((a) => Math.min(a + 1, authorSugs.length - 1));
+                } else if (e.key === "ArrowUp") {
+                  e.preventDefault();
+                  setAuthActive((a) => Math.max(a - 1, 0));
+                } else if (e.key === "Enter" && authActive >= 0) {
+                  e.preventDefault();
+                  router.push(`/author/${authorSugs[authActive].oaid}`);
+                } else if (e.key === "Escape") {
+                  setAuthOpen(false);
+                }
+              }}
+            />
+            {authOpen && authorSugs.length > 0 && (
+              <ul className="authsug">
+                <li className="sug-head">Authors — open a profile to see all their papers</li>
+                {authorSugs.map((s, i) => (
+                  <li
+                    key={s.oaid}
+                    className={i === authActive ? "on" : ""}
+                    onMouseEnter={() => setAuthActive(i)}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      router.push(`/author/${s.oaid}`);
+                    }}
+                  >
+                    <span className="nm">{s.name}</span>
+                    <span className="meta">
+                      {s.institution || "—"}
+                      {s.works_count != null ? ` · ${s.works_count.toLocaleString()} works` : ""}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </label>
         <label>
           Field

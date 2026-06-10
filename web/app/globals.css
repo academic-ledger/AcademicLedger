@@ -102,6 +102,11 @@ footer .wh { color: #555; }
 .authsug li.on { background: #eef4fb; }
 .authsug .nm { font-size: 13.5px; color: #16243d; font-weight: 600; }
 .authsug .meta { font-size: 11.5px; color: #6b7280; }
+.authsug .sug-head { font-size: 10px; text-transform: uppercase; letter-spacing: .05em;
+  color: #9aa3af; padding: 5px 9px 3px; cursor: default; }
+.authsug .sug-head:hover { background: none; }
+/* explore search box wrapper so the author dropdown anchors to the input */
+.expl-search { position: relative; }
 @media (max-width: 600px) { .authtop { flex-direction: column; align-items: stretch; gap: 6px; }
   .authsearch { width: 100%; max-width: none; } }
 /* Clickable field rows on the author page — filter the works table to a subfield */
