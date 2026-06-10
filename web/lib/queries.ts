@@ -2,6 +2,7 @@ import { query } from "./db";
 import type { AuthorPayload, Metrics, MetricView, RecordItem } from "./types";
 import { buckets, classProb, type QalPoint } from "./qal";
 import { fetchWork, fetchAuthor, fetchAuthorWorks, searchWorks, type Work } from "./openalex";
+import { syntheticQal } from "./synthetic";
 
 const SEED = new Set(["1800", "1802", "1803"]);
 const H = 10;
@@ -205,19 +206,26 @@ export async function getExplore(p: ExploreParams): Promise<ExploreResult> {
 // Synthetic-field composition (U3): the paper's reference-class blend as ranked
 // {subfield, name, weight}, names resolved from the `subfields` table (queried fresh —
 // small — so taxonomy fills picked up without a redeploy).
+async function namedComposition(w: Record<string, number> | { sid: string; weight: number }[] | null) {
+  if (!w) return null;
+  const entries: [string, number][] = Array.isArray(w)
+    ? w.map((x) => [x.sid, x.weight])
+    : Object.entries(w).map(([sid, weight]) => [sid, Number(weight)]);
+  if (!entries.length) return null;
+  const names = await query<{ id: string; name: string }>(`select id, name from subfields`);
+  const nameMap = new Map(names.map((r) => [r.id, r.name]));
+  return entries
+    .map(([sid, weight]) => ({ sid, name: nameMap.get(sid) ?? `Subfield ${sid}`, weight }))
+    .sort((a, b) => b.weight - a.weight)
+    .slice(0, 8);
+}
+
 async function getComposition(oaid: string) {
   const rows = await query<{ weights: Record<string, number> | null }>(
     `select weights from synthetic_field where oaid = $1`,
     [oaid]
   );
-  const w = rows.length ? rows[0].weights : null;
-  if (!w) return null;
-  const names = await query<{ id: string; name: string }>(`select id, name from subfields`);
-  const nameMap = new Map(names.map((r) => [r.id, r.name]));
-  return Object.entries(w)
-    .map(([sid, weight]) => ({ sid, name: nameMap.get(sid) ?? `Subfield ${sid}`, weight: Number(weight) }))
-    .sort((a, b) => b.weight - a.weight)
-    .slice(0, 8);
+  return namedComposition(rows.length ? rows[0].weights : null);
 }
 
 // GET /api/qal/:oaid + the paper page — constructed ON THE FLY (paper_page_construction.md):
@@ -288,6 +296,36 @@ export async function getPaperRecord(oaid: string) {
       calibrated: true,
       qal: { point: qal.point, ci90: [qal.lo, qal.hi] as [number, number], class_prob: cp, buckets: buckets(cp) },
     };
+  }
+
+  // ON-THE-FLY SYNTHETIC FIELD (official reference class, §5): rank the paper against its TRUE
+  // community (its recency-weighted bibliography mixture), correcting OpenAlex's single label, and
+  // attribute the calibration to that community when gate-passed. Computed live + HTTP-cached.
+  try {
+    const sq = await syntheticQal(work.oaid);
+    if (sq) {
+      const fieldObs =
+        work.sid && work.year != null ? await cohortPercentile(work.sid, work.year, work.cites) : null;
+      return {
+        ...base,
+        composition: (await namedComposition(sq.weights)) ?? composition,
+        reference_class: {
+          field: "synthetic-field",
+          field_label: "synthetic field",
+          kind: "synthetic",
+          vintage_year: sq.vintage,
+          dominant: sq.dominant,
+          coverage: sq.coverage,
+          field_percentile: fieldObs, // the single OpenAlex-label percentile, for contrast
+        },
+        obs_percentile: sq.obs,
+        calibrated: sq.calibrated,
+        qal: sq.qal,
+        ...(sq.calibrated ? {} : { status: "calibration-pending" as const }),
+      };
+    }
+  } catch {
+    // fall through to the field-based universal layer
   }
 
   // Universal layer: observed field percentile on the fly, calibration-pending.
