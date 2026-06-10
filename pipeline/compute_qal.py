@@ -59,24 +59,23 @@ def main():
     as_of = int(os.environ.get("AS_OF_YEAR", "2026"))
     model_version = os.environ.get("MODEL_VERSION", "qal-0.1")
 
-    conn = psycopg.connect(db)
+    conn = psycopg.connect(db, keepalives=1, keepalives_idle=30,
+                           keepalives_interval=10, keepalives_count=5)
     n_written = 0
     n_calibrated = 0
     with conn.cursor() as cur:
-        # Preload cohort percentile tables into memory: {(subfield, year): (n, cdf)}.
-        if snapshot:
-            cur.execute(
-                "SELECT subfield, publication_year, n, cdf FROM cohort_percentiles WHERE snapshot=%s",
-                (snapshot,),
-            )
-        else:
-            # latest snapshot per (subfield, year) by lexical max (snapshots are date-stamped)
-            cur.execute(
-                """SELECT DISTINCT ON (subfield, publication_year)
-                          subfield, publication_year, n, cdf
-                     FROM cohort_percentiles
-                     ORDER BY subfield, publication_year, snapshot DESC"""
-            )
+        # Preload the LATEST cohort percentile table per (subfield, year): {(sid, year): (n, cdf)}.
+        # We always read latest-per-cohort by lexical-max snapshot, NOT an exact-snapshot filter:
+        # snapshots are stage-suffixed (e.g. 'rollout-2026-06-1skeleton' < '-2sampled', so sampled
+        # supersedes skeleton) and the seed uses a different prefix ('openalex-...'), so an exact
+        # OPENALEX_SNAPSHOT match (e.g. 'rollout-2026-06') would match nothing. OPENALEX_SNAPSHOT is
+        # only the data_snapshot LABEL on written records, never a read filter.
+        cur.execute(
+            """SELECT DISTINCT ON (subfield, publication_year)
+                      subfield, publication_year, n, cdf
+                 FROM cohort_percentiles
+                 ORDER BY subfield, publication_year, snapshot DESC"""
+        )
         cohorts = {(r[0], r[1]): (r[2], r[3]) for r in cur.fetchall()}
         if not cohorts:
             print("No cohort_percentiles found; run build_percentiles first.")
