@@ -50,14 +50,17 @@ def _get(params, tries=6):
     if API_KEY:
         params["api_key"] = API_KEY
     for attempt in range(tries):
-        r = requests.get(API, params=params, timeout=60, headers=UA)
+        try:
+            r = requests.get(API, params=params, timeout=60, headers=UA)
+        except requests.exceptions.RequestException:
+            time.sleep(min(30, 2 ** attempt))  # network timeout / reset -> retry
+            continue
         if r.status_code == 429 or r.status_code >= 500:
             time.sleep(min(30, 2 ** attempt))  # back off on rate-limit / transient errors
             continue
         r.raise_for_status()
         return r.json()
-    r.raise_for_status()  # retries exhausted
-    return r.json()
+    raise requests.exceptions.RequestException("OpenAlex retries exhausted")
 
 
 def _sub(work):
@@ -272,8 +275,8 @@ def main():
     for i, oaid in enumerate(todo, 1):
         try:
             rec = synthetic_field(oaid)
-        except requests.HTTPError as e:
-            print(f"  [{i}] {oaid}: HTTP {e}", flush=True)
+        except requests.exceptions.RequestException as e:
+            print(f"  [{i}] {oaid}: skipped ({str(e)[:50]})", flush=True)
             continue
         if rec:
             _upsert(db, rec)   # fresh short-lived connection per upsert (Neon drops idle ones)
