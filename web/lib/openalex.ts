@@ -176,6 +176,68 @@ export async function fetchAuthor(oaid: string): Promise<AuthorEntity | null> {
   };
 }
 
+// Author typeahead for the author-search box. OpenAlex's purpose-built autocomplete endpoint
+// returns, per keystroke, the display name + `hint` (the author's institution) + counts.
+export interface AuthorSuggestion {
+  oaid: string;
+  name: string;
+  institution: string | null; // OpenAlex `hint`
+  works_count: number | null;
+  cited_by_count: number | null;
+  orcid: string | null;
+}
+
+async function _authorsList(url: string, map: (x: any) => AuthorSuggestion): Promise<AuthorSuggestion[]> {
+  try {
+    const r = await fetch(url, {
+      headers: { "User-Agent": `al-web/1.0 (${MAILTO})` },
+      next: { revalidate: SEARCH_REVALIDATE },
+    });
+    if (!r.ok) return [];
+    const j: any = await r.json();
+    return ((j.results || []) as any[]).map(map).filter((s) => s.oaid && s.name);
+  } catch {
+    return [];
+  }
+}
+
+// Hybrid typeahead. The `/authors?search=` endpoint has the recall and citation ranking (it
+// surfaces e.g. Gérard Cachon, whom autocomplete misses) but only matches COMPLETE name tokens;
+// `/autocomplete/authors` matches prefixes (good while still typing) but ranks sparse clusters
+// oddly. Query both, merge by id (search wins, it carries the institution), citation-sort, top 8.
+export async function autocompleteAuthors(q: string): Promise<AuthorSuggestion[]> {
+  const term = q.trim();
+  if (term.length < 2) return [];
+  const enc = encodeURIComponent(term);
+  const [search, ac] = await Promise.all([
+    _authorsList(
+      `https://api.openalex.org/authors?search=${enc}&sort=cited_by_count:desc&per-page=8` +
+        `&select=id,display_name,cited_by_count,works_count,last_known_institutions,orcid${AUTH}`,
+      (a) => ({
+        oaid: (a.id || "").split("/").pop() || "",
+        name: a.display_name ?? "",
+        institution: (a.last_known_institutions || [])[0]?.display_name ?? null,
+        works_count: a.works_count ?? null,
+        cited_by_count: a.cited_by_count ?? null,
+        orcid: a.orcid ?? null,
+      })
+    ),
+    _authorsList(`https://api.openalex.org/autocomplete/authors?q=${enc}${AUTH}`, (x) => ({
+      oaid: (x.id || "").split("/").pop() || "",
+      name: x.display_name ?? "",
+      institution: x.hint ?? null,
+      works_count: x.works_count ?? null,
+      cited_by_count: x.cited_by_count ?? null,
+      orcid: x.external_id ?? null,
+    })),
+  ]);
+  const merged = new Map<string, AuthorSuggestion>();
+  for (const s of [...search, ...ac]) if (s.oaid && !merged.has(s.oaid)) merged.set(s.oaid, s);
+  return [...merged.values()]
+    .sort((a, b) => (b.cited_by_count ?? 0) - (a.cited_by_count ?? 0))
+    .slice(0, 8);
+}
+
 // The author's works, most-cited first, mapped like any other work (so each carries its own
 // byline, fields, and citations). Capped — an author page shows a portfolio, not everything.
 export async function fetchAuthorWorks(oaid: string, limit = 100): Promise<Work[]> {

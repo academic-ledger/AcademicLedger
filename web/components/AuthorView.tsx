@@ -1,4 +1,5 @@
 import RecordTable from "./RecordTable";
+import AuthorSearch from "./AuthorSearch";
 import type { AuthorPayload } from "@/lib/types";
 
 const BINS: { l: string; t: (x: number) => boolean }[] = [
@@ -28,6 +29,10 @@ export default function AuthorView({ payload }: { payload: AuthorPayload }) {
 
   return (
     <div className="wrap-author">
+      <div className="authtop">
+        <span className="authtop-l">Jump to another author</span>
+        <AuthorSearch />
+      </div>
       <div className="ahead">
         <div>
           <h1 className="name">{author.name}</h1>

@@ -1,14 +1,15 @@
 import Brand from "@/components/Brand";
 import AuthorView from "@/components/AuthorView";
-import { getAuthorRecord, getDefaultAuthorId } from "@/lib/queries";
+import { getAuthorRecord } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
 
-// The bare /author route lands on the default author (project initiator) so the
-// nav tab always shows something. Specific authors live at /author/:oaid.
+// The nav "Author" tab lands here. Default to the project initiator (Karl Ulrich); use the
+// in-page search to jump to any other author. Specific authors live at /author/:oaid.
+const DEFAULT_AUTHOR = "A5040079549"; // Karl T. Ulrich
+
 export default async function AuthorIndex() {
-  const id = await getDefaultAuthorId();
-  const payload = id ? await getAuthorRecord(id) : null;
+  const payload = await getAuthorRecord(DEFAULT_AUTHOR);
   return (
     <>
       <Brand active="author" />

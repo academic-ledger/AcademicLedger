@@ -87,6 +87,23 @@ footer .wh { color: #555; }
 /* Clickable author byline links (paper page + record tables) — subtle until hovered. */
 .aulink { color: inherit; text-decoration: none; border-bottom: 1px dotted #c2c8d2; }
 .aulink:hover { color: #2166ac; border-bottom-color: #2166ac; }
+/* Author-page search (jump to another author) */
+.authtop { display: flex; align-items: center; gap: 12px; justify-content: flex-end; margin: 0 2px 14px; }
+.authtop-l { font-size: 12px; color: #6b7280; }
+.authsearch { position: relative; width: 280px; max-width: 60vw; }
+.authsearch input { width: 100%; padding: 8px 12px; border: 1px solid #e7e9ee; border-radius: 8px;
+  font-size: 13px; background: #fff; }
+.authsearch input:focus { outline: none; border-color: #2166ac; }
+.authsug { position: absolute; z-index: 30; left: 0; right: 0; top: calc(100% + 4px); margin: 0;
+  padding: 4px; list-style: none; background: #fff; border: 1px solid #e7e9ee; border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(20,36,61,.12); max-height: 340px; overflow-y: auto; }
+.authsug li { padding: 7px 9px; border-radius: 6px; cursor: pointer; display: flex;
+  flex-direction: column; gap: 1px; }
+.authsug li.on { background: #eef4fb; }
+.authsug .nm { font-size: 13.5px; color: #16243d; font-weight: 600; }
+.authsug .meta { font-size: 11.5px; color: #6b7280; }
+@media (max-width: 600px) { .authtop { flex-direction: column; align-items: stretch; gap: 6px; }
+  .authsearch { width: 100%; max-width: none; } }
 @media (max-width: 600px) {
   .controls #q { width: 100%; }
   .controls label { flex: 1 1 100%; }
