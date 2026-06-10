@@ -84,7 +84,14 @@ export default async function PaperPage({ params }: { params: { oaid: string } }
                   </span>
                 </div>
                 <div className="qal-cap">
-                  eventual percentile · point estimate with 90% interval · <em>illustrative</em>
+                  {rec.reference_class?.coverage === "mature" ? (
+                    <>
+                      settled standing{age ? ` · decided at ${age} years` : ""} · at maturity the
+                      eventual percentile ≈ the observed percentile, with little left to forecast
+                    </>
+                  ) : (
+                    <>eventual percentile · point estimate with 90% interval · <em>illustrative</em></>
+                  )}
                 </div>
               </>
             ) : (

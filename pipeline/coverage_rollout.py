@@ -314,44 +314,67 @@ def skeleton_cdf(n, hist, tail_counts):
     return out
 
 
+def _build_skeleton(conn, sid, v):
+    """Build one exact skeleton percentile table for (sid, v): a group_by=cited_by_count histogram
+    (the head) + a tail count-ladder, mid-rank CDF, written with source='skeleton'."""
+    base = f"primary_topic.subfield.id:subfields/{sid},publication_year:{v}"
+    d = GET("/works", filter=base, group_by="cited_by_count", per_page=200)
+    n = d.get("meta", {}).get("count", 0)
+    if not n:
+        cp_mark(conn, "skeleton", sid, v, "empty")
+        return
+    hist = {}
+    for g in d.get("group_by", []):
+        try:
+            hist[int(g["key"])] = g["count"]
+        except (ValueError, TypeError):
+            continue
+    tail = {}
+    for X in TAIL_LADDER:
+        a = GET("/works", filter=base + f",cited_by_count:>{X}", per_page=1)
+        tail[X] = a.get("meta", {}).get("count", 0)
+        if tail[X] == 0:
+            break                       # nothing above X => higher thresholds are 0 too
+    cdf = skeleton_cdf(n, hist, tail)
+    p0 = hist.get(0, 0) / n
+    with conn.cursor() as cur:
+        cur.execute(
+            """INSERT INTO cohort_percentiles (subfield,publication_year,n,cdf,snapshot,source)
+               VALUES (%s,%s,%s,%s,%s,'skeleton')
+               ON CONFLICT (subfield,publication_year,snapshot)
+               DO UPDATE SET n=EXCLUDED.n, cdf=EXCLUDED.cdf, source='skeleton'""",
+            (sid, v, n, json.dumps(cdf), SNAP_SKEL))
+    conn.commit()
+    cp_mark(conn, "skeleton", sid, v, "done",
+            detail={"n": n, "p0": round(p0, 4), "breakpoints": len(cdf)})
+
+
 def step2_skeletons(conn, targets):
     print("STEP 2 — skeleton percentile tables", flush=True)
     done = cp_get_done(conn, "skeleton")
     for sid in targets:
         for v in ALL_VINTAGES:
-            if (sid, v) in done:
-                continue
-            base = f"primary_topic.subfield.id:subfields/{sid},publication_year:{v}"
-            d = GET("/works", filter=base, group_by="cited_by_count", per_page=200)
-            n = d.get("meta", {}).get("count", 0)
-            if not n:
-                cp_mark(conn, "skeleton", sid, v, "empty")
-                continue
-            hist = {}
-            for g in d.get("group_by", []):
-                try:
-                    hist[int(g["key"])] = g["count"]
-                except (ValueError, TypeError):
-                    continue
-            tail = {}
-            for X in TAIL_LADDER:
-                a = GET("/works", filter=base + f",cited_by_count:>{X}", per_page=1)
-                tail[X] = a.get("meta", {}).get("count", 0)
-                if tail[X] == 0:
-                    break                       # nothing above X => higher thresholds are 0 too
-            cdf = skeleton_cdf(n, hist, tail)
-            p0 = hist.get(0, 0) / n
-            with conn.cursor() as cur:
-                cur.execute(
-                    """INSERT INTO cohort_percentiles (subfield,publication_year,n,cdf,snapshot,source)
-                       VALUES (%s,%s,%s,%s,%s,'skeleton')
-                       ON CONFLICT (subfield,publication_year,snapshot)
-                       DO UPDATE SET n=EXCLUDED.n, cdf=EXCLUDED.cdf, source='skeleton'""",
-                    (sid, v, n, json.dumps(cdf), SNAP_SKEL))
-            conn.commit()
-            cp_mark(conn, "skeleton", sid, v, "done",
-                    detail={"n": n, "p0": round(p0, 4), "breakpoints": len(cdf)})
+            if (sid, v) not in done:
+                _build_skeleton(conn, sid, v)
         print(f"  {sid}: skeletons across {len(ALL_VINTAGES)} vintages", flush=True)
+
+
+def extend_vintages(conn, subfields, from_year, to_year):
+    """Extend exact percentile coverage to OLDER vintages [from_year..to_year] (outside the
+    calibration window), so fully-matured papers get an observed standing (paired with the
+    maturity rule in compute_qal). Percentiles only — calibration stays on the matured window.
+    Includes the seed subfields (their build_percentiles tables only cover 2008+)."""
+    print(f"EXTEND — older-vintage skeletons for {len(subfields)} subfields × "
+          f"{from_year}-{to_year}", flush=True)
+    done = cp_get_done(conn, "skeleton")
+    years = list(range(from_year, to_year + 1))
+    for sid in subfields:
+        built = 0
+        for v in years:
+            if (sid, v) not in done:
+                _build_skeleton(conn, sid, v)
+                built += 1
+        print(f"  {sid}: +{built} older vintages", flush=True)
 
 
 # ----- STEP 3: deep in-memory calibration + light serving sample ------------------------------
@@ -529,6 +552,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--steps", default="123", help="which steps to run, e.g. '12' or '3'")
     ap.add_argument("--targets", default="", help="comma-separated subfield ids (skip footprint targeting)")
+    ap.add_argument("--extend-from", type=int, default=0,
+                    help="also build skeletons for older vintages back to this year (seed+targets)")
     args = ap.parse_args()
     db = os.environ.get("DATABASE_URL")
     if not db:
@@ -561,6 +586,9 @@ def main():
                 step2_skeletons(conn, targets)
             if "3" in args.steps:
                 step3_calibrate(conn, targets)
+            if args.extend_from:
+                extend_vintages(conn, sorted(set(targets) | SEED),
+                                args.extend_from, min(ALL_VINTAGES) - 1)
             print("\nrollout complete (all requested steps finished).", flush=True)
             break
         except BudgetExhausted as e:

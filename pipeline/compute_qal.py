@@ -17,10 +17,19 @@ Env:    OPENALEX_SNAPSHOT (cohort snapshot to read), AS_OF_YEAR (scoring year, d
 import os
 import json
 import bisect
+import math
 
 import calib_lib as cl
 
 CUTS = [50, 75, 90, 95, 99]
+
+
+def _class_prob(point, lo, hi):
+    """NSF cumulative class probabilities P(eventual >= cut) from a normal centered at the point
+    with sd implied by the 90% interval (mirrors web/lib/qal.ts classProb, floor 1.5)."""
+    sd = max(1.5, (hi - lo) / 3.2897)  # 90% interval ~= +/- 1.6449 sd
+    sf = lambda k: 0.5 * math.erfc((k - point) / (sd * math.sqrt(2)))
+    return {f"ge{c}": round(min(1.0, max(0.0, sf(c))), 4) for c in CUTS}
 
 
 def load_labels():
@@ -136,13 +145,17 @@ def main():
             wcur.executemany(UPSERT, batch)
             batch.clear()
 
-    def metric(obs, age):
+    def metric(obs, age, raw_age):
         """A QaL computation from one observed percentile, via continuous calibration lookup.
 
-        Confidence-gated (QaL_spec §11): a forecast is shown ONLY for a 'gate-passed' community
+        Confidence-gated (QaL_spec §11): a *forecast* is shown ONLY for a 'gate-passed' community
         (back-test ~0.90). Lower tiers ('fitted', 'parametric') and observed-only cohorts stay
-        calibration-pending; the served record still carries the tier in `coverage` so the UI can
-        label it honestly. Never promotes a community to a forecast without the back-test."""
+        calibration-pending; the served record still carries the tier in `coverage`.
+
+        Maturity rule (QaL_spec §6, decide-late): a paper at/beyond the long horizon H is DECIDED —
+        its eventual percentile is essentially its observed percentile, with nothing left to
+        forecast. For such papers we report QaL = observed with a tight interval (coverage='mature')
+        even without a gate-passed calibration, because it is a settled standing, not a forecast."""
         if obs is None:
             return None
         conf = confidence_by_comm.get(sid)
@@ -155,6 +168,11 @@ def main():
                 "class_prob": {f"ge{c}": round(float(cell[f"p_ge{c}"]), 4)
                                for c in (50, 75, 90, 95, 99)},
             }
+        if raw_age >= H:  # decided at maturity -> QaL = observed standing, tight interval
+            lo, hi = max(0.0, obs - 2.5), min(100.0, obs + 2.5)
+            return {"obs": obs, "calibrated": True, "coverage": "mature",
+                    "point": round(obs, 1), "ci_lo": round(lo, 1), "ci_hi": round(hi, 1),
+                    "class_prob": _class_prob(obs, lo, hi)}
         return {"obs": obs, "calibrated": False, "coverage": conf or "observed",
                 "point": None, "ci_lo": None, "ci_hi": None, "class_prob": None}
 
@@ -173,14 +191,15 @@ def main():
             field_obs = round(obs_percentile(cohorts[key][1], cites or 0), 2) if has_cohort else None
             field_n = cohorts[key][0] if has_cohort else None
             age = max(1, min(H - 1, as_of - year))
+            raw_age = as_of - year  # true age (unclamped), for the maturity rule
 
             # Compute BOTH reference classes (U2): the single-label field cohort and the
             # synthetic field (the official class; §5).
-            field_m = metric(field_obs, age)
+            field_m = metric(field_obs, age, raw_age)
             synth_m = None
             if has_synth:
                 n_cit, synth_obs = synth[oaid]
-                synth_m = metric(synth_obs, age)
+                synth_m = metric(synth_obs, age, raw_age)
                 synth_m["n"] = n_cit
 
             # Official = the synthetic field when computed, else the single-label field stand-in.

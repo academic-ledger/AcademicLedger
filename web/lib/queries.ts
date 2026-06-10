@@ -301,9 +301,33 @@ export async function getPaperRecord(oaid: string) {
     kind: "field",
     vintage_year: work.year,
   };
+
+  // Maturity rule (QaL_spec §6): a paper past the long horizon H is DECIDED — its eventual
+  // percentile is essentially its observed percentile, nothing left to forecast. Report QaL =
+  // observed standing with a tight interval (even without a gate-passed calibration), rather than
+  // "pending". Mirrors compute_qal's maturity branch.
+  const rawAge = work.year != null ? AS_OF - work.year : null;
+  if (obs != null && rawAge != null && rawAge >= H) {
+    const point = Math.round(obs);
+    const q: QalPoint = { point, lo: Math.max(0, point - 2.5), hi: Math.min(100, point + 2.5) };
+    const cp = classProb(q);
+    return {
+      ...base,
+      reference_class: { ...ref, field_label: ref.field_label ?? work.subfield, coverage: "mature" },
+      obs_percentile: obs,
+      calibrated: true,
+      qal: {
+        point,
+        ci90: [Math.round(q.lo), Math.round(q.hi)] as [number, number],
+        class_prob: cp,
+        buckets: buckets(cp),
+      },
+    };
+  }
+
   return {
     ...base,
-    reference_class: { ...ref, field_label: ref.field_label ?? work.subfield },
+    reference_class: { ...ref, field_label: ref.field_label ?? work.subfield, coverage: "observed" },
     obs_percentile: obs,
     calibrated: false,
     status: "calibration-pending" as const,
