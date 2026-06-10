@@ -316,6 +316,7 @@ export async function getPaperRecord(oaid: string) {
           vintage_year: sq.vintage,
           dominant: sq.dominant,
           coverage: sq.coverage,
+          gp_weight: sq.gp_weight, // share of the reference class that is back-tested
           field_percentile: fieldObs, // the single OpenAlex-label percentile, for contrast
         },
         obs_percentile: sq.obs,

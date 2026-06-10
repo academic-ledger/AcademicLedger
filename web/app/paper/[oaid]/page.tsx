@@ -125,6 +125,14 @@ export default async function PaperPage({ params }: { params: { oaid: string } }
                 <b>Reference class:</b> synthetic field · official headline
                 <br />
                 recency-weighted blend of its community&rsquo;s cohorts
+                {rec.reference_class.gp_weight != null && rec.reference_class.coverage === "gate-passed" && (
+                  <>
+                    {" "}
+                    · <span title="share of the reference class in back-tested subfields">
+                      {Math.round(rec.reference_class.gp_weight * 100)}% back-tested
+                    </span>
+                  </>
+                )}
                 {rec.reference_class.field_percentile != null && (
                   <>
                     {" "}

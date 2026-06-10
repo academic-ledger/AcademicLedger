@@ -22,8 +22,9 @@ const MIN_REFS = 5;
 
 export interface SynthResult {
   obs: number; // blended observed percentile (0–100)
-  weights: { sid: string; weight: number }[]; // top community weights
-  dominant: string | null; // dominant subfield id
+  weights: { sid: string; weight: number }[]; // topic mixture (for the composition display)
+  parts: { sid: string; weight: number; pct: number }[]; // used cohorts: weight (renormalized over
+  // used) + the focal's percentile IN that subfield — the inputs to the blend-weighted calibration
   vintage: number;
   n_refs: number;
 }
@@ -123,13 +124,16 @@ export async function syntheticField(oaid: string): Promise<SynthResult | null> 
     .map(([sid, x]) => ({ sid, weight: x / tot }))
     .sort((a, b) => b.weight - a.weight);
 
-  // rank the focal against the weight-blended cohort distribution (subfields carrying >=2%)
+  // rank the focal against the weight-blended cohort distribution (subfields carrying >=2%),
+  // keeping each used subfield's weight + the focal's percentile in it (for the calibration blend)
   const keep = weights.filter((x) => x.weight >= 0.02);
+  const used: { sid: string; weight: number; pct: number }[] = [];
   let r = 0;
   let wused = 0;
   for (const { sid, weight } of keep) {
     const pct = await pctInCohort(sid, v, cites);
     if (pct == null) continue;
+    used.push({ sid, weight, pct });
     r += weight * pct;
     wused += weight;
   }
@@ -138,7 +142,7 @@ export async function syntheticField(oaid: string): Promise<SynthResult | null> 
   return {
     obs: Math.round((r / wused) * 100) / 100,
     weights: weights.slice(0, 8),
-    dominant: weights[0]?.sid ?? null,
+    parts: used.map((p) => ({ sid: p.sid, weight: p.weight / wused, pct: p.pct })),
     vintage: v,
     n_refs: refs.length,
   };
@@ -181,29 +185,62 @@ export interface SyntheticQal {
   weights: { sid: string; weight: number }[];
   dominant: string | null;
   vintage: number;
+  gp_weight: number; // share of the reference class sitting in back-tested (gate-passed) subfields
   calibrated: boolean;
   coverage: "gate-passed" | "mature" | "observed";
   qal: { point: number; ci90: [number, number]; class_prob: ClassProb; buckets: ReturnType<typeof buckets> } | null;
 }
 
-// Full served synthetic-field QaL for a paper, on the fly: rank against the true community, then
-// attribute the calibration to that community when it's gate-passed; else the maturity rule for a
-// decided paper; else observed-only (calibration-pending).
+// Minimum share of the reference class that must sit in back-tested subfields to show a forecast.
+const GP_MIN = 0.5;
+
+// Full served synthetic-field QaL for a paper, on the fly. BLEND-WEIGHTED calibration (not a
+// single-label swap): apply EACH constituent subfield's calibration to the focal's percentile in
+// THAT subfield, then blend the posteriors by the synthetic-field weights. Confidence is
+// blend-weighted — gate-passed to the extent the weight sits in back-tested subfields; "pending"
+// (observed-only) appears only when the bulk of the weight lands in subfields we haven't
+// calibrated. The maturity rule still applies to decided papers.
 export async function syntheticQal(oaid: string): Promise<SyntheticQal | null> {
   const sf = await syntheticField(oaid);
   if (!sf) return null;
   const obs = sf.obs;
   const rawAge = NOW - sf.vintage;
   const age = Math.max(1, Math.min(H - 1, rawAge));
-  const base = { obs, weights: sf.weights, dominant: sf.dominant, vintage: sf.vintage };
+  const base = {
+    obs, weights: sf.weights, dominant: sf.parts[0]?.sid ?? null, vintage: sf.vintage,
+  };
 
-  // (1) gate-passed forecast via the dominant true community
-  const cell = sf.dominant ? await gatePassedCell(sf.dominant, age, obs) : null;
-  if (cell) {
-    const cp: ClassProb = { ge50: cell.ge50, ge75: cell.ge75, ge90: cell.ge90, ge95: cell.ge95, ge99: cell.ge99 };
+  // blend each gate-passed subfield's posterior (its calibration applied to the focal's percentile
+  // in that subfield), weighted by the synthetic-field weights; gpW = total gate-passed weight.
+  let gpW = 0;
+  let m = 0, q5 = 0, q95 = 0;
+  const acc: ClassProb = { ge50: 0, ge75: 0, ge90: 0, ge95: 0, ge99: 0 };
+  for (const { sid, weight, pct } of sf.parts) {
+    const cell = await gatePassedCell(sid, age, pct);
+    if (!cell) continue; // this subfield isn't back-tested -> its share contributes no forecast
+    gpW += weight;
+    m += weight * cell.median;
+    q5 += weight * cell.q5;
+    q95 += weight * cell.q95;
+    acc.ge50 += weight * cell.ge50;
+    acc.ge75 += weight * cell.ge75;
+    acc.ge90 += weight * cell.ge90;
+    acc.ge95 += weight * cell.ge95;
+    acc.ge99 += weight * cell.ge99;
+  }
+  const gp_weight = Math.round(gpW * 100) / 100;
+
+  // (1) enough of the reference class is back-tested -> blended gate-passed forecast
+  if (gpW >= GP_MIN) {
+    const n = (x: number) => x / gpW; // renormalize over the gate-passed weight
+    const cp: ClassProb = {
+      ge50: Math.round(n(acc.ge50) * 100) / 100, ge75: Math.round(n(acc.ge75) * 100) / 100,
+      ge90: Math.round(n(acc.ge90) * 100) / 100, ge95: Math.round(n(acc.ge95) * 100) / 100,
+      ge99: Math.round(n(acc.ge99) * 100) / 100,
+    };
     return {
-      ...base, calibrated: true, coverage: "gate-passed",
-      qal: { point: Math.round(cell.median), ci90: [Math.round(cell.q5), Math.round(cell.q95)], class_prob: cp, buckets: buckets(cp) },
+      ...base, gp_weight, calibrated: true, coverage: "gate-passed",
+      qal: { point: Math.round(n(m)), ci90: [Math.round(n(q5)), Math.round(n(q95))], class_prob: cp, buckets: buckets(cp) },
     };
   }
   // (2) maturity rule — decided paper, QaL = observed standing
@@ -211,10 +248,10 @@ export async function syntheticQal(oaid: string): Promise<SyntheticQal | null> {
     const q: QalPoint = { point: Math.round(obs), lo: Math.max(0, obs - 2.5), hi: Math.min(100, obs + 2.5) };
     const cp = classProb(q);
     return {
-      ...base, calibrated: true, coverage: "mature",
+      ...base, gp_weight, calibrated: true, coverage: "mature",
       qal: { point: q.point, ci90: [Math.round(q.lo), Math.round(q.hi)], class_prob: cp, buckets: buckets(cp) },
     };
   }
-  // (3) observed-only — correct reference class, but no gate-passed calibration yet
-  return { ...base, calibrated: false, coverage: "observed", qal: null };
+  // (3) observed-only — correct reference class, but the bulk of its weight isn't calibrated yet
+  return { ...base, gp_weight, calibrated: false, coverage: "observed", qal: null };
 }
