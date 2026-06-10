@@ -339,7 +339,13 @@ async function obsForWorks(works: Work[]): Promise<Map<string, number>> {
 export async function getAuthorRecord(oaid: string): Promise<AuthorPayload | null> {
   const ent = await fetchAuthor(oaid);
   if (!ent) return getAuthor(oaid);
-  const works = await fetchAuthorWorks(oaid, 100);
+  // Drop works this author has disavowed ("NOT ME" — OpenAlex mis-clustered a same-name person).
+  const excluded = await query<{ work_oaid: string }>(
+    `select work_oaid from author_excluded_works where author_oaid = $1`,
+    [oaid]
+  );
+  const exSet = new Set(excluded.map((r) => r.work_oaid));
+  const works = (await fetchAuthorWorks(oaid, 100)).filter((w) => !exSet.has(w.oaid));
 
   const ids = works.map((w) => w.oaid);
   const cachedRows = ids.length
