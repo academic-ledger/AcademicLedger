@@ -203,10 +203,12 @@ def synthetic_field(oaid):
     if not keep:
         keep = weights
     r = p0 = wused = 0.0
+    parts = []  # per-subfield {sid, weight, pct} — inputs to the blend-weighted calibration
     for s, ws in sorted(keep.items(), key=lambda x: -x[1]):
         pct, p0s = pct_in_cohort(s, v, cites)
         if pct is None:
             continue
+        parts.append({"sid": s, "weight": ws, "pct": round(100 * pct, 2)})
         r += ws * pct
         p0 += ws * (p0s or 0.0)
         wused += ws
@@ -214,7 +216,9 @@ def synthetic_field(oaid):
         pct, p0s = pct_in_cohort(focal_sub, v, cites)
         if pct is None:
             return None
+        parts = [{"sid": focal_sub, "weight": 1.0, "pct": round(100 * pct, 2)}]
         r, p0, wused = pct, (p0s or 0.0), 1.0
+    parts = [{"sid": p["sid"], "weight": round(p["weight"] / wused, 4), "pct": p["pct"]} for p in parts]
 
     return {
         "oaid": oaid,
@@ -224,6 +228,7 @@ def synthetic_field(oaid):
         "n_refs": usable,
         "n_citers": n_citers,
         "weights": {s: round(ws, 3) for s, ws in sorted(weights.items(), key=lambda x: -x[1])[:8]},
+        "parts": parts,
         # cold-start placement (reference-only), for transparency / the sanity check
         "r_obs_ref_only": _ref_only_pct(_normalize(w_ref), v, cites) if usable else None,
     }
@@ -256,8 +261,9 @@ def main():
             oaids = [s.strip() for s in args.oaids.split(",") if s.strip()]
         else:
             oaids = _target_oaids(c0, args.targets, args.per_community)
-        # resume: skip papers already computed (each paper is an expensive OpenAlex run)
-        cur.execute("SELECT oaid FROM synthetic_field")
+        # resume: skip papers already computed WITH the per-subfield parts (so a re-run backfills
+        # parts for rows computed before the blend-weighted calibration existed).
+        cur.execute("SELECT oaid FROM synthetic_field WHERE parts IS NOT NULL")
         done = {r[0] for r in cur.fetchall()}
     todo = [o for o in oaids if o not in done]
     print(f"computing synthetic field for {len(todo)} papers "
@@ -300,14 +306,14 @@ def _upsert(db, rec):
     with psycopg.connect(db) as conn, conn.cursor() as cur:
         cur.execute(
             """INSERT INTO synthetic_field
-                 (oaid,obs_percentile,p0,lam,n_refs,n_citers,weights,snapshot)
-               VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
+                 (oaid,obs_percentile,p0,lam,n_refs,n_citers,weights,parts,snapshot)
+               VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)
                ON CONFLICT (oaid) DO UPDATE SET
                  obs_percentile=EXCLUDED.obs_percentile, p0=EXCLUDED.p0, lam=EXCLUDED.lam,
                  n_refs=EXCLUDED.n_refs, n_citers=EXCLUDED.n_citers, weights=EXCLUDED.weights,
-                 snapshot=EXCLUDED.snapshot, computed_at=now()""",
+                 parts=EXCLUDED.parts, snapshot=EXCLUDED.snapshot, computed_at=now()""",
             (rec["oaid"], rec["obs_percentile"], rec["p0"], rec["lam"], rec["n_refs"],
-             rec["n_citers"], json.dumps(rec["weights"]), SNAPSHOT))
+             rec["n_citers"], json.dumps(rec["weights"]), json.dumps(rec.get("parts")), SNAPSHOT))
     # the connection context manager commits + closes on exit
 
 

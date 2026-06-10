@@ -113,8 +113,8 @@ def main():
 
         # Preload the cached synthetic field — the OFFICIAL reference class where available
         # (QaL_spec.md §5). {oaid: (n_citers, synthetic_percentile)}.
-        cur.execute("SELECT oaid, n_citers, obs_percentile FROM synthetic_field")
-        synth = {r[0]: (r[1], float(r[2])) for r in cur.fetchall()}
+        cur.execute("SELECT oaid, n_citers, obs_percentile, parts FROM synthetic_field")
+        synth = {r[0]: (r[1], float(r[2]), r[3]) for r in cur.fetchall()}
 
         # Walk every work whose cohort we have a percentile table for. Pull the display fields
         # too so qal_records is self-sufficient for serving (the cache; works is just staging).
@@ -176,6 +176,40 @@ def main():
         return {"obs": obs, "calibrated": False, "coverage": conf or "observed",
                 "point": None, "ci_lo": None, "ci_hi": None, "class_prob": None}
 
+    def synthetic_metric(parts, age, raw_age, synth_obs):
+        """Blend-weighted synthetic-field calibration (mirrors web/lib/synthetic.ts syntheticQal):
+        apply EACH constituent subfield's calibration to the focal's percentile IN that subfield,
+        blend the posteriors by the synthetic-field weights; confidence (gp_weight) = the share of
+        the reference class in back-tested subfields. A forecast shows when >=50% of the weight is
+        gate-passed; else the maturity rule for a decided paper; else observed-only."""
+        gpW = 0.0
+        m = q5 = q95 = 0.0
+        acc = {c: 0.0 for c in CUTS}
+        for p in (parts or []):
+            s, ws, pct = p.get("sid"), p.get("weight", 0.0), p.get("pct")
+            if pct is None or confidence_by_comm.get(s) != "gate-passed":
+                continue
+            cell = cl.predict_cell(calib_by_comm.get(s, {}), age, pct)
+            if not cell:
+                continue
+            gpW += ws
+            m += ws * cell["median"]; q5 += ws * cell["q5"]; q95 += ws * cell["q95"]
+            for c in CUTS:
+                acc[c] += ws * cell[f"p_ge{c}"]
+        gp_weight = round(gpW, 2)
+        if gpW >= 0.5:
+            n = lambda x: x / gpW
+            return {"obs": synth_obs, "calibrated": True, "coverage": "gate-passed", "gp_weight": gp_weight,
+                    "point": round(n(m), 1), "ci_lo": round(n(q5), 1), "ci_hi": round(n(q95), 1),
+                    "class_prob": {f"ge{c}": round(n(acc[c]), 4) for c in CUTS}}
+        if raw_age >= H:
+            lo, hi = max(0.0, synth_obs - 2.5), min(100.0, synth_obs + 2.5)
+            return {"obs": synth_obs, "calibrated": True, "coverage": "mature", "gp_weight": gp_weight,
+                    "point": round(synth_obs, 1), "ci_lo": round(lo, 1), "ci_hi": round(hi, 1),
+                    "class_prob": _class_prob(synth_obs, lo, hi)}
+        return {"obs": synth_obs, "calibrated": False, "coverage": "observed", "gp_weight": gp_weight,
+                "point": None, "ci_lo": None, "ci_hi": None, "class_prob": None}
+
     with conn.cursor() as wcur:
         for (oaid, sid, year, cites, title, doi, p_field, is_oa, is_retr,
              authors, venue, subfield_label, authorships) in rows:
@@ -198,8 +232,9 @@ def main():
             field_m = metric(field_obs, age, raw_age)
             synth_m = None
             if has_synth:
-                n_cit, synth_obs = synth[oaid]
-                synth_m = metric(synth_obs, age, raw_age)
+                n_cit, synth_obs, parts = synth[oaid]
+                synth_m = (synthetic_metric(parts, age, raw_age, synth_obs) if parts
+                           else metric(synth_obs, age, raw_age))
                 synth_m["n"] = n_cit
 
             # Official = the synthetic field when computed, else the single-label field stand-in.
@@ -213,7 +248,7 @@ def main():
             if has_synth:
                 ref = {"field": "synthetic-field", "field_label": "synthetic field",
                        "kind": "synthetic", "vintage_year": year, "n": synth_m["n"],
-                       "field_percentile": field_obs}
+                       "gp_weight": synth_m.get("gp_weight"), "field_percentile": field_obs}
             else:
                 ref = {"field": f"subfields/{sid}", "field_label": labels.get(sid),
                        "kind": "field", "vintage_year": year, "n": field_n}
