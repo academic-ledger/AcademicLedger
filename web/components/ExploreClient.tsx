@@ -42,6 +42,7 @@ export default function ExploreClient() {
   const [authOpen, setAuthOpen] = useState(false);
   const [authActive, setAuthActive] = useState(-1);
   const [authorFilter, setAuthorFilter] = useState<{ oaid: string; name: string } | null>(null);
+  const [authorWorks, setAuthorWorks] = useState<RecordItem[]>([]);
   const searchRef = useRef<HTMLDivElement>(null);
 
   // Pick an author from the dropdown -> filter Explore in place to that author's papers (ranked),
@@ -93,24 +94,41 @@ export default function ExploreClient() {
     return () => document.removeEventListener("mousedown", h);
   }, []);
 
-  // Author filter active -> show that author's papers (live, ranked), reusing the author API.
+  // Author filter active -> fetch that author's papers once (live, ranked), reusing the author API.
   useEffect(() => {
-    if (!authorFilter) return;
+    if (!authorFilter) {
+      setAuthorWorks([]);
+      return;
+    }
     setLoading(true);
     let cancelled = false;
     fetch("/api/author/" + authorFilter.oaid)
       .then((r) => r.json())
       .then((d) => {
         if (cancelled) return;
-        setAll(d.works ?? []);
+        setAuthorWorks(d.works ?? []);
         setLive(false);
       })
-      .catch(() => !cancelled && setAll([]))
+      .catch(() => !cancelled && setAuthorWorks([]))
       .finally(() => !cancelled && setLoading(false));
     return () => {
       cancelled = true;
     };
   }, [authorFilter]);
+
+  // Author-filtered view: apply the field / vintage / calibrated controls CLIENT-SIDE to the
+  // author's works (they're all loaded), so those dropdowns work here too.
+  useEffect(() => {
+    if (!authorFilter) return;
+    setAll(
+      authorWorks.filter(
+        (w) =>
+          (!field || w.sid === field) &&
+          (!year || (w.year != null && w.year >= year)) &&
+          (!calOnly || w.calibrated)
+      )
+    );
+  }, [authorFilter, authorWorks, field, year, calOnly]);
 
   // Server-side query: search + filters run against the FULL dataset, not a pre-fetched slice.
   useEffect(() => {
