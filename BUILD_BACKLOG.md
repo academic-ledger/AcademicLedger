@@ -40,6 +40,7 @@ Milestones map to QaL_spec.md §12 (POC / MVP / V1.0). Check items off as you go
 
 
 ## V1.0 — the Lens at scale
+- [ ] **Author-curated overrides (verified overlay).** OpenAlex author metadata is often wrong (e.g. Joseph Simmons shown at "California University of Pennsylvania"; affiliations/clusters glitch). Let a subscriber **claim and edit their own author record** — a *check/override layer on our side* that supersedes selected OpenAlex fields (affiliation, display name, maybe work attribution add/remove) with author-verified values at serve time. **Does not write back to OpenAlex.** Mechanics: gate the claim via **ORCID auth** (the verified-identity anchor already noted in the author-page footer); store overrides in an `author_overrides` table keyed by OpenAlex Author ID; `getAuthorRecord` merges overrides over the live OpenAlex entity (override wins, with a small "author-verified" marker for transparency). Keep it auditable (who edited what, when) and reversible. Distant-future; pairs naturally with accounts/subscribers and the eventual community layer.
 - [ ] Ingest the OpenAlex bulk snapshot into the owned store — drops the live-API dependency and its **daily quota**, which currently bounds the per-paper synthetic-field prefill.
 - [ ] Full-corpus cohort tables, synthetic fields, and authority-weighting (PageRank).
 - [ ] Public read API; QaL-ranked leaderboards as a public good; calibrate more communities (e.g. Applied/Social Psychology, a computational-social-science bundle).
