@@ -94,9 +94,13 @@ def GET(path, **params):
     if API_KEY:
         params["api_key"] = API_KEY
     url = f"{API}/{path.lstrip('/')}"
-    for attempt in range(5):
+    for attempt in range(6):
         _req_count += 1
-        r = requests.get(url, params=params, headers=UA, timeout=60)
+        try:
+            r = requests.get(url, params=params, headers=UA, timeout=60)
+        except requests.exceptions.RequestException:
+            time.sleep(min(30, 2 ** attempt))  # transient network reset/timeout -> retry
+            continue
         if r.status_code == 429:
             body = {}
             try:
