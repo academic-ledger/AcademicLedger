@@ -104,6 +104,12 @@ footer .wh { color: #555; }
 .authsug .meta { font-size: 11.5px; color: #6b7280; }
 @media (max-width: 600px) { .authtop { flex-direction: column; align-items: stretch; gap: 6px; }
   .authsearch { width: 100%; max-width: none; } }
+/* Clickable field rows on the author page — filter the works table to a subfield */
+.frow.click { cursor: pointer; border-radius: 6px; transition: background .12s; }
+.frow.click:hover { background: #f4f6f8; }
+.frow.sel { background: #eef4fb; box-shadow: inset 2px 0 0 #2166ac; }
+.linkbtn { background: none; border: none; padding: 0; color: #2166ac; cursor: pointer;
+  font: inherit; text-decoration: underline; }
 @media (max-width: 600px) {
   .controls #q { width: 100%; }
   .controls label { flex: 1 1 100%; }

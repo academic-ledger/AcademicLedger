@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import RecordTable from "./RecordTable";
 import AuthorSearch from "./AuthorSearch";
 import type { AuthorPayload } from "@/lib/types";
@@ -26,6 +29,11 @@ export default function AuthorView({ payload }: { payload: AuthorPayload }) {
   });
   const frows = [...fmap.entries()].sort((a, b) => b[1].n - a[1].n);
   const calN = works.filter((w) => w.calibrated).length;
+
+  // Click a field to filter the Works table to that subfield (e.g. "what does OpenAlex call
+  // Museology in my record?"). null = show everything.
+  const [selSub, setSelSub] = useState<string | null>(null);
+  const shownWorks = selSub ? works.filter((w) => (w.subfield || "Unclassified") === selSub) : works;
 
   return (
     <div className="wrap-author">
@@ -95,10 +103,26 @@ export default function AuthorView({ payload }: { payload: AuthorPayload }) {
         </div>
 
         <div className="card fields">
-          <h2>Fields represented &amp; calibration coverage</h2>
+          <h2>
+            Fields represented &amp; calibration coverage{" "}
+            <span className="src">· click a field to filter the works below</span>
+          </h2>
           <div>
             {frows.map(([sf, o]) => (
-              <div className="frow" key={sf}>
+              <div
+                className={`frow click${selSub === sf ? " sel" : ""}`}
+                key={sf}
+                role="button"
+                tabIndex={0}
+                onClick={() => setSelSub((cur) => (cur === sf ? null : sf))}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setSelSub((cur) => (cur === sf ? null : sf));
+                  }
+                }}
+                title={selSub === sf ? "Show all works" : `Show only ${sf} works`}
+              >
                 <span className="ftag">
                   {sf} <span style={{ color: "#aab0bb" }}>· {o.field || ""}</span>
                 </span>
@@ -121,10 +145,28 @@ export default function AuthorView({ payload }: { payload: AuthorPayload }) {
 
       <div className="card">
         <h2>
-          Works{" "}
-          <span className="src">· click a column to sort · titles link to the record</span>
+          {selSub ? (
+            <>
+              Works in <span style={{ color: "#16243d" }}>{selSub}</span>{" "}
+              <span className="src">
+                · {shownWorks.length} of {works.length} ·{" "}
+                <button className="linkbtn" onClick={() => setSelSub(null)}>
+                  show all
+                </button>
+              </span>
+            </>
+          ) : (
+            <>
+              Works <span className="src">· click a column to sort · titles link to the record</span>
+            </>
+          )}
         </h2>
-        <RecordTable records={works} initialSortKey="cites" initialSortDir={-1} />
+        <RecordTable
+          key={selSub || "all"}
+          records={shownWorks}
+          initialSortKey="cites"
+          initialSortDir={-1}
+        />
       </div>
 
       <p className="coverline">
