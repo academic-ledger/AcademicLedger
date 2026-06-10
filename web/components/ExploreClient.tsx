@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import type { RecordItem } from "@/lib/types";
 import RecordTable from "./RecordTable";
 import { SkeletonTable } from "./Skeleton";
@@ -39,11 +38,20 @@ export default function ExploreClient() {
   const [calOnly, setCalOnly] = useState(false);
   const [sort, setSort] = useState<Sort>("qalField");
   const [fieldOpts, setFieldOpts] = useState(SEED_FIELDS);
-  const router = useRouter();
   const [authorSugs, setAuthorSugs] = useState<AuthorSug[]>([]);
   const [authOpen, setAuthOpen] = useState(false);
   const [authActive, setAuthActive] = useState(-1);
+  const [authorFilter, setAuthorFilter] = useState<{ oaid: string; name: string } | null>(null);
   const searchRef = useRef<HTMLDivElement>(null);
+
+  // Pick an author from the dropdown -> filter Explore in place to that author's papers (ranked),
+  // rather than navigating away to their profile page.
+  function pickAuthor(s: AuthorSug) {
+    setAuthorFilter({ oaid: s.oaid, name: s.name });
+    setQ(s.name);
+    setAuthOpen(false);
+    setAuthorSugs([]);
+  }
 
   // Debounce the search box so each keystroke doesn't hit the API.
   useEffect(() => {
@@ -51,10 +59,11 @@ export default function ExploreClient() {
     return () => clearTimeout(t);
   }, [q]);
 
-  // Author typeahead on the search box — same mechanism as the author-page search. A name query
-  // (e.g. "cachon") surfaces the actual author and routes to their page, where ALL their papers
-  // live; the title/keyword record search below is unaffected.
+  // Author typeahead on the search box — same mechanism as the author-page search. Selecting a
+  // suggestion filters Explore in place to that author's papers (pickAuthor), staying in the
+  // ranked-records view rather than navigating to the profile page.
   useEffect(() => {
+    if (authorFilter) return; // a filter is active; don't re-suggest from the pinned name
     const term = qDebounced.trim();
     if (term.length < 2) {
       setAuthorSugs([]);
@@ -73,7 +82,7 @@ export default function ExploreClient() {
     return () => {
       cancelled = true;
     };
-  }, [qDebounced]);
+  }, [qDebounced, authorFilter]);
 
   // Close the author dropdown on an outside click.
   useEffect(() => {
@@ -84,8 +93,28 @@ export default function ExploreClient() {
     return () => document.removeEventListener("mousedown", h);
   }, []);
 
+  // Author filter active -> show that author's papers (live, ranked), reusing the author API.
+  useEffect(() => {
+    if (!authorFilter) return;
+    setLoading(true);
+    let cancelled = false;
+    fetch("/api/author/" + authorFilter.oaid)
+      .then((r) => r.json())
+      .then((d) => {
+        if (cancelled) return;
+        setAll(d.works ?? []);
+        setLive(false);
+      })
+      .catch(() => !cancelled && setAll([]))
+      .finally(() => !cancelled && setLoading(false));
+    return () => {
+      cancelled = true;
+    };
+  }, [authorFilter]);
+
   // Server-side query: search + filters run against the FULL dataset, not a pre-fetched slice.
   useEffect(() => {
+    if (authorFilter) return; // author-filtered view is handled by the effect above
     const p = new URLSearchParams();
     if (qDebounced.trim()) p.set("q", qDebounced.trim());
     if (field) p.set("field", field);
@@ -111,7 +140,7 @@ export default function ExploreClient() {
     return () => {
       cancelled = true;
     };
-  }, [qDebounced, field, year, calOnly, sort]);
+  }, [qDebounced, field, year, calOnly, sort, authorFilter]);
 
   // Accumulate field dropdown options from results (union, so they never shrink). Vintages are a
   // fixed continuous range (VINTAGES), not result-driven — see U9.
@@ -151,7 +180,10 @@ export default function ExploreClient() {
               placeholder="e.g. bandit, Cachon, Terwiesch"
               value={q}
               autoComplete="off"
-              onChange={(e) => setQ(e.target.value)}
+              onChange={(e) => {
+                setQ(e.target.value);
+                if (authorFilter) setAuthorFilter(null); // typing exits the author filter
+              }}
               onFocus={() => authorSugs.length && setAuthOpen(true)}
               onKeyDown={(e) => {
                 if (!authOpen || !authorSugs.length) return;
@@ -163,7 +195,7 @@ export default function ExploreClient() {
                   setAuthActive((a) => Math.max(a - 1, 0));
                 } else if (e.key === "Enter" && authActive >= 0) {
                   e.preventDefault();
-                  router.push(`/author/${authorSugs[authActive].oaid}`);
+                  pickAuthor(authorSugs[authActive]);
                 } else if (e.key === "Escape") {
                   setAuthOpen(false);
                 }
@@ -171,7 +203,7 @@ export default function ExploreClient() {
             />
             {authOpen && authorSugs.length > 0 && (
               <ul className="authsug">
-                <li className="sug-head">Authors — open a profile to see all their papers</li>
+                <li className="sug-head">Authors — filter Explore to their papers</li>
                 {authorSugs.map((s, i) => (
                   <li
                     key={s.oaid}
@@ -179,7 +211,7 @@ export default function ExploreClient() {
                     onMouseEnter={() => setAuthActive(i)}
                     onMouseDown={(e) => {
                       e.preventDefault();
-                      router.push(`/author/${s.oaid}`);
+                      pickAuthor(s);
                     }}
                   >
                     <span className="nm">{s.name}</span>
@@ -264,6 +296,20 @@ export default function ExploreClient() {
             <span className="spin" />
             Loading records…
           </>
+        ) : authorFilter ? (
+          <>
+            Papers by <b style={{ color: "#16243d" }}>{authorFilter.name}</b> · {all.length} ·{" "}
+            sorted by {sortLabel} ↓ ·{" "}
+            <button
+              className="linkbtn"
+              onClick={() => {
+                setAuthorFilter(null);
+                setQ("");
+              }}
+            >
+              clear
+            </button>
+          </>
         ) : live ? (
           `${all.length} live match${all.length === 1 ? "" : "es"} from OpenAlex · most cited first`
         ) : (
@@ -285,9 +331,15 @@ export default function ExploreClient() {
         <SkeletonTable rows={12} />
       ) : all.length === 0 ? (
         <div className="notfound" style={{ padding: "40px 24px" }}>
-          No records match{q.trim() ? ` “${q.trim()}”` : " these filters"}
-          {q.trim() ? " — in the index or on OpenAlex" : ""}. Note: only the seed Decision-Sciences
-          communities are indexed so far.
+          {authorFilter ? (
+            <>No papers found for {authorFilter.name}.</>
+          ) : (
+            <>
+              No records match{q.trim() ? ` “${q.trim()}”` : " these filters"}
+              {q.trim() ? " — in the index or on OpenAlex" : ""}. Note: only the seed
+              Decision-Sciences communities are indexed so far.
+            </>
+          )}
         </div>
       ) : (
         <RecordTable key={sortKey} records={all} initialSortKey={sortKey} initialSortDir={-1} />
