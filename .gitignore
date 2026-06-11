@@ -14,5 +14,7 @@ out/
 .env
 .env.local
 *.local
+# claude code — personal permission allowlist, not committed
+.claude/settings.local.json
 # os
 .DS_Store
