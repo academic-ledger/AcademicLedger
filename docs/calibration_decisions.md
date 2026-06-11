@@ -61,8 +61,27 @@ outcome, not something to paper over. **α=0.08 is the chosen default.**
 
 **Result.** Sociology & Political Science and Org Behavior/HR flipped to gate-passed; department
 coverage **62% → 71%** (and **48% → 71%** across the session — 8 subfields flipped in total;
-gate-passed communities 12 → 20). Economics (4.8%) is now the top pending item; it needs a
-*per-subfield* fix (heavier-tailed base model or a vintage-robust radius), not global widening.
+gate-passed communities 12 → 20). Economics (4.8%) is now the top pending item.
+
+### Why Economics stays pending (the honest non-fix)
+
+Diagnosing Economics' under-coverage (α=0.08, LOVO broken down by held-out vintage and age) shows it
+is **concentrated in two vintages with opposite directional shifts**: v2008 covers only **0.670**
+(32% of truths fall *above* the interval — 2008 papers end up ranked higher than their early
+citations imply, plausibly post-financial-crisis citation dynamics), and v2011 covers **0.520** (45%
+fall *below*). The other seven vintages cover 0.86–0.97, and coverage is uniform across ages
+(~0.85–0.88) — so it is **not** an age or tail problem.
+
+A symmetric conformal radius cannot fix *opposite-direction* misses without over-widening every
+interval (which is exactly why Economics only "crosses" at α=0.06). Dropping the two offending
+vintages would be data-snooping. So Economics **correctly stays `fitted` (no forecast)**: its
+early→eventual mapping has structurally anomalous vintages the model genuinely cannot anticipate,
+and showing a forecast would mislead. **This is the honest outcome, not a bug to paper over.**
+
+*Legitimate future avenue (not done):* extend the matured-vintage window for it (pull pre-2008
+Economics cohorts) to test whether more vintages dilute the two anomalies enough to calibrate
+honestly — a real experiment for a later round, gated on whether the older vintages are themselves
+stable.
 
 ## 2026-06-11 — Decision 3: residual cache for offline re-tuning
 
