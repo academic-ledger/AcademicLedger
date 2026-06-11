@@ -1,0 +1,1076 @@
+{
+  "ranked": [
+    {
+      "sid": "1803",
+      "name": "Management Science and Operations Research",
+      "impact_pct": 12.59,
+      "n_papers": 358,
+      "state": "gate-passed"
+    },
+    {
+      "sid": "1802",
+      "name": "Information Systems and Management",
+      "impact_pct": 12.44,
+      "n_papers": 165,
+      "state": "gate-passed"
+    },
+    {
+      "sid": "1800",
+      "name": "General Decision Sciences",
+      "impact_pct": 9.83,
+      "n_papers": 168,
+      "state": "gate-passed"
+    },
+    {
+      "sid": "3312",
+      "name": "Sociology and Political Science",
+      "impact_pct": 5.66,
+      "n_papers": 269,
+      "state": "fitted"
+    },
+    {
+      "sid": "2002",
+      "name": "Economics and Econometrics",
+      "impact_pct": 4.76,
+      "n_papers": 211,
+      "state": "fitted"
+    },
+    {
+      "sid": "1702",
+      "name": "Artificial Intelligence",
+      "impact_pct": 3.62,
+      "n_papers": 158,
+      "state": "gate-passed"
+    },
+    {
+      "sid": "2805",
+      "name": "Cognitive Neuroscience",
+      "impact_pct": 3.56,
+      "n_papers": 96,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "1408",
+      "name": "Strategy and Management",
+      "impact_pct": 3.43,
+      "n_papers": 136,
+      "state": "fitted"
+    },
+    {
+      "sid": "1407",
+      "name": "Organizational Behavior and Human Resource Management",
+      "impact_pct": 2.77,
+      "n_papers": 144,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "3207",
+      "name": "Social Psychology",
+      "impact_pct": 2.62,
+      "n_papers": 165,
+      "state": "gate-passed"
+    },
+    {
+      "sid": "1404",
+      "name": "Management Information Systems",
+      "impact_pct": 2.31,
+      "n_papers": 92,
+      "state": "fitted"
+    },
+    {
+      "sid": "2613",
+      "name": "Statistics and Probability",
+      "impact_pct": 2.16,
+      "n_papers": 137,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "1406",
+      "name": "Marketing",
+      "impact_pct": 2.1,
+      "n_papers": 77,
+      "state": "gate-passed"
+    },
+    {
+      "sid": "1710",
+      "name": "Information Systems",
+      "impact_pct": 1.96,
+      "n_papers": 99,
+      "state": "gate-passed"
+    },
+    {
+      "sid": "3304",
+      "name": "Education",
+      "impact_pct": 1.94,
+      "n_papers": 66,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "1804",
+      "name": "Statistics, Probability and Uncertainty",
+      "impact_pct": 1.79,
+      "n_papers": 52,
+      "state": "fitted"
+    },
+    {
+      "sid": "1405",
+      "name": "Management of Technology and Innovation",
+      "impact_pct": 1.68,
+      "n_papers": 55,
+      "state": "gate-passed"
+    },
+    {
+      "sid": "1312",
+      "name": "Molecular Biology",
+      "impact_pct": 1.5,
+      "n_papers": 26,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "3311",
+      "name": "Safety Research",
+      "impact_pct": 1.33,
+      "n_papers": 94,
+      "state": "fitted"
+    },
+    {
+      "sid": "3205",
+      "name": "Experimental and Cognitive Psychology",
+      "impact_pct": 1.33,
+      "n_papers": 100,
+      "state": "fitted"
+    },
+    {
+      "sid": "2003",
+      "name": "Finance",
+      "impact_pct": 1.27,
+      "n_papers": 55,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "3600",
+      "name": "General Health Professions",
+      "impact_pct": 1.26,
+      "n_papers": 64,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "1402",
+      "name": "Accounting",
+      "impact_pct": 1.18,
+      "n_papers": 72,
+      "state": "fitted"
+    },
+    {
+      "sid": "3202",
+      "name": "Applied Psychology",
+      "impact_pct": 1.04,
+      "n_papers": 97,
+      "state": "fitted"
+    },
+    {
+      "sid": "3204",
+      "name": "Developmental and Educational Psychology",
+      "impact_pct": 1.03,
+      "n_papers": 87,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "3320",
+      "name": "Political Science and International Relations",
+      "impact_pct": 1.02,
+      "n_papers": 55,
+      "state": "fitted"
+    },
+    {
+      "sid": "3203",
+      "name": "Clinical Psychology",
+      "impact_pct": 0.94,
+      "n_papers": 54,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "1705",
+      "name": "Computer Networks and Communications",
+      "impact_pct": 0.66,
+      "n_papers": 43,
+      "state": "fitted"
+    },
+    {
+      "sid": "2306",
+      "name": "Global and Planetary Change",
+      "impact_pct": 0.59,
+      "n_papers": 22,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "2209",
+      "name": "Industrial and Manufacturing Engineering",
+      "impact_pct": 0.57,
+      "n_papers": 36,
+      "state": "gate-passed"
+    },
+    {
+      "sid": "3109",
+      "name": "Statistical and Nonlinear Physics",
+      "impact_pct": 0.55,
+      "n_papers": 22,
+      "state": "fitted"
+    },
+    {
+      "sid": "2000",
+      "name": "General Economics, Econometrics and Finance",
+      "impact_pct": 0.55,
+      "n_papers": 37,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "1703",
+      "name": "Computational Theory and Mathematics",
+      "impact_pct": 0.51,
+      "n_papers": 31,
+      "state": "fitted"
+    },
+    {
+      "sid": "1707",
+      "name": "Computer Vision and Pattern Recognition",
+      "impact_pct": 0.44,
+      "n_papers": 24,
+      "state": "fitted"
+    },
+    {
+      "sid": "3313",
+      "name": "Transportation",
+      "impact_pct": 0.42,
+      "n_papers": 9,
+      "state": "fitted"
+    },
+    {
+      "sid": "1706",
+      "name": "Computer Science Applications",
+      "impact_pct": 0.41,
+      "n_papers": 18,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "2210",
+      "name": "Mechanical Engineering",
+      "impact_pct": 0.39,
+      "n_papers": 17,
+      "state": "gate-passed"
+    },
+    {
+      "sid": "1709",
+      "name": "Human-Computer Interaction",
+      "impact_pct": 0.32,
+      "n_papers": 12,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "3315",
+      "name": "Communication",
+      "impact_pct": 0.29,
+      "n_papers": 22,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "1211",
+      "name": "Philosophy",
+      "impact_pct": 0.29,
+      "n_papers": 20,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "2739",
+      "name": "Public Health, Environmental and Occupational Health",
+      "impact_pct": 0.27,
+      "n_papers": 21,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "1607",
+      "name": "Spectroscopy",
+      "impact_pct": 0.25,
+      "n_papers": 3,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "3318",
+      "name": "Gender Studies",
+      "impact_pct": 0.24,
+      "n_papers": 22,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "1203",
+      "name": "Language and Linguistics",
+      "impact_pct": 0.23,
+      "n_papers": 11,
+      "state": "fitted"
+    },
+    {
+      "sid": "2308",
+      "name": "Management, Monitoring, Policy and Law",
+      "impact_pct": 0.23,
+      "n_papers": 22,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "2804",
+      "name": "Cellular and Molecular Neuroscience",
+      "impact_pct": 0.22,
+      "n_papers": 18,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "2208",
+      "name": "Electrical and Electronic Engineering",
+      "impact_pct": 0.22,
+      "n_papers": 15,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "2207",
+      "name": "Control and Systems Engineering",
+      "impact_pct": 0.21,
+      "n_papers": 19,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "2725",
+      "name": "Infectious Diseases",
+      "impact_pct": 0.2,
+      "n_papers": 7,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "1711",
+      "name": "Signal Processing",
+      "impact_pct": 0.18,
+      "n_papers": 13,
+      "state": "uncalibrated"
+    },
+    {
+      "sid": "1111",
+      "name": "Soil Science",
+      "impact_pct": 0.18,
+      "n_papers": 17,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "2303",
+      "name": "Ecology",
+      "impact_pct": 0.17,
+      "n_papers": 11,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "2214",
+      "name": "Media Technology",
+      "impact_pct": 0.16,
+      "n_papers": 14,
+      "state": "gate-passed"
+    },
+    {
+      "sid": "2713",
+      "name": "Epidemiology",
+      "impact_pct": 0.16,
+      "n_papers": 18,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "1207",
+      "name": "History and Philosophy of Science",
+      "impact_pct": 0.16,
+      "n_papers": 15,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "3107",
+      "name": "Atomic and Molecular Physics, and Optics",
+      "impact_pct": 0.15,
+      "n_papers": 4,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "2302",
+      "name": "Ecological Modeling",
+      "impact_pct": 0.15,
+      "n_papers": 9,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "3306",
+      "name": "Health",
+      "impact_pct": 0.13,
+      "n_papers": 10,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "2206",
+      "name": "Computational Mechanics",
+      "impact_pct": 0.13,
+      "n_papers": 6,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "2612",
+      "name": "Numerical Analysis",
+      "impact_pct": 0.12,
+      "n_papers": 9,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "1311",
+      "name": "Genetics",
+      "impact_pct": 0.11,
+      "n_papers": 10,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "1106",
+      "name": "Food Science",
+      "impact_pct": 0.11,
+      "n_papers": 12,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "3317",
+      "name": "Demography",
+      "impact_pct": 0.11,
+      "n_papers": 9,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "2802",
+      "name": "Behavioral Neuroscience",
+      "impact_pct": 0.1,
+      "n_papers": 2,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "2305",
+      "name": "Environmental Engineering",
+      "impact_pct": 0.1,
+      "n_papers": 6,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "2738",
+      "name": "Psychiatry and Mental health",
+      "impact_pct": 0.09,
+      "n_papers": 15,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "2505",
+      "name": "Materials Chemistry",
+      "impact_pct": 0.09,
+      "n_papers": 4,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "3308",
+      "name": "Law",
+      "impact_pct": 0.09,
+      "n_papers": 8,
+      "state": "fitted"
+    },
+    {
+      "sid": "1105",
+      "name": "Ecology, Evolution, Behavior and Systematics",
+      "impact_pct": 0.08,
+      "n_papers": 5,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "1313",
+      "name": "Molecular Medicine",
+      "impact_pct": 0.08,
+      "n_papers": 1,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "2309",
+      "name": "Nature and Landscape Conservation",
+      "impact_pct": 0.08,
+      "n_papers": 6,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "3605",
+      "name": "Health Information Management",
+      "impact_pct": 0.07,
+      "n_papers": 4,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "2213",
+      "name": "Safety, Risk, Reliability and Quality",
+      "impact_pct": 0.07,
+      "n_papers": 8,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "2730",
+      "name": "Oncology",
+      "impact_pct": 0.07,
+      "n_papers": 6,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "2215",
+      "name": "Building and Construction",
+      "impact_pct": 0.07,
+      "n_papers": 8,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "2737",
+      "name": "Physiology",
+      "impact_pct": 0.06,
+      "n_papers": 9,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "2741",
+      "name": "Radiology, Nuclear Medicine and Imaging",
+      "impact_pct": 0.06,
+      "n_papers": 4,
+      "state": "fitted"
+    },
+    {
+      "sid": "3604",
+      "name": "Emergency Medical Services",
+      "impact_pct": 0.06,
+      "n_papers": 5,
+      "state": "gate-passed"
+    },
+    {
+      "sid": "2311",
+      "name": "Industrial and Manufacturing Engineering",
+      "impact_pct": 0.06,
+      "n_papers": 7,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "1306",
+      "name": "Cancer Research",
+      "impact_pct": 0.06,
+      "n_papers": 7,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "2604",
+      "name": "Applied Mathematics",
+      "impact_pct": 0.06,
+      "n_papers": 3,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "2204",
+      "name": "Biomedical Engineering",
+      "impact_pct": 0.05,
+      "n_papers": 8,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "2736",
+      "name": "Pharmacology",
+      "impact_pct": 0.05,
+      "n_papers": 5,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "3321",
+      "name": "Public Administration",
+      "impact_pct": 0.05,
+      "n_papers": 5,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "3309",
+      "name": "Library and Information Sciences",
+      "impact_pct": 0.05,
+      "n_papers": 2,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "2205",
+      "name": "Civil and Structural Engineering",
+      "impact_pct": 0.05,
+      "n_papers": 3,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "2718",
+      "name": "Health Informatics",
+      "impact_pct": 0.05,
+      "n_papers": 4,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "3614",
+      "name": "Radiological and Ultrasound Technology",
+      "impact_pct": 0.04,
+      "n_papers": 3,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "2307",
+      "name": "Health, Toxicology and Mutagenesis",
+      "impact_pct": 0.04,
+      "n_papers": 3,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "1712",
+      "name": "Software",
+      "impact_pct": 0.04,
+      "n_papers": 4,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "2714",
+      "name": "Family Practice",
+      "impact_pct": 0.04,
+      "n_papers": 3,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "2105",
+      "name": "Renewable Energy, Sustainability and the Environment",
+      "impact_pct": 0.04,
+      "n_papers": 6,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "1110",
+      "name": "Plant Science",
+      "impact_pct": 0.04,
+      "n_papers": 5,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "3609",
+      "name": "Occupational Therapy",
+      "impact_pct": 0.04,
+      "n_papers": 2,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "2212",
+      "name": "Ocean Engineering",
+      "impact_pct": 0.04,
+      "n_papers": 5,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "1902",
+      "name": "Atmospheric Science",
+      "impact_pct": 0.04,
+      "n_papers": 3,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "1606",
+      "name": "Physical and Theoretical Chemistry",
+      "impact_pct": 0.03,
+      "n_papers": 1,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "1308",
+      "name": "Clinical Biochemistry",
+      "impact_pct": 0.03,
+      "n_papers": 1,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "2312",
+      "name": "Water Science and Technology",
+      "impact_pct": 0.03,
+      "n_papers": 3,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "2203",
+      "name": "Automotive Engineering",
+      "impact_pct": 0.02,
+      "n_papers": 2,
+      "state": "fitted"
+    },
+    {
+      "sid": "3103",
+      "name": "Astronomy and Astrophysics",
+      "impact_pct": 0.02,
+      "n_papers": 3,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "3106",
+      "name": "Nuclear and High Energy Physics",
+      "impact_pct": 0.02,
+      "n_papers": 1,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "2611",
+      "name": "Modeling and Simulation",
+      "impact_pct": 0.02,
+      "n_papers": 1,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "1100",
+      "name": "General Agricultural and Biological Sciences",
+      "impact_pct": 0.02,
+      "n_papers": 3,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "2745",
+      "name": "Rheumatology",
+      "impact_pct": 0.02,
+      "n_papers": 2,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "2746",
+      "name": "Surgery",
+      "impact_pct": 0.02,
+      "n_papers": 3,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "3316",
+      "name": "Cultural Studies",
+      "impact_pct": 0.02,
+      "n_papers": 3,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "1602",
+      "name": "Analytical Chemistry",
+      "impact_pct": 0.02,
+      "n_papers": 3,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "3314",
+      "name": "Anthropology",
+      "impact_pct": 0.02,
+      "n_papers": 2,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "1304",
+      "name": "Biophysics",
+      "impact_pct": 0.02,
+      "n_papers": 2,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "1213",
+      "name": "Visual Arts and Performing Arts",
+      "impact_pct": 0.02,
+      "n_papers": 3,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "3206",
+      "name": "Neuropsychology and Physiological Psychology",
+      "impact_pct": 0.02,
+      "n_papers": 1,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "2310",
+      "name": "Pollution",
+      "impact_pct": 0.02,
+      "n_papers": 2,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "2735",
+      "name": "Pediatrics, Perinatology and Child Health",
+      "impact_pct": 0.02,
+      "n_papers": 3,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "2610",
+      "name": "Mathematical Physics",
+      "impact_pct": 0.02,
+      "n_papers": 2,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "1708",
+      "name": "Hardware and Architecture",
+      "impact_pct": 0.02,
+      "n_papers": 2,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "2732",
+      "name": "Orthopedics and Sports Medicine",
+      "impact_pct": 0.02,
+      "n_papers": 1,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "1208",
+      "name": "Literature and Literary Theory",
+      "impact_pct": 0.01,
+      "n_papers": 2,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "3322",
+      "name": "Urban Studies",
+      "impact_pct": 0.01,
+      "n_papers": 1,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "2608",
+      "name": "Geometry and Topology",
+      "impact_pct": 0.01,
+      "n_papers": 2,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "3305",
+      "name": "Geography, Planning and Development",
+      "impact_pct": 0.01,
+      "n_papers": 2,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "2202",
+      "name": "Aerospace Engineering",
+      "impact_pct": 0.01,
+      "n_papers": 2,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "2405",
+      "name": "Parasitology",
+      "impact_pct": 0.01,
+      "n_papers": 1,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "1206",
+      "name": "Conservation",
+      "impact_pct": 0.01,
+      "n_papers": 2,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "2216",
+      "name": "Architecture",
+      "impact_pct": 0.01,
+      "n_papers": 2,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "2809",
+      "name": "Sensory Systems",
+      "impact_pct": 0.01,
+      "n_papers": 1,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "3303",
+      "name": "Development",
+      "impact_pct": 0.01,
+      "n_papers": 2,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "2910",
+      "name": "Issues, ethics and legal aspects",
+      "impact_pct": 0.01,
+      "n_papers": 1,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "1409",
+      "name": "Tourism, Leisure and Hospitality Management",
+      "impact_pct": 0.01,
+      "n_papers": 1,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "2728",
+      "name": "Neurology",
+      "impact_pct": 0.01,
+      "n_papers": 1,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "3004",
+      "name": "Pharmacology",
+      "impact_pct": 0.01,
+      "n_papers": 1,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "3104",
+      "name": "Condensed Matter Physics",
+      "impact_pct": 0.01,
+      "n_papers": 1,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "1109",
+      "name": "Insect Science",
+      "impact_pct": 0.01,
+      "n_papers": 1,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "1910",
+      "name": "Oceanography",
+      "impact_pct": 0.01,
+      "n_papers": 1,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "2712",
+      "name": "Endocrinology, Diabetes and Metabolism",
+      "impact_pct": 0.01,
+      "n_papers": 1,
+      "state": "uncalibrated"
+    },
+    {
+      "sid": "2706",
+      "name": "Critical Care and Intensive Care Medicine",
+      "impact_pct": 0.01,
+      "n_papers": 1,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "1307",
+      "name": "Cell Biology",
+      "impact_pct": 0.01,
+      "n_papers": 1,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "2916",
+      "name": "Nutrition and Dietetics",
+      "impact_pct": 0.01,
+      "n_papers": 1,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "3307",
+      "name": "Human Factors and Ergonomics",
+      "impact_pct": 0.01,
+      "n_papers": 1,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "2742",
+      "name": "Rehabilitation",
+      "impact_pct": 0.01,
+      "n_papers": 1,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "2740",
+      "name": "Pulmonary and Respiratory Medicine",
+      "impact_pct": 0.01,
+      "n_papers": 1,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "3611",
+      "name": "Pharmacy",
+      "impact_pct": 0.01,
+      "n_papers": 1,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "1904",
+      "name": "Earth-Surface Processes",
+      "impact_pct": 0.01,
+      "n_papers": 1,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "1403",
+      "name": "Business and International Management",
+      "impact_pct": 0.01,
+      "n_papers": 1,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "1911",
+      "name": "Paleontology",
+      "impact_pct": 0.01,
+      "n_papers": 1,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "2808",
+      "name": "Neurology",
+      "impact_pct": 0.01,
+      "n_papers": 1,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "1310",
+      "name": "Endocrinology",
+      "impact_pct": 0.01,
+      "n_papers": 1,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "2602",
+      "name": "Algebra and Number Theory",
+      "impact_pct": 0.01,
+      "n_papers": 1,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "2717",
+      "name": "Geriatrics and Gerontology",
+      "impact_pct": 0.01,
+      "n_papers": 1,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "3310",
+      "name": "Linguistics and Language",
+      "impact_pct": 0.0,
+      "n_papers": 1,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "2734",
+      "name": "Pathology and Forensic Medicine",
+      "impact_pct": 0.0,
+      "n_papers": 1,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "1209",
+      "name": "Museology",
+      "impact_pct": 0.0,
+      "n_papers": 1,
+      "state": "no-cohort"
+    },
+    {
+      "sid": "2743",
+      "name": "Reproductive Medicine",
+      "impact_pct": 0.0,
+      "n_papers": 1,
+      "state": "no-cohort"
+    }
+  ],
+  "total_weight": 520.0
+}
