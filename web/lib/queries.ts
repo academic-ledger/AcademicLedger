@@ -316,7 +316,7 @@ export async function getPaperRecord(oaid: string) {
           vintage_year: sq.vintage,
           dominant: sq.dominant,
           coverage: sq.coverage,
-          basis: sq.basis, // 'references' or 'co-citation' (how the community was inferred)
+          basis: sq.basis, // 'references' | 'co-citation' | 'author-prior' (how the community was inferred)
           gp_weight: sq.gp_weight, // share of the reference class that is back-tested
           field_percentile: fieldObs, // the single OpenAlex-label percentile, for contrast
         },

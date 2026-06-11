@@ -40,6 +40,9 @@ K_LAMBDA = float(os.environ.get("K_LAMBDA", "20"))
 N_MIN_REFS = 5          # usable references below which the reference stage is skipped
 MAX_CITERS = 1000       # cap citing works scanned for the community mixture
 NEIGH_SIZE = 200        # co-cited works kept for the community topic mixture
+MAX_AUTHORS = 5         # cap the author-prior fan-out (one OpenAlex call per author)
+AUTHOR_WORKS = 50       # recent works per author used to build the prior
+TOPIC_ALPHA = 0.55      # blend weight on the paper's OWN topics vs the author prior
 
 _COHORT = {}            # (subfield, year) -> {"total", "p0", "base"} cached cohort metadata
 
@@ -70,7 +73,7 @@ def _sub(work):
 
 def focal_meta(oaid):
     d = _get({"filter": f"ids.openalex:{oaid}",
-              "select": "id,referenced_works,publication_year,cited_by_count,primary_topic",
+              "select": "id,referenced_works,publication_year,cited_by_count,primary_topic,authorships,topics",
               "per-page": 1})
     res = d.get("results") or []
     return res[0] if res else None
@@ -148,6 +151,52 @@ def _normalize(d):
     return {k: v / tot for k, v in d.items()} if tot else {}
 
 
+def author_prior_weights(w):
+    """Weakest signal in the chain (QaL_spec §5): when a paper has neither a usable bibliography
+    NOR citers, infer the community from CONTENT + AUTHORS — blend the paper's own OpenAlex topic
+    mixture with the recency-weighted bodies of work of its authors (each normalized to unit mass
+    so a prolific co-author doesn't swamp the others). Mirrors web/lib/synthetic.ts."""
+    v = w.get("publication_year") or AS_OF
+    # (a) content: the paper's own OpenAlex topics -> subfield distribution, weighted by score
+    tm = defaultdict(float)
+    for t in (w.get("topics") or []):
+        sid = ((t.get("subfield") or {}).get("id") or "").split("/")[-1]
+        if sid:
+            tm[sid] += t.get("score") or 0.0
+    # (b) author prior: each author's recency-weighted subfield mixture
+    ids = []
+    for a in (w.get("authorships") or []):
+        aid = ((a.get("author") or {}).get("id") or "").split("/")[-1]
+        if aid:
+            ids.append(aid)
+        if len(ids) >= MAX_AUTHORS:
+            break
+    am = defaultdict(float)
+    for aid in ids:
+        d = _get({"filter": f"author.id:{aid}", "select": "primary_topic,publication_year",
+                  "per-page": AUTHOR_WORKS, "sort": "publication_year:desc"})
+        per = defaultdict(float)
+        for wk in (d.get("results") or []):
+            sid = (((wk.get("primary_topic") or {}).get("subfield") or {}).get("id") or "").split("/")[-1]
+            if not sid:
+                continue
+            g = math.exp(-max(0, v - (wk.get("publication_year") or v)) / TAU)
+            per[sid] += g
+        for sid, x in _normalize(per).items():  # unit mass per author
+            am[sid] += x
+        time.sleep(0.1)
+    tm, am = _normalize(tm), _normalize(am)
+    if not tm and not am:
+        return {}
+    alpha = TOPIC_ALPHA if (tm and am) else (1.0 if tm else 0.0)  # lean fully on whichever exists
+    out = defaultdict(float)
+    for sid, x in tm.items():
+        out[sid] += alpha * x
+    for sid, x in am.items():
+        out[sid] += (1 - alpha) * x
+    return dict(out)
+
+
 def synthetic_field(oaid):
     """Compute the synthetic-field r_obs for one work. Returns a record dict or None."""
     w = focal_meta(oaid)
@@ -182,8 +231,9 @@ def synthetic_field(oaid):
     has_ref = usable >= N_MIN_REFS
     has_cc = len(w_cc) > 0
     if not has_ref and not has_cc:
-        # fallback: the focal's own (subfield, vintage) cohort, single-topic special case
-        weights = {focal_sub: 1.0} if focal_sub else {}
+        # author-prior fallback: content (own topics) + authors' bodies of work; the single-topic
+        # focal subfield is only the very last resort if that yields nothing
+        weights = author_prior_weights(w) or ({focal_sub: 1.0} if focal_sub else {})
         lam = None
     else:
         nref, ncc = _normalize(w_ref), _normalize(w_cc)

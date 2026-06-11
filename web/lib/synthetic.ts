@@ -21,6 +21,9 @@ const NOW = 2026;
 const MIN_REFS = 5;
 const MAX_CITERS = 200; // cap the co-citation scan (the fallback fires for few-citer papers anyway)
 const NEIGH = 100; // top co-cited works kept for the community mixture
+const MAX_AUTHORS = 5; // cap the author-prior fan-out (one OpenAlex call per author)
+const AUTHOR_WORKS = 50; // recent works per author used to build the prior
+const TOPIC_ALPHA = 0.55; // blend weight on the paper's OWN topics vs the author prior
 
 export interface SynthResult {
   obs: number; // blended observed percentile (0–100)
@@ -29,7 +32,7 @@ export interface SynthResult {
   // used) + the focal's percentile IN that subfield — the inputs to the blend-weighted calibration
   vintage: number;
   n_refs: number;
-  basis: "references" | "co-citation"; // how the community was inferred
+  basis: "references" | "co-citation" | "author-prior"; // how the community was inferred
 }
 
 // Co-citation fallback: when a paper has no bibliography in OpenAlex (common for SSRN/working
@@ -68,6 +71,59 @@ async function cocitationWeights(oaid: string): Promise<Record<string, number> |
     if (sy && sy[0]) w[sy[0]] = (w[sy[0]] || 0) + counts[id];
   }
   return Object.keys(w).length ? w : null;
+}
+
+function normMix(o: Record<string, number>): Record<string, number> {
+  const s = Object.values(o).reduce((a, b) => a + b, 0);
+  return s ? Object.fromEntries(Object.entries(o).map(([k, x]) => [k, x / s])) : {};
+}
+
+// Author-prior fallback: the weakest stage of the signal chain (QaL_spec §5), fired only when a
+// paper has neither a usable bibliography NOR citers — a brand-new SSRN/working paper. We infer the
+// community from CONTENT + AUTHORS: blend the paper's own OpenAlex topic mixture (about THIS paper)
+// with the recency-weighted bodies of work of its authors (a backstop that supplies breadth). Each
+// author is normalized to unit mass first, so a prolific co-author doesn't swamp the others.
+async function authorPriorWeights(focal: any): Promise<Record<string, number> | null> {
+  const v: number = focal.publication_year ?? NOW;
+
+  // (a) content signal: the paper's own OpenAlex topics -> subfield distribution, weighted by score
+  const topicMix: Record<string, number> = {};
+  for (const t of focal.topics || []) {
+    const sid = ((t.subfield?.id || "") as string).split("/").pop();
+    if (sid) topicMix[sid] = (topicMix[sid] || 0) + (t.score ?? 0);
+  }
+
+  // (b) author prior: each author's recency-weighted subfield mixture, one OpenAlex call per author
+  const authorIds: string[] = (focal.authorships || [])
+    .map((a: any) => ((a.author?.id || "") as string).split("/").pop())
+    .filter(Boolean)
+    .slice(0, MAX_AUTHORS);
+  const authorMix: Record<string, number> = {};
+  for (const aid of authorIds) {
+    const d = await oaGet(
+      `/works?filter=author.id:${aid}&select=primary_topic,publication_year&per-page=${AUTHOR_WORKS}&sort=publication_year:desc`
+    );
+    const per: Record<string, number> = {};
+    for (const wk of d?.results ?? []) {
+      const sid = ((wk.primary_topic?.subfield?.id || "") as string).split("/").pop();
+      if (!sid) continue;
+      const g = Math.exp(-Math.max(0, v - (wk.publication_year ?? v)) / TAU);
+      per[sid] = (per[sid] || 0) + g;
+    }
+    const np = normMix(per); // unit mass per author
+    for (const sid in np) authorMix[sid] = (authorMix[sid] || 0) + np[sid];
+  }
+
+  const tm = normMix(topicMix);
+  const am = normMix(authorMix);
+  const hasT = Object.keys(tm).length > 0;
+  const hasA = Object.keys(am).length > 0;
+  if (!hasT && !hasA) return null;
+  const a = hasT && hasA ? TOPIC_ALPHA : hasT ? 1 : 0; // lean fully on whichever side exists
+  const out: Record<string, number> = {};
+  for (const sid in tm) out[sid] = (out[sid] || 0) + a * tm[sid];
+  for (const sid in am) out[sid] = (out[sid] || 0) + (1 - a) * am[sid];
+  return Object.keys(out).length ? out : null;
 }
 
 type Cdf = { cites: number; pct: number }[];
@@ -143,7 +199,7 @@ async function pctInCohort(sid: string, year: number, cites: number): Promise<nu
 
 export async function syntheticField(oaid: string): Promise<SynthResult | null> {
   const focal = await oaGet(
-    `/works/${encodeURIComponent(oaid)}?select=id,referenced_works,publication_year,cited_by_count`
+    `/works/${encodeURIComponent(oaid)}?select=id,referenced_works,publication_year,cited_by_count,authorships,topics`
   );
   if (!focal) return null;
   const v: number = focal.publication_year ?? NOW;
@@ -154,7 +210,7 @@ export async function syntheticField(oaid: string): Promise<SynthResult | null> 
   // when OpenAlex has no/too-few references (SSRN/working papers), fall back to the co-citation
   // stage — infer the community from the works that cite it.
   let w: Record<string, number> = {};
-  let basis: "references" | "co-citation" = "references";
+  let basis: "references" | "co-citation" | "author-prior" = "references";
   if (refs.length >= MIN_REFS) {
     const subYear = await worksSubYear(refs);
     for (const [sid, y] of subYear.values()) {
@@ -164,9 +220,16 @@ export async function syntheticField(oaid: string): Promise<SynthResult | null> 
     }
   } else {
     const cc = await cocitationWeights(oaid);
-    if (!cc) return null; // no references and no citers -> not enough signal to place it
-    w = cc;
-    basis = "co-citation";
+    if (cc) {
+      w = cc;
+      basis = "co-citation";
+    } else {
+      // last resort: infer the community from the paper's own topics + its authors' bodies of work
+      const ap = await authorPriorWeights(focal);
+      if (!ap) return null; // no references, no citers, no topics/authors -> can't place it
+      w = ap;
+      basis = "author-prior";
+    }
   }
   const tot = Object.values(w).reduce((a, b) => a + b, 0);
   if (!tot) return null;
@@ -236,7 +299,7 @@ export interface SyntheticQal {
   weights: { sid: string; weight: number }[];
   dominant: string | null;
   vintage: number;
-  basis: "references" | "co-citation";
+  basis: "references" | "co-citation" | "author-prior";
   gp_weight: number; // share of the reference class sitting in back-tested (gate-passed) subfields
   calibrated: boolean;
   coverage: "gate-passed" | "mature" | "observed";

@@ -194,7 +194,11 @@ export default async function PaperPage({ params }: { params: { oaid: string } }
             <div className="compstrip">
               <span className="compstrip-label">
                 Synthetic field · weighted by{" "}
-                {rec.reference_class?.basis === "co-citation" ? "co-citing works" : "recent references"}
+                {rec.reference_class?.basis === "co-citation"
+                  ? "co-citing works"
+                  : rec.reference_class?.basis === "author-prior"
+                  ? "content & author history"
+                  : "recent references"}
               </span>
               <span className="compstrip-list">
                 {shown.map((c: any, i: number) => (
