@@ -192,7 +192,10 @@ export default async function PaperPage({ params }: { params: { oaid: string } }
           const rolledPct = Math.round(rolled.reduce((s: number, c: any) => s + c.weight, 0) * 100);
           return (
             <div className="compstrip">
-              <span className="compstrip-label">Synthetic field · weighted by recent references</span>
+              <span className="compstrip-label">
+                Synthetic field · weighted by{" "}
+                {rec.reference_class?.basis === "co-citation" ? "co-citing works" : "recent references"}
+              </span>
               <span className="compstrip-list">
                 {shown.map((c: any, i: number) => (
                   <span key={c.sid}>

@@ -19,6 +19,8 @@ const TAU = 6 / Math.log(2); // recency decay timescale (H_HALFLIFE = 6)
 const REVALIDATE = 60 * 60 * 24 * 7; // cache OpenAlex sub-fetches a week
 const NOW = 2026;
 const MIN_REFS = 5;
+const MAX_CITERS = 200; // cap the co-citation scan (the fallback fires for few-citer papers anyway)
+const NEIGH = 100; // top co-cited works kept for the community mixture
 
 export interface SynthResult {
   obs: number; // blended observed percentile (0–100)
@@ -27,6 +29,45 @@ export interface SynthResult {
   // used) + the focal's percentile IN that subfield — the inputs to the blend-weighted calibration
   vintage: number;
   n_refs: number;
+  basis: "references" | "co-citation"; // how the community was inferred
+}
+
+// Co-citation fallback: when a paper has no bibliography in OpenAlex (common for SSRN/working
+// papers), infer its community from the works that CITE it and what those citers co-reference.
+// Returns a subfield -> co-citation-count mixture. Cheap because the fallback only fires for
+// few-citer papers (papers with many citers usually have a reference list).
+async function cocitationWeights(oaid: string): Promise<Record<string, number> | null> {
+  const focalUrl = `https://openalex.org/${oaid}`;
+  const counts: Record<string, number> = {}; // co-cited oaid -> times co-cited with the focal
+  let cursor: string | null = "*";
+  let nCiters = 0;
+  while (cursor && nCiters < MAX_CITERS) {
+    const d: any = await oaGet(
+      `/works?filter=cites:${oaid}&select=id,referenced_works&per-page=200&cursor=${encodeURIComponent(cursor)}`
+    );
+    const results = d?.results ?? [];
+    if (!results.length) break;
+    for (const w of results) {
+      nCiters++;
+      for (const r of w.referenced_works || []) {
+        if (r !== focalUrl) {
+          const id = (r as string).split("/").pop() as string;
+          counts[id] = (counts[id] || 0) + 1;
+        }
+      }
+    }
+    cursor = d?.meta?.next_cursor ?? null;
+  }
+  if (!nCiters) return null;
+  const top = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, NEIGH).map(([id]) => id);
+  if (!top.length) return null;
+  const subYear = await worksSubYear(top);
+  const w: Record<string, number> = {};
+  for (const id of top) {
+    const sy = subYear.get(id);
+    if (sy && sy[0]) w[sy[0]] = (w[sy[0]] || 0) + counts[id];
+  }
+  return Object.keys(w).length ? w : null;
 }
 
 type Cdf = { cites: number; pct: number }[];
@@ -108,15 +149,24 @@ export async function syntheticField(oaid: string): Promise<SynthResult | null> 
   const v: number = focal.publication_year ?? NOW;
   const cites: number = focal.cited_by_count ?? 0;
   const refs: string[] = (focal.referenced_works || []).map((r: string) => r.split("/").pop());
-  if (refs.length < MIN_REFS) return null; // too few references for a reference-based mixture
 
-  // recency-weighted subfield mixture of the bibliography
-  const subYear = await worksSubYear(refs);
-  const w: Record<string, number> = {};
-  for (const [sid, y] of subYear.values()) {
-    if (!sid) continue;
-    const g = Math.exp(-Math.max(0, v - (y ?? v)) / TAU);
-    w[sid] = (w[sid] || 0) + g;
+  // Community mixture: the recency-weighted subfields of the bibliography (reference stage); but
+  // when OpenAlex has no/too-few references (SSRN/working papers), fall back to the co-citation
+  // stage — infer the community from the works that cite it.
+  let w: Record<string, number> = {};
+  let basis: "references" | "co-citation" = "references";
+  if (refs.length >= MIN_REFS) {
+    const subYear = await worksSubYear(refs);
+    for (const [sid, y] of subYear.values()) {
+      if (!sid) continue;
+      const g = Math.exp(-Math.max(0, v - (y ?? v)) / TAU);
+      w[sid] = (w[sid] || 0) + g;
+    }
+  } else {
+    const cc = await cocitationWeights(oaid);
+    if (!cc) return null; // no references and no citers -> not enough signal to place it
+    w = cc;
+    basis = "co-citation";
   }
   const tot = Object.values(w).reduce((a, b) => a + b, 0);
   if (!tot) return null;
@@ -145,6 +195,7 @@ export async function syntheticField(oaid: string): Promise<SynthResult | null> 
     parts: used.map((p) => ({ sid: p.sid, weight: p.weight / wused, pct: p.pct })),
     vintage: v,
     n_refs: refs.length,
+    basis,
   };
 }
 
@@ -185,6 +236,7 @@ export interface SyntheticQal {
   weights: { sid: string; weight: number }[];
   dominant: string | null;
   vintage: number;
+  basis: "references" | "co-citation";
   gp_weight: number; // share of the reference class sitting in back-tested (gate-passed) subfields
   calibrated: boolean;
   coverage: "gate-passed" | "mature" | "observed";
@@ -207,7 +259,7 @@ export async function syntheticQal(oaid: string): Promise<SyntheticQal | null> {
   const rawAge = NOW - sf.vintage;
   const age = Math.max(1, Math.min(H - 1, rawAge));
   const base = {
-    obs, weights: sf.weights, dominant: sf.parts[0]?.sid ?? null, vintage: sf.vintage,
+    obs, weights: sf.weights, dominant: sf.parts[0]?.sid ?? null, vintage: sf.vintage, basis: sf.basis,
   };
 
   // blend each gate-passed subfield's posterior (its calibration applied to the focal's percentile
