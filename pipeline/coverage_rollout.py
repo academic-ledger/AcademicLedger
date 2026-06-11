@@ -30,6 +30,7 @@ import os
 import sys
 import json
 import time
+import pickle
 import argparse
 from collections import defaultdict
 
@@ -52,6 +53,13 @@ AS_OF = int(os.environ.get("AS_OF_YEAR", "2026"))
 H = int(os.environ.get("H_LONG_HORIZON", "10"))
 SAMPLE_N = int(os.environ.get("SAMPLE_N", "1000"))   # light score-year sample, for serving only
 CALIB_N = int(os.environ.get("CALIB_N", "10000"))    # DEEP matured-cohort pull, for calibration
+CONFORMAL_ALPHA = float(os.environ.get("CONFORMAL_ALPHA", "0.08"))  # 1 - nominal coverage; the cross-
+# vintage radius at the 0.10 (90%) target lands a few points low on residual vintage heterogeneity,
+# so 0.08 (92% nominal) pulls actual LOVO coverage up to ~the honest 90%. See docs/calibration_decisions.md.
+# Residual cache: the matured-cohort pull is deterministic (seed=42), so cache it under data/calib_cache/
+# and re-tune the conformal widening OFFLINE (CALIB_CACHE=1) with no OpenAlex re-pull.
+CALIB_CACHE_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "calib_cache")
+CALIB_CACHE_READ = os.environ.get("CALIB_CACHE", "0") == "1"  # opt-in: reuse cached cohorts (offline)
 COVER_TO = float(os.environ.get("COVER_TO", "0.95"))
 MAX_REQUESTS = int(os.environ.get("MAX_REQUESTS", "0")) or None
 SNAP = os.environ.get("OPENALEX_SNAPSHOT", "rollout-2026-06")
@@ -404,6 +412,24 @@ def _pull_cohort_mem(sid, v, n):
         raise
 
 
+def _cohort_cache_path(sid):
+    return os.path.join(CALIB_CACHE_DIR, f"{sid}.pkl")
+
+
+def _load_cohort_cache(sid):
+    p = _cohort_cache_path(sid)
+    if os.path.exists(p):
+        with open(p, "rb") as f:
+            return pickle.load(f)  # {vintage: [(cites, counts_by_year), ...]}
+    return None
+
+
+def _save_cohort_cache(sid, by_vintage):
+    os.makedirs(CALIB_CACHE_DIR, exist_ok=True)
+    with open(_cohort_cache_path(sid), "wb") as f:
+        pickle.dump(by_vintage, f)
+
+
 def _store_serving_sample(conn, sid, v, n):
     """Store a light score-year sample to `works` so the subfield's papers are served in explore
     (percentile comes from the exact skeleton, not this sample). Returns the row count."""
@@ -446,19 +472,27 @@ def _calibrate_subfield(conn, sid):
     (calib_lib) + LOVO back-test where >=3 matured vintages have data -> fitted/gate-passed;
     parametric fallback (calib_parametric §7) otherwise. The pulled works are never persisted."""
     prepared, used_vintages, allrows = {}, [], []
+    cached = _load_cohort_cache(sid) if CALIB_CACHE_READ else None
+    by_vintage = {}
     for v in MATURE_YEARS:
-        rows = _pull_cohort_mem(sid, v, CALIB_N)
-        cp_mark(conn, "sample", sid, v, "done" if rows else "empty", detail={"n": len(rows)})
+        if cached is not None:
+            rows = cached.get(v, [])
+        else:
+            rows = _pull_cohort_mem(sid, v, CALIB_N)
+            cp_mark(conn, "sample", sid, v, "done" if rows else "empty", detail={"n": len(rows)})
+            by_vintage[v] = rows
         allrows.extend({"cites": c, "counts_by_year": cby, "vintage": v} for c, cby in rows)
         if len(rows) >= 50:
             prepared[v] = cl.prepare([cby for _, cby in rows], v, H)
             used_vintages.append(v)
+    if cached is None:
+        _save_cohort_cache(sid, by_vintage)  # deterministic pull -> cache for offline re-tuning
 
     if len(used_vintages) >= 3:
         # nonparametric fit on the matured vintages, conformally widened, then back-tested.
         cells = cl.fit_cells(prepared, used_vintages, H)
         cov = _backtest_coverage(prepared, used_vintages)
-        Q = cl.conformal_q_cv(prepared, used_vintages, H)
+        Q = cl.conformal_q_cv(prepared, used_vintages, H, alpha=CONFORMAL_ALPHA)
         for (a, g), c in cells.items():
             lo, hi = cl.predict_interval(c, Q.get(a, 0.0))
             c["q5"], c["q95"] = lo, hi
@@ -482,15 +516,17 @@ def _calibrate_subfield(conn, sid):
     return None, {"reason": "insufficient matured data"}
 
 
-def _backtest_coverage(prepared, vintages):
+def _backtest_coverage(prepared, vintages, alpha=None):
     """Leave-one-vintage-out 90%-interval coverage across the matured vintages (the gate)."""
+    if alpha is None:
+        alpha = CONFORMAL_ALPHA
     if len(vintages) < 3:
         return None
     hits = tot = 0
     for held in vintages:
         fit_v = [v for v in vintages if v != held]
         cells = cl.fit_cells(prepared, fit_v, H)
-        Q = cl.conformal_q_cv(prepared, fit_v, H) if len(fit_v) >= 2 else {}
+        Q = cl.conformal_q_cv(prepared, fit_v, H, alpha=alpha) if len(fit_v) >= 2 else {}
         pa = prepared[held]
         for a in range(1, H):
             obs_pct, eve_pct = pa[a]
@@ -561,7 +597,12 @@ def main():
     ap.add_argument("--targets", default="", help="comma-separated subfield ids (skip footprint targeting)")
     ap.add_argument("--extend-from", type=int, default=0,
                     help="also build skeletons for older vintages back to this year (seed+targets)")
+    ap.add_argument("--from-cache", action="store_true",
+                    help="reuse cached matured cohorts (data/calib_cache/) — re-fit/re-tune offline, no OpenAlex pull")
     args = ap.parse_args()
+    if args.from_cache:
+        global CALIB_CACHE_READ
+        CALIB_CACHE_READ = True
     db = os.environ.get("DATABASE_URL")
     if not db:
         raise SystemExit("DATABASE_URL not set")

@@ -5,6 +5,7 @@ __pycache__/
 venv/
 *.parquet
 data/cache/
+data/calib_cache/
 # node / next
 node_modules/
 .next/
