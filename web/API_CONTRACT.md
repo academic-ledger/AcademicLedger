@@ -24,5 +24,5 @@ Author header + their works list (each item is the same shape the explore/author
 Filtered, ranked record list. Sorts: qal | cites | year. `field` = subfield id.
 
 Notes
-- The official reference class is the co-citation neighborhood; the `field` percentile is the exploration view (QaL_spec.md §3).
+- The official reference class is the synthetic field — a blend whose weights are built by a fallback chain (references → co-citation → content-and-authorship prior; `reference_class.basis` reports which rung was used); the `field` percentile is the single-label exploration view (QaL_spec.md §3, §5).
 - Never compute a single author-level score (author page shows a distribution; QaL_spec.md §5 / mock rationale).

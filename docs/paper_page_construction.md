@@ -13,8 +13,10 @@ avoidable part; the spec (§11) prescribes the cheap path on the fly.
 - **Cheap, on the fly:** fetch the work record (one OpenAlex call), compute the field
   percentile (two count queries or an O(1) cohort-table lookup), read the calibration table,
   read the retraction flag. The paper page is allowed to do this — it is *not* graph compute.
-- **Must be precomputed/cached:** the synthetic field (references + citing community → graph)
-  and the explore leaderboard rankings. These stay in Neon.
+- **Must be precomputed/cached (preferred):** the synthetic field (references → co-citation →
+  content-and-authorship prior) and the explore leaderboard rankings, kept in Neon. The synthetic
+  field is also computed **on the fly** for any uncached paper via the same fallback chain, and a
+  pre-synthetic cached row is upgraded to it on read.
 
 The legitimate reason to store `works` is to **compute the cohort distributions, fit
 calibration, and power the explore leaderboards** — not to be the display source of truth for
