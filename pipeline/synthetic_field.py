@@ -288,6 +288,11 @@ def main():
 
 def _target_oaids(conn, mode, per_community):
     with conn.cursor() as cur:
+        if mode == "faculty":
+            import yaml
+            ids = [str(v) for v in (yaml.safe_load(open("pipeline/oid_faculty_ids.yml")) or {}).values() if v]
+            cur.execute("SELECT DISTINCT work_oaid FROM author_works WHERE author_oaid = ANY(%s)", (ids,))
+            return sorted({r[0] for r in cur.fetchall()})
         if mode == "seed-and-leaders":
             cur.execute("SELECT DISTINCT work_oaid FROM author_works")
             oaids = {r[0] for r in cur.fetchall()}
