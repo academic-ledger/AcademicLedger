@@ -141,6 +141,41 @@ def conformal_q(prepared, fit_vintages, cal_vintages, H, alpha=0.10, knn=KNN):
     return Q
 
 
+def conformal_q_cv(prepared, vintages, H, alpha=0.10, knn=KNN):
+    """Cross-vintage conformal radius. A single fit/cal split estimates the radius from ONE
+    held-out vintage, which underestimates the spread the model faces when it predicts a *new*
+    vintage from past ones (eventual-percentile residuals shift across vintages). Instead, hold
+    each training vintage out in turn, score it against a model fit on the rest, pool those
+    leave-one-vintage-out residuals, and take the (1-alpha) quantile per age. This is the residual
+    distribution the deployment actually sees, so the widened interval attains ~(1-alpha) coverage
+    on a genuinely held-out vintage rather than under-covering it. Needs >=2 vintages; falls back
+    to the single-split conformal_q for one."""
+    if len(vintages) < 2:
+        return conformal_q(prepared, vintages, vintages, H, alpha, knn)
+    scores = {a: [] for a in range(1, H)}
+    for held in vintages:
+        fit_v = [v for v in vintages if v != held]
+        cells = fit_cells(prepared, fit_v, H, knn)
+        pa = prepared[held]
+        for a in range(1, H):
+            obs_pct, eve_pct = pa[a]
+            for op, y in zip(obs_pct, eve_pct):
+                cell = predict_cell(cells, a, op)
+                if cell is None:
+                    continue
+                scores[a].append(max(cell["q5"] - y, y - cell["q95"]))
+    Q = {}
+    for a, sc in scores.items():
+        if not sc:
+            Q[a] = 0.0
+            continue
+        sc = np.asarray(sc)
+        n = len(sc)
+        level = min(1.0, np.ceil((n + 1) * (1 - alpha)) / n)
+        Q[a] = float(np.quantile(sc, level, method="higher"))
+    return Q
+
+
 def predict_interval(cell, Q_a):
     """Conformally widened 90% interval, clipped to [0, 100]."""
     lo = max(0.0, cell["q5"] - Q_a)

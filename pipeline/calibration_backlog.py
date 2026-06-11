@@ -16,6 +16,9 @@ Usage: DATABASE_URL=... python pipeline/calibration_backlog.py
 import os
 import json
 
+import _env
+_env.load_env()  # load repo-root .env (secrets) so DATABASE_URL is available below
+
 
 def main():
     db = os.environ.get("DATABASE_URL")

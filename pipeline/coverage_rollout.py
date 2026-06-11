@@ -33,6 +33,9 @@ import time
 import argparse
 from collections import defaultdict
 
+import _env
+_env.load_env()  # load repo-root .env (secrets) before any os.environ.get below
+
 import requests
 import numpy as np
 
@@ -455,7 +458,7 @@ def _calibrate_subfield(conn, sid):
         # nonparametric fit on the matured vintages, conformally widened, then back-tested.
         cells = cl.fit_cells(prepared, used_vintages, H)
         cov = _backtest_coverage(prepared, used_vintages)
-        Q = cl.conformal_q(prepared, used_vintages[:-1], used_vintages[-1:], H)
+        Q = cl.conformal_q_cv(prepared, used_vintages, H)
         for (a, g), c in cells.items():
             lo, hi = cl.predict_interval(c, Q.get(a, 0.0))
             c["q5"], c["q95"] = lo, hi
@@ -487,7 +490,7 @@ def _backtest_coverage(prepared, vintages):
     for held in vintages:
         fit_v = [v for v in vintages if v != held]
         cells = cl.fit_cells(prepared, fit_v, H)
-        Q = cl.conformal_q(prepared, fit_v[:-1], fit_v[-1:], H) if len(fit_v) >= 2 else {}
+        Q = cl.conformal_q_cv(prepared, fit_v, H) if len(fit_v) >= 2 else {}
         pa = prepared[held]
         for a in range(1, H):
             obs_pct, eve_pct = pa[a]

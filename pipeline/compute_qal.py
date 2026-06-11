@@ -19,6 +19,9 @@ import json
 import bisect
 import math
 
+import _env
+_env.load_env()  # load repo-root .env (secrets) before any os.environ.get below
+
 import calib_lib as cl
 
 CUTS = [50, 75, 90, 95, 99]
