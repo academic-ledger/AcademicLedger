@@ -281,8 +281,50 @@ export async function getPaperRecord(oaid: string) {
     data_snapshot: "openalex (live display + cached QaL)",
   };
 
-  // Calibrated: serve the cached posterior; display is the live work.
+  // The official reference class (§5): rank the paper against its TRUE community (its recency-
+  // weighted bibliography mixture, with co-citation / author-prior fallbacks), correcting
+  // OpenAlex's single label. Computed live + HTTP-cached. Returns null if it can't be placed.
+  const trySynthetic = async () => {
+    const sq = await syntheticQal(work.oaid);
+    if (!sq) return null;
+    const fieldObs =
+      work.sid && work.year != null ? await cohortPercentile(work.sid, work.year, work.cites) : null;
+    return {
+      ...base,
+      composition: (await namedComposition(sq.weights)) ?? composition,
+      reference_class: {
+        field: "synthetic-field",
+        field_label: "synthetic field",
+        kind: "synthetic",
+        vintage_year: sq.vintage,
+        dominant: sq.dominant,
+        coverage: sq.coverage,
+        basis: sq.basis, // 'references' | 'co-citation' | 'author-prior' (how the community was inferred)
+        gp_weight: sq.gp_weight, // share of the reference class that is back-tested
+        field_percentile: fieldObs, // the single OpenAlex-label percentile, for contrast
+      },
+      obs_percentile: sq.obs,
+      calibrated: sq.calibrated,
+      qal: sq.qal,
+      ...(sq.calibrated ? {} : { status: "calibration-pending" as const }),
+    };
+  };
+
+  // Calibrated: serve the cached posterior; display is the live work. But a cached row whose
+  // reference class is a pre-synthetic single-field stand-in (computed before the synthetic field
+  // was propagated to this paper) is upgraded to the live synthetic field — the official §5
+  // reference class — whenever that resolves to a calibrated result, so older cached papers show
+  // their true community without waiting for the monthly batch refresh. Never downgrades a
+  // calibrated row to pending.
   if (c && c.calibrated && c.qal_point != null) {
+    if (c.reference_class?.kind !== "synthetic") {
+      try {
+        const s = await trySynthetic();
+        if (s && s.calibrated) return s;
+      } catch {
+        /* fall back to the cached field-based posterior */
+      }
+    }
     const qal: QalPoint = { point: Number(c.qal_point), lo: Number(c.qal_ci_lo), hi: Number(c.qal_ci_hi) };
     const cp = c.class_prob ?? classProb(qal);
     const ref = c.reference_class ?? {};
@@ -298,34 +340,10 @@ export async function getPaperRecord(oaid: string) {
     };
   }
 
-  // ON-THE-FLY SYNTHETIC FIELD (official reference class, §5): rank the paper against its TRUE
-  // community (its recency-weighted bibliography mixture), correcting OpenAlex's single label, and
-  // attribute the calibration to that community when gate-passed. Computed live + HTTP-cached.
+  // On-the-fly synthetic field for an uncached paper (or one without a calibrated cache row).
   try {
-    const sq = await syntheticQal(work.oaid);
-    if (sq) {
-      const fieldObs =
-        work.sid && work.year != null ? await cohortPercentile(work.sid, work.year, work.cites) : null;
-      return {
-        ...base,
-        composition: (await namedComposition(sq.weights)) ?? composition,
-        reference_class: {
-          field: "synthetic-field",
-          field_label: "synthetic field",
-          kind: "synthetic",
-          vintage_year: sq.vintage,
-          dominant: sq.dominant,
-          coverage: sq.coverage,
-          basis: sq.basis, // 'references' | 'co-citation' | 'author-prior' (how the community was inferred)
-          gp_weight: sq.gp_weight, // share of the reference class that is back-tested
-          field_percentile: fieldObs, // the single OpenAlex-label percentile, for contrast
-        },
-        obs_percentile: sq.obs,
-        calibrated: sq.calibrated,
-        qal: sq.qal,
-        ...(sq.calibrated ? {} : { status: "calibration-pending" as const }),
-      };
-    }
+    const s = await trySynthetic();
+    if (s) return s;
   } catch {
     // fall through to the field-based universal layer
   }
