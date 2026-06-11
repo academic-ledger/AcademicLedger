@@ -47,14 +47,14 @@
       "name": "Cognitive Neuroscience",
       "impact_pct": 3.54,
       "n_papers": 97,
-      "state": "fitted"
+      "state": "gate-passed"
     },
     {
       "sid": "1408",
       "name": "Strategy and Management",
       "impact_pct": 3.47,
       "n_papers": 140,
-      "state": "fitted"
+      "state": "gate-passed"
     },
     {
       "sid": "1407",
@@ -75,14 +75,14 @@
       "name": "Management Information Systems",
       "impact_pct": 2.36,
       "n_papers": 95,
-      "state": "fitted"
+      "state": "gate-passed"
     },
     {
       "sid": "2613",
       "name": "Statistics and Probability",
       "impact_pct": 2.14,
       "n_papers": 137,
-      "state": "fitted"
+      "state": "gate-passed"
     },
     {
       "sid": "1406",
@@ -110,7 +110,7 @@
       "name": "Statistics, Probability and Uncertainty",
       "impact_pct": 1.76,
       "n_papers": 52,
-      "state": "fitted"
+      "state": "gate-passed"
     },
     {
       "sid": "1405",
