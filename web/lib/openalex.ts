@@ -9,6 +9,18 @@ const API_KEY = process.env.OPENALEX_API_KEY || ""; // premium key: lifts the da
 const AUTH = `&mailto=${encodeURIComponent(MAILTO)}${API_KEY ? `&api_key=${encodeURIComponent(API_KEY)}` : ""}`;
 const REVALIDATE = 60 * 60 * 24; // 1 day
 
+// The web app shares OpenAlex's premium key with the batch pipeline. If that daily budget is
+// exhausted (HTTP 429 "Insufficient budget"), fall back to the free polite pool (key stripped) so
+// interactive lookups keep working — rate-limited, but fine for these light calls. The web app's
+// availability must not depend on the batch's budget.
+async function oaFetch(url: string, init: RequestInit): Promise<Response> {
+  const r = await fetch(url, init);
+  if (r.status === 429 && API_KEY && url.includes(`api_key=${encodeURIComponent(API_KEY)}`)) {
+    return fetch(url.replace(`&api_key=${encodeURIComponent(API_KEY)}`, ""), init);
+  }
+  return r;
+}
+
 export interface Work {
   oaid: string;
   doi: string | null;
@@ -75,7 +87,7 @@ export async function fetchWork(oaid: string): Promise<Work | null> {
     `?select=${select}${AUTH}`;
   let r: Response;
   try {
-    r = await fetch(url, {
+    r = await oaFetch(url, {
       headers: { "User-Agent": `al-web/1.0 (${MAILTO})` },
       next: { revalidate: REVALIDATE },
     });
@@ -104,7 +116,7 @@ async function searchOne(filter: string): Promise<any[]> {
     `https://api.openalex.org/works?filter=${filter}&select=${select}` +
     `&per-page=${SEARCH_PER}&sort=cited_by_count:desc${AUTH}`;
   try {
-    const r = await fetch(url, {
+    const r = await oaFetch(url, {
       headers: { "User-Agent": `al-web/1.0 (${MAILTO})` },
       next: { revalidate: SEARCH_REVALIDATE },
     });
@@ -156,7 +168,7 @@ export async function fetchAuthor(oaid: string): Promise<AuthorEntity | null> {
     `https://api.openalex.org/authors/${encodeURIComponent(oaid)}?select=${select}${AUTH}`;
   let r: Response;
   try {
-    r = await fetch(url, {
+    r = await oaFetch(url, {
       headers: { "User-Agent": `al-web/1.0 (${MAILTO})` },
       next: { revalidate: REVALIDATE },
     });
@@ -189,7 +201,7 @@ export interface AuthorSuggestion {
 
 async function _authorsList(url: string, map: (x: any) => AuthorSuggestion): Promise<AuthorSuggestion[]> {
   try {
-    const r = await fetch(url, {
+    const r = await oaFetch(url, {
       headers: { "User-Agent": `al-web/1.0 (${MAILTO})` },
       next: { revalidate: SEARCH_REVALIDATE },
     });
@@ -249,7 +261,7 @@ export async function fetchAuthorWorks(oaid: string, limit = 100): Promise<Work[
     `https://api.openalex.org/works?filter=authorships.author.id:${encodeURIComponent(oaid)}` +
     `&select=${select}&per-page=${per}&sort=cited_by_count:desc${AUTH}`;
   try {
-    const r = await fetch(url, {
+    const r = await oaFetch(url, {
       headers: { "User-Agent": `al-web/1.0 (${MAILTO})` },
       next: { revalidate: SEARCH_REVALIDATE },
     });

@@ -143,10 +143,17 @@ async function oaGet(pathWithQuery: string): Promise<any | null> {
   // calibration-pending; successful responses are HTTP-cached (revalidate) so repeats are free.
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
-      const r = await fetch(`${OA}${pathWithQuery}${AUTH}`, {
+      const url = `${OA}${pathWithQuery}${AUTH}`;
+      const init = {
         headers: { "User-Agent": `al-web/1.0 (${MAILTO})` },
         next: { revalidate: REVALIDATE },
-      });
+      };
+      let r = await fetch(url, init);
+      // Premium budget is shared with the batch pipeline; on a 429 "Insufficient budget" fall back
+      // to the free polite pool (key stripped) so paper pages keep computing the synthetic field.
+      if (r.status === 429 && API_KEY && url.includes(`api_key=${encodeURIComponent(API_KEY)}`)) {
+        r = await fetch(url.replace(`&api_key=${encodeURIComponent(API_KEY)}`, ""), init);
+      }
       if (r.ok) return await r.json();
       if (r.status !== 429 && r.status < 500) return null; // hard error, don't retry
     } catch {
