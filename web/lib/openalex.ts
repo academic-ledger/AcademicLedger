@@ -8,17 +8,28 @@ const MAILTO = process.env.OPENALEX_MAILTO || "ktulrich@gmail.com";
 const API_KEY = process.env.OPENALEX_API_KEY || ""; // premium key: lifts the daily list budget
 const AUTH = `&mailto=${encodeURIComponent(MAILTO)}${API_KEY ? `&api_key=${encodeURIComponent(API_KEY)}` : ""}`;
 const REVALIDATE = 60 * 60 * 24; // 1 day
+const AUTHOR_TIMEOUT_MS = 2000; // typeahead must stay snappy even if /authors?search is degraded
 
-// The web app shares OpenAlex's premium key with the batch pipeline. If that daily budget is
-// exhausted (HTTP 429 "Insufficient budget"), fall back to the free polite pool (key stripped) so
-// interactive lookups keep working — rate-limited, but fine for these light calls. The web app's
-// availability must not depend on the batch's budget.
+// Every OpenAlex call is bounded by a timeout — a degraded endpoint (e.g. /authors?search returning
+// a 30s gateway timeout) must never hang a request — and falls back to the free polite pool when the
+// premium budget (shared with the batch pipeline) is exhausted (429 "Insufficient budget"). The web
+// app's availability must not depend on the batch's budget OR on one slow OpenAlex endpoint.
 async function oaFetch(url: string, init: RequestInit): Promise<Response> {
-  const r = await fetch(url, init);
-  if (r.status === 429 && API_KEY && url.includes(`api_key=${encodeURIComponent(API_KEY)}`)) {
-    return fetch(url.replace(`&api_key=${encodeURIComponent(API_KEY)}`, ""), init);
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  if (!init.signal) {
+    const ctrl = new AbortController();
+    timer = setTimeout(() => ctrl.abort(), 8000);
+    init = { ...init, signal: ctrl.signal };
   }
-  return r;
+  try {
+    const r = await fetch(url, init);
+    if (r.status === 429 && API_KEY && url.includes(`api_key=${encodeURIComponent(API_KEY)}`)) {
+      return await fetch(url.replace(`&api_key=${encodeURIComponent(API_KEY)}`, ""), init);
+    }
+    return r;
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
 }
 
 export interface Work {
@@ -204,6 +215,7 @@ async function _authorsList(url: string, map: (x: any) => AuthorSuggestion): Pro
     const r = await oaFetch(url, {
       headers: { "User-Agent": `al-web/1.0 (${MAILTO})` },
       next: { revalidate: SEARCH_REVALIDATE },
+      signal: AbortSignal.timeout(AUTHOR_TIMEOUT_MS), // don't let a hung /authors?search block the typeahead
     });
     if (!r.ok) return [];
     const j: any = await r.json();
