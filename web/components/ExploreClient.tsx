@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import type { RecordItem } from "@/lib/types";
 import RecordTable, { type SortKey } from "./RecordTable";
 import { SkeletonTable } from "./Skeleton";
@@ -41,7 +41,6 @@ const SORT_LABEL: Record<SortKey, string> = {
 const serverSort = (k: SortKey): string => (k === "cites" ? "cites" : k === "year" ? "year" : "qal");
 
 export default function ExploreClient() {
-  const router = useRouter();
   const sp = useSearchParams();
   // Initial view state is read from the URL query, so navigating to a paper and hitting Back —
   // or sharing/bookmarking the link — restores the same filters, sort, and author selection.
@@ -220,8 +219,11 @@ export default function ExploreClient() {
       if (authorFilter.name) p.set("an", authorFilter.name);
     }
     const qs = p.toString();
-    router.replace(qs ? `/explore?${qs}` : "/explore", { scroll: false });
-  }, [qDebounced, field, year, calOnly, tk, td, authorFilter, router]);
+    // Use the native History API rather than router.replace: replace() triggers an RSC navigation
+    // that re-suspends this component and wipes in-flight state (e.g. the author typeahead) on every
+    // keystroke. We only need the URL bar updated so Back restores the view — no navigation required.
+    window.history.replaceState(window.history.state, "", qs ? `/explore?${qs}` : "/explore");
+  }, [qDebounced, field, year, calOnly, tk, td, authorFilter]);
 
   // Remember scroll position per view, and restore it once after the first results render — so Back
   // lands you where you were in the list, not at the top.
