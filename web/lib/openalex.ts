@@ -8,7 +8,7 @@ const MAILTO = process.env.OPENALEX_MAILTO || "ktulrich@gmail.com";
 const API_KEY = process.env.OPENALEX_API_KEY || ""; // premium key: lifts the daily list budget
 const AUTH = `&mailto=${encodeURIComponent(MAILTO)}${API_KEY ? `&api_key=${encodeURIComponent(API_KEY)}` : ""}`;
 const REVALIDATE = 60 * 60 * 24; // 1 day
-const AUTHOR_TIMEOUT_MS = 2000; // typeahead must stay snappy even if /authors?search is degraded
+const AUTHOR_TIMEOUT_MS = 1200; // typeahead must stay snappy even if /authors?search is degraded
 
 // Every OpenAlex call is bounded by a timeout — a degraded endpoint (e.g. /authors?search returning
 // a 30s gateway timeout) must never hang a request — and falls back to the free polite pool when the

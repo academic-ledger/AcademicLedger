@@ -61,6 +61,7 @@ export default function ExploreClient() {
   const [authorSugs, setAuthorSugs] = useState<AuthorSug[]>([]);
   const [authOpen, setAuthOpen] = useState(false);
   const [authActive, setAuthActive] = useState(-1);
+  const [authSearching, setAuthSearching] = useState(false);
   const [authorFilter, setAuthorFilter] = useState<{ oaid: string; name: string } | null>(() => {
     const a = sp.get("author");
     return a ? { oaid: a, name: sp.get("an") ?? "" } : null;
@@ -100,18 +101,23 @@ export default function ExploreClient() {
     const term = qDebounced.trim();
     if (term.length < 2) {
       setAuthorSugs([]);
+      setAuthSearching(false);
       return;
     }
     let cancelled = false;
+    // Open the dropdown with a "Searching…" state IMMEDIATELY so the author-filter affordance is
+    // visible the instant you type — even while the (sometimes slow) OpenAlex lookup is in flight.
+    setAuthSearching(true);
+    setAuthOpen(true);
+    setAuthActive(-1);
     fetch("/api/authors/search?q=" + encodeURIComponent(term))
       .then((r) => r.json())
       .then((d) => {
         if (cancelled) return;
         setAuthorSugs(d.items ?? []);
-        setAuthOpen(true);
-        setAuthActive(-1);
       })
-      .catch(() => !cancelled && setAuthorSugs([]));
+      .catch(() => !cancelled && setAuthorSugs([]))
+      .finally(() => !cancelled && setAuthSearching(false));
     return () => {
       cancelled = true;
     };
@@ -287,26 +293,32 @@ export default function ExploreClient() {
                 }
               }}
             />
-            {authOpen && authorSugs.length > 0 && (
+            {authOpen && (authSearching || authorSugs.length > 0) && (
               <ul className="authsug">
                 <li className="sug-head">Authors — filter Explore to their papers</li>
-                {authorSugs.map((s, i) => (
-                  <li
-                    key={s.oaid}
-                    className={i === authActive ? "on" : ""}
-                    onMouseEnter={() => setAuthActive(i)}
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      pickAuthor(s);
-                    }}
-                  >
-                    <span className="nm">{s.name}</span>
-                    <span className="meta">
-                      {s.institution || "—"}
-                      {s.works_count != null ? ` · ${s.works_count.toLocaleString()} works` : ""}
-                    </span>
+                {authorSugs.length > 0 ? (
+                  authorSugs.map((s, i) => (
+                    <li
+                      key={s.oaid}
+                      className={i === authActive ? "on" : ""}
+                      onMouseEnter={() => setAuthActive(i)}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        pickAuthor(s);
+                      }}
+                    >
+                      <span className="nm">{s.name}</span>
+                      <span className="meta">
+                        {s.institution || "—"}
+                        {s.works_count != null ? ` · ${s.works_count.toLocaleString()} works` : ""}
+                      </span>
+                    </li>
+                  ))
+                ) : (
+                  <li className="sug-msg" style={{ padding: "8px 12px", color: "#9aa3af", fontStyle: "italic" }}>
+                    Searching authors…
                   </li>
-                ))}
+                )}
               </ul>
             )}
           </div>
