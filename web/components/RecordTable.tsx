@@ -5,7 +5,7 @@ import Link from "next/link";
 import Byline from "./Byline";
 import type { MetricView, RecordItem } from "@/lib/types";
 
-type SortKey = "_r" | "title" | "subfield" | "year" | "cites" | "qalField" | "qalSynth";
+export type SortKey = "_r" | "title" | "subfield" | "year" | "cites" | "qalField" | "qalSynth";
 type ColType = "rank" | "str" | "num";
 
 const COLS: { k: SortKey; t: string; cls?: string; type: ColType }[] = [
@@ -42,20 +42,32 @@ export default function RecordTable({
   records,
   initialSortKey = "cites",
   initialSortDir = -1,
+  sortKey: cSortKey,
+  sortDir: cSortDir,
+  onSortChange,
 }: {
   records: RecordItem[];
   initialSortKey?: SortKey;
   initialSortDir?: 1 | -1;
+  // Controlled mode: when onSortChange is given, the parent owns the sort (so it can persist it,
+  // e.g. in the URL). Otherwise the table keeps its own sort state (used by the author page).
+  sortKey?: SortKey;
+  sortDir?: 1 | -1;
+  onSortChange?: (k: SortKey, d: 1 | -1) => void;
 }) {
-  const [sortKey, setSortKey] = useState<SortKey>(initialSortKey);
-  const [sortDir, setSortDir] = useState<1 | -1>(initialSortDir);
+  const [iSortKey, setISortKey] = useState<SortKey>(initialSortKey);
+  const [iSortDir, setISortDir] = useState<1 | -1>(initialSortDir);
+  const controlled = onSortChange != null;
+  const sortKey = controlled ? cSortKey ?? initialSortKey : iSortKey;
+  const sortDir = controlled ? cSortDir ?? initialSortDir : iSortDir;
 
   function clickHeader(k: SortKey, type: ColType) {
     if (type === "rank") return;
-    if (k === sortKey) setSortDir((d) => (d * -1) as 1 | -1);
+    const nd: 1 | -1 = k === sortKey ? ((sortDir * -1) as 1 | -1) : type === "str" ? 1 : -1;
+    if (controlled) onSortChange!(k, nd);
     else {
-      setSortKey(k);
-      setSortDir(type === "str" ? 1 : -1);
+      setISortKey(k);
+      setISortDir(nd);
     }
   }
 

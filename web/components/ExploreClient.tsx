@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { RecordItem } from "@/lib/types";
-import RecordTable from "./RecordTable";
+import RecordTable, { type SortKey } from "./RecordTable";
 import { SkeletonTable } from "./Skeleton";
 
 interface AuthorSug {
@@ -12,8 +12,6 @@ interface AuthorSug {
   institution: string | null;
   works_count: number | null;
 }
-
-type Sort = "qalField" | "qalSynth" | "cites" | "year";
 
 // The calibrated seed communities, used to seed the field dropdown (others accrue from results).
 const SEED_FIELDS: { sid: string; label: string }[] = [
@@ -28,7 +26,19 @@ const AS_OF = 2026;
 const MIN_VINTAGE = 2000;
 const VINTAGES: number[] = Array.from({ length: AS_OF - MIN_VINTAGE + 1 }, (_, i) => AS_OF - i);
 
-const VALID_SORTS: Sort[] = ["qalField", "qalSynth", "cites", "year"];
+const SORT_KEYS: SortKey[] = ["_r", "title", "subfield", "year", "cites", "qalField", "qalSynth"];
+const SORT_LABEL: Record<SortKey, string> = {
+  _r: "rank",
+  title: "Title",
+  subfield: "Field",
+  year: "Yr",
+  cites: "Cites",
+  qalField: "QaL · field",
+  qalSynth: "QaL · synthetic field",
+};
+// The server only orders by qal / cites / year (it picks WHICH top records load); the table then
+// displays them by the chosen column. title/subfield have no server order — keep the qal selection.
+const serverSort = (k: SortKey): string => (k === "cites" ? "cites" : k === "year" ? "year" : "qal");
 
 export default function ExploreClient() {
   const router = useRouter();
@@ -43,10 +53,11 @@ export default function ExploreClient() {
   const [field, setField] = useState(() => sp.get("field") ?? ""); // subfield id
   const [year, setYear] = useState(() => Number(sp.get("since")) || 0);
   const [calOnly, setCalOnly] = useState(() => sp.get("cal") === "1");
-  const [sort, setSort] = useState<Sort>(() => {
-    const s = sp.get("sort") as Sort;
-    return VALID_SORTS.includes(s) ? s : "qalField";
+  const [tk, setTk] = useState<SortKey>(() => {
+    const s = sp.get("sort") as SortKey;
+    return SORT_KEYS.includes(s) ? s : "qalField";
   });
+  const [td, setTd] = useState<1 | -1>(() => (sp.get("dir") === "1" ? 1 : -1));
   const [fieldOpts, setFieldOpts] = useState(SEED_FIELDS);
   const [authorSugs, setAuthorSugs] = useState<AuthorSug[]>([]);
   const [authOpen, setAuthOpen] = useState(false);
@@ -58,6 +69,14 @@ export default function ExploreClient() {
   const [authorWorks, setAuthorWorks] = useState<RecordItem[]>([]);
   const searchRef = useRef<HTMLDivElement>(null);
   const restoredScroll = useRef(false);
+
+  const ssort = serverSort(tk); // the server-side ordering implied by the chosen column
+
+  // Set the table sort (key + direction). Presets always sort descending.
+  function chooseSort(k: SortKey) {
+    setTk(k);
+    setTd(-1);
+  }
 
   // Pick an author from the dropdown -> filter Explore in place to that author's papers (ranked),
   // rather than navigating away to their profile page.
@@ -145,6 +164,8 @@ export default function ExploreClient() {
   }, [authorFilter, authorWorks, field, year, calOnly]);
 
   // Server-side query: search + filters run against the FULL dataset, not a pre-fetched slice.
+  // Depends on the server ORDERING (ssort), not the display column, so re-sorting the loaded set by
+  // title/subfield doesn't trigger a re-fetch.
   useEffect(() => {
     if (authorFilter) return; // author-filtered view is handled by the effect above
     const p = new URLSearchParams();
@@ -152,7 +173,7 @@ export default function ExploreClient() {
     if (field) p.set("field", field);
     if (year) p.set("since", String(year));
     if (calOnly) p.set("calibrated_only", "true");
-    p.set("sort", sort === "cites" ? "cites" : sort === "year" ? "year" : "qal");
+    p.set("sort", ssort);
     p.set("limit", "500");
     setLoading(true);
     let cancelled = false;
@@ -172,7 +193,7 @@ export default function ExploreClient() {
     return () => {
       cancelled = true;
     };
-  }, [qDebounced, field, year, calOnly, sort, authorFilter]);
+  }, [qDebounced, field, year, calOnly, ssort, authorFilter]);
 
   // Accumulate field dropdown options from results (union, so they never shrink). Vintages are a
   // fixed continuous range (VINTAGES), not result-driven — see U9.
@@ -192,14 +213,15 @@ export default function ExploreClient() {
     if (field) p.set("field", field);
     if (year) p.set("since", String(year));
     if (calOnly) p.set("cal", "1");
-    if (sort !== "qalField") p.set("sort", sort);
+    if (tk !== "qalField") p.set("sort", tk);
+    if (td !== -1) p.set("dir", "1");
     if (authorFilter) {
       p.set("author", authorFilter.oaid);
       if (authorFilter.name) p.set("an", authorFilter.name);
     }
     const qs = p.toString();
     router.replace(qs ? `/explore?${qs}` : "/explore", { scroll: false });
-  }, [qDebounced, field, year, calOnly, sort, authorFilter, router]);
+  }, [qDebounced, field, year, calOnly, tk, td, authorFilter, router]);
 
   // Remember scroll position per view, and restore it once after the first results render — so Back
   // lands you where you were in the list, not at the top.
@@ -221,15 +243,8 @@ export default function ExploreClient() {
     } catch {}
   }, [loading]);
 
-  const sortKey = sort; // RecordTable understands qalField | qalNeigh | cites | year
-  const sortLabel =
-    sort === "cites"
-      ? "Cites"
-      : sort === "year"
-      ? "Yr"
-      : sort === "qalSynth"
-      ? "QaL · synthetic field"
-      : "QaL · field";
+  const sortLabel = SORT_LABEL[tk] ?? "QaL · field";
+  const arrow = td < 0 ? "↓" : "↑";
 
   return (
     <div className="wrap-explore">
@@ -335,7 +350,7 @@ export default function ExploreClient() {
             onClick={() => {
               setField(f.sid);
               setCalOnly(true);
-              setSort("qalSynth");
+              chooseSort("qalSynth");
             }}
           >
             Top QaL · {f.short}
@@ -344,10 +359,10 @@ export default function ExploreClient() {
         <span className="pl" style={{ marginLeft: 6 }}>
           Sort
         </span>
-        <button onClick={() => setSort("qalSynth")}>QaL · synthetic ★</button>
-        <button onClick={() => setSort("qalField")}>QaL · field</button>
-        <button onClick={() => setSort("cites")}>Most cited</button>
-        <button onClick={() => setSort("year")}>Newest</button>
+        <button onClick={() => chooseSort("qalSynth")}>QaL · synthetic ★</button>
+        <button onClick={() => chooseSort("qalField")}>QaL · field</button>
+        <button onClick={() => chooseSort("cites")}>Most cited</button>
+        <button onClick={() => chooseSort("year")}>Newest</button>
       </div>
 
       <p className="rcnote">
@@ -368,7 +383,7 @@ export default function ExploreClient() {
         ) : authorFilter ? (
           <>
             Papers by <b style={{ color: "#16243d" }}>{authorFilter.name}</b> · {all.length} ·{" "}
-            sorted by {sortLabel} ↓ ·{" "}
+            sorted by {sortLabel} {arrow} ·{" "}
             <button
               className="linkbtn"
               onClick={() => {
@@ -382,7 +397,7 @@ export default function ExploreClient() {
         ) : live ? (
           `${all.length} live match${all.length === 1 ? "" : "es"} from OpenAlex · most cited first`
         ) : (
-          `${all.length}${all.length === 500 ? "+" : ""} records · sorted by ${sortLabel} ↓`
+          `${all.length}${all.length === 500 ? "+" : ""} records · sorted by ${sortLabel} ${arrow}`
         )}
       </div>
 
@@ -411,7 +426,7 @@ export default function ExploreClient() {
           )}
         </div>
       ) : (
-        <RecordTable key={sortKey} records={all} initialSortKey={sortKey} initialSortDir={-1} />
+        <RecordTable records={all} sortKey={tk} sortDir={td} onSortChange={(k, d) => { setTk(k); setTd(d); }} />
       )}
 
       <footer>
