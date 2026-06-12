@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { RecordItem } from "@/lib/types";
 import RecordTable from "./RecordTable";
 import { SkeletonTable } from "./Skeleton";
@@ -27,23 +28,36 @@ const AS_OF = 2026;
 const MIN_VINTAGE = 2000;
 const VINTAGES: number[] = Array.from({ length: AS_OF - MIN_VINTAGE + 1 }, (_, i) => AS_OF - i);
 
+const VALID_SORTS: Sort[] = ["qalField", "qalSynth", "cites", "year"];
+
 export default function ExploreClient() {
+  const router = useRouter();
+  const sp = useSearchParams();
+  // Initial view state is read from the URL query, so navigating to a paper and hitting Back —
+  // or sharing/bookmarking the link — restores the same filters, sort, and author selection.
   const [all, setAll] = useState<RecordItem[]>([]);
   const [live, setLive] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [q, setQ] = useState("");
-  const [qDebounced, setQDebounced] = useState("");
-  const [field, setField] = useState(""); // subfield id
-  const [year, setYear] = useState(0);
-  const [calOnly, setCalOnly] = useState(false);
-  const [sort, setSort] = useState<Sort>("qalField");
+  const [q, setQ] = useState(() => sp.get("q") ?? "");
+  const [qDebounced, setQDebounced] = useState(() => sp.get("q") ?? "");
+  const [field, setField] = useState(() => sp.get("field") ?? ""); // subfield id
+  const [year, setYear] = useState(() => Number(sp.get("since")) || 0);
+  const [calOnly, setCalOnly] = useState(() => sp.get("cal") === "1");
+  const [sort, setSort] = useState<Sort>(() => {
+    const s = sp.get("sort") as Sort;
+    return VALID_SORTS.includes(s) ? s : "qalField";
+  });
   const [fieldOpts, setFieldOpts] = useState(SEED_FIELDS);
   const [authorSugs, setAuthorSugs] = useState<AuthorSug[]>([]);
   const [authOpen, setAuthOpen] = useState(false);
   const [authActive, setAuthActive] = useState(-1);
-  const [authorFilter, setAuthorFilter] = useState<{ oaid: string; name: string } | null>(null);
+  const [authorFilter, setAuthorFilter] = useState<{ oaid: string; name: string } | null>(() => {
+    const a = sp.get("author");
+    return a ? { oaid: a, name: sp.get("an") ?? "" } : null;
+  });
   const [authorWorks, setAuthorWorks] = useState<RecordItem[]>([]);
   const searchRef = useRef<HTMLDivElement>(null);
+  const restoredScroll = useRef(false);
 
   // Pick an author from the dropdown -> filter Explore in place to that author's papers (ranked),
   // rather than navigating away to their profile page.
@@ -169,6 +183,43 @@ export default function ExploreClient() {
       return [...m].map(([sid, label]) => ({ sid, label })).sort((a, b) => a.label.localeCompare(b.label));
     });
   }, [all]);
+
+  // Mirror the view state into the URL (replace — no new history entry per keystroke/click) so that
+  // Back from a paper restores it. Keyed on the *applied* values (qDebounced) that drive results.
+  useEffect(() => {
+    const p = new URLSearchParams();
+    if (qDebounced.trim()) p.set("q", qDebounced.trim());
+    if (field) p.set("field", field);
+    if (year) p.set("since", String(year));
+    if (calOnly) p.set("cal", "1");
+    if (sort !== "qalField") p.set("sort", sort);
+    if (authorFilter) {
+      p.set("author", authorFilter.oaid);
+      if (authorFilter.name) p.set("an", authorFilter.name);
+    }
+    const qs = p.toString();
+    router.replace(qs ? `/explore?${qs}` : "/explore", { scroll: false });
+  }, [qDebounced, field, year, calOnly, sort, authorFilter, router]);
+
+  // Remember scroll position per view, and restore it once after the first results render — so Back
+  // lands you where you were in the list, not at the top.
+  useEffect(() => {
+    const onScroll = () => {
+      try {
+        sessionStorage.setItem("explore:y:" + window.location.search, String(window.scrollY));
+      } catch {}
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+  useEffect(() => {
+    if (restoredScroll.current || loading) return;
+    restoredScroll.current = true;
+    try {
+      const y = sessionStorage.getItem("explore:y:" + window.location.search);
+      if (y) requestAnimationFrame(() => window.scrollTo(0, parseInt(y, 10)));
+    } catch {}
+  }, [loading]);
 
   const sortKey = sort; // RecordTable understands qalField | qalNeigh | cites | year
   const sortLabel =

@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Brand from "@/components/Brand";
 import ExploreClient from "@/components/ExploreClient";
 
@@ -7,7 +8,9 @@ export default function ExplorePage() {
   return (
     <>
       <Brand active="explore" />
-      <ExploreClient />
+      <Suspense>
+        <ExploreClient />
+      </Suspense>
     </>
   );
 }
