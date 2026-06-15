@@ -165,12 +165,6 @@ export default function RecordTable({
                 </td>
                 <td>
                   <FieldCell w={w} />
-                  <br />
-                  {w.calibrated ? (
-                    <span className="seeddot">calibrated</span>
-                  ) : (
-                    <span className="penddot">pending</span>
-                  )}
                 </td>
                 <td className="num">{w.year || ""}</td>
                 <td className="num">{(w.cites || 0).toLocaleString()}</td>

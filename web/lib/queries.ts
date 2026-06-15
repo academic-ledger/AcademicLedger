@@ -506,6 +506,7 @@ export async function getAuthorRecord(oaid: string): Promise<AuthorPayload | nul
       metrics: c ? toMetrics(c.metrics) : null,
     };
   });
+  await attachCompositions(items); // synthetic-field blend for the Fields column (same as explore)
 
   return {
     author: {
