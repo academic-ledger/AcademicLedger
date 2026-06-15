@@ -1,6 +1,8 @@
 // Loading skeletons (U1): shown while server pages stream (route loading.tsx) and while
 // the explore client fetch is in flight, so the UI never looks frozen.
 
+import type { ReactNode } from "react";
+
 function L({ w, h = 12, mt = 0 }: { w: number | string; h?: number; mt?: number }) {
   return (
     <span
@@ -10,7 +12,16 @@ function L({ w, h = 12, mt = 0 }: { w: number | string; h?: number; mt?: number 
   );
 }
 
-const HEADERS = ["#", "Title", "Field", "Yr", "Cites", "QaL · field", "QaL · synthetic ★"];
+const NOUP = { textTransform: "none" as const };
+const HEADERS: { k: string; t: ReactNode }[] = [
+  { k: "r", t: "#" },
+  { k: "title", t: "Title" },
+  { k: "fields", t: "Fields" },
+  { k: "yr", t: "Yr" },
+  { k: "cites", t: "Cites" },
+  { k: "qf", t: <><span style={NOUP}>QaL</span> · field</> },
+  { k: "qs", t: <><span style={NOUP}>QaL</span> · synthetic ★</> },
+];
 
 export function SkeletonTable({ rows = 10 }: { rows?: number }) {
   return (
@@ -19,7 +30,7 @@ export function SkeletonTable({ rows = 10 }: { rows?: number }) {
         <thead>
           <tr>
             {HEADERS.map((h) => (
-              <th key={h}>{h}</th>
+              <th key={h.k}>{h.t}</th>
             ))}
           </tr>
         </thead>

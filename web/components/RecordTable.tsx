@@ -4,6 +4,7 @@ import { useState, type ReactNode } from "react";
 import Link from "next/link";
 import Byline from "./Byline";
 import type { MetricView, RecordItem } from "@/lib/types";
+import { SUBFIELD_SHORT } from "@/lib/subfieldShort";
 
 export type SortKey = "_r" | "title" | "subfield" | "year" | "cites" | "qalField" | "qalSynth";
 type ColType = "rank" | "str" | "num";
@@ -61,14 +62,15 @@ function FieldCell({ w }: { w: RecordItem }) {
       </span>
     );
   }
+  const label = (w.sid && SUBFIELD_SHORT[w.sid]) || w.subfield || "—";
   if (comp) {
     return (
       <span className="ftagsm">
-        {w.subfield || "—"} <span style={{ fontStyle: "italic", color: muted }}>· blend pending</span>
+        {label} <span style={{ fontStyle: "italic", color: muted }}>· blend pending</span>
       </span>
     );
   }
-  return <span className="ftagsm">{w.subfield || "—"}</span>;
+  return <span className="ftagsm">{label}</span>;
 }
 
 export default function RecordTable({
