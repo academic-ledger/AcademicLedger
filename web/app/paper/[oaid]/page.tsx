@@ -72,11 +72,16 @@ export default async function PaperPage({ params }: { params: { oaid: string } }
           </p>
         )}
         <p className="meta">
-          {rec.venue && <span className="pill">{rec.venue}</span>}
+          {rec.venue && (
+            <>
+              <em>{rec.venue}</em>
+              {(fieldPill || rec.year) && " · "}
+            </>
+          )}
           {fieldPill}
+          {fieldPill && rec.year && " · "}
           {rec.year && (
             <>
-              {" "}
               Posted <b>{rec.year}</b>
               {age ? ` · ${age} years on the record` : ""}
             </>
