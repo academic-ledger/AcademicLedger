@@ -2,6 +2,7 @@ import Brand from "@/components/Brand";
 import Byline from "@/components/Byline";
 import CitationCard from "@/components/CitationCard";
 import { getPaperRecord } from "@/lib/queries";
+import { SUBFIELD_SHORT } from "@/lib/subfieldShort";
 
 export const dynamic = "force-dynamic";
 
@@ -29,6 +30,25 @@ export default async function PaperPage({ params }: { params: { oaid: string } }
   const age = rec.year ? Math.max(1, 2026 - rec.year + 1) : null;
   const src = rec.doi || `https://openalex.org/${rec.oaid}`;
 
+  // Field summary pill (replaces the bare "synthetic field" label): the explore Top-1 + N treatment
+  // — dominant subfield (short label) + weight + "+N more", full blend on hover. Omitted when there
+  // is no synthetic blend (the QaL hero already states the single-field stand-in).
+  const comp = rec.composition as { sid: string; name: string; weight: number }[] | null | undefined;
+  const fieldPill =
+    comp && comp.length
+      ? (() => {
+          const d = comp[0];
+          const pct = (x: number) => Math.round(x * 100);
+          const more = comp.length - 1;
+          const tip = "Synthetic field — " + comp.map((c) => `${c.name} ${pct(c.weight)}%`).join(" · ");
+          return (
+            <span className="pill" title={tip} style={{ cursor: "help" }}>
+              {SUBFIELD_SHORT[d.sid] ?? d.name} {pct(d.weight)}%{more > 0 ? ` · +${more} more` : ""}
+            </span>
+          );
+        })()
+      : null;
+
   // U4: a clean formatted citation from the fields we have (volume/issue/pages pending the
   // OpenAlex `biblio` field — see backlog U4).
   const citation = [
@@ -53,7 +73,7 @@ export default async function PaperPage({ params }: { params: { oaid: string } }
         )}
         <p className="meta">
           {rec.venue && <span className="pill">{rec.venue}</span>}
-          {rec.reference_class?.field_label && <span className="pill">{rec.reference_class.field_label}</span>}
+          {fieldPill}
           {rec.year && (
             <>
               {" "}
