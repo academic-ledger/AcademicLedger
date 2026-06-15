@@ -3,6 +3,7 @@ import type { AuthorPayload, Metrics, MetricView, RecordItem } from "./types";
 import { buckets, classProb, type QalPoint } from "./qal";
 import { fetchWork, fetchAuthor, fetchAuthorWorks, searchWorks, type Work } from "./openalex";
 import { syntheticQal } from "./synthetic";
+import { SUBFIELD_SHORT } from "./subfieldShort";
 
 const SEED = new Set(["1800", "1802", "1803"]);
 const H = 10;
@@ -196,11 +197,48 @@ export async function getExplore(p: ExploreParams): Promise<ExploreResult> {
     (where.length ? ` where ${where.join(" and ")}` : "") +
     ` order by ${order} limit $${args.length}`;
   const rows = await query(sql, args);
-  if (rows.length) return { items: rows.map(mapRow), live: false };
+  if (rows.length) {
+    const items = rows.map(mapRow);
+    await attachCompositions(items);
+    return { items, live: false };
+  }
 
   // Nothing in the index — try a live OpenAlex discovery search.
   const live = await getExploreLive(p);
   return { items: live, live: live.length > 0 };
+}
+
+// Attach the synthetic-field blend (top subfields by weight, each with full name + short label) to a
+// batch of explore records, for the "Fields" column. One query for all weights + one for the names.
+// composition = [] means we looked and there's no synthetic field yet ("blend pending").
+async function attachCompositions(items: RecordItem[]) {
+  if (!items.length) return;
+  const oaids = items.map((i) => i.oaid);
+  const wrows = await query<{ oaid: string; weights: Record<string, number> | { sid: string; weight: number }[] | null }>(
+    `select oaid, weights from synthetic_field where oaid = any($1)`,
+    [oaids]
+  );
+  const wmap = new Map(wrows.map((r) => [r.oaid, r.weights]));
+  const names = await query<{ id: string; name: string }>(`select id, name from subfields`);
+  const nameMap = new Map(names.map((r) => [r.id, r.name]));
+  for (const it of items) {
+    const w = wmap.get(it.oaid);
+    if (!w) {
+      it.composition = [];
+      continue;
+    }
+    const entries: { sid: string; weight: number }[] = Array.isArray(w)
+      ? w.map((x) => ({ sid: x.sid, weight: Number(x.weight) }))
+      : Object.entries(w).map(([sid, weight]) => ({ sid, weight: Number(weight) }));
+    it.composition = entries
+      .filter((e) => e.weight > 0)
+      .sort((a, b) => b.weight - a.weight)
+      .slice(0, 8)
+      .map(({ sid, weight }) => {
+        const name = nameMap.get(sid) ?? `Subfield ${sid}`;
+        return { sid, name, short: SUBFIELD_SHORT[sid] ?? name, weight };
+      });
+  }
 }
 
 // Synthetic-field composition (U3): the paper's reference-class blend as ranked

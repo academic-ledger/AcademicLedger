@@ -41,6 +41,10 @@ export interface RecordItem {
   calibrated: boolean;
   qal: QalPoint | null; // official QaL; null when calibration-pending
   metrics: Metrics | null; // both reference classes (field + co-citation neighborhood)
+  // Synthetic-field blend for the explore "Fields" column: top subfields by weight, each with its
+  // full name and short label. A non-empty array → show the blend; [] → no blend computed ("blend
+  // pending"); undefined → not fetched in this view (e.g. author page) → plain single label.
+  composition?: { sid: string; name: string; short: string; weight: number }[] | null;
 }
 
 export interface AuthorHeader {

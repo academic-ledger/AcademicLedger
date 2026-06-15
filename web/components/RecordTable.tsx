@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import Link from "next/link";
 import Byline from "./Byline";
 import type { MetricView, RecordItem } from "@/lib/types";
@@ -8,14 +8,16 @@ import type { MetricView, RecordItem } from "@/lib/types";
 export type SortKey = "_r" | "title" | "subfield" | "year" | "cites" | "qalField" | "qalSynth";
 type ColType = "rank" | "str" | "num";
 
-const COLS: { k: SortKey; t: string; cls?: string; type: ColType }[] = [
+// The header row is CSS-uppercased; keep the "QaL" wordmark mixed-case with a no-transform span.
+const NOUP = { textTransform: "none" as const };
+const COLS: { k: SortKey; t: ReactNode; cls?: string; type: ColType }[] = [
   { k: "_r", t: "#", cls: "rank", type: "rank" },
   { k: "title", t: "Title", type: "str" },
-  { k: "subfield", t: "Field", type: "str" },
+  { k: "subfield", t: "Fields", type: "str" },
   { k: "year", t: "Yr", cls: "num", type: "num" },
   { k: "cites", t: "Cites", cls: "num", type: "num" },
-  { k: "qalField", t: "QaL · field", cls: "num", type: "num" },
-  { k: "qalSynth", t: "QaL · synthetic ★", cls: "num", type: "num" },
+  { k: "qalField", t: <><span style={NOUP}>QaL</span> · field</>, cls: "num", type: "num" },
+  { k: "qalSynth", t: <><span style={NOUP}>QaL</span> · synthetic ★</>, cls: "num", type: "num" },
 ];
 
 function sortVal(w: RecordItem, key: SortKey): number | string {
@@ -36,6 +38,37 @@ function QalCell({ m, official }: { m: MetricView | null | undefined; official: 
       </span>
     </>
   );
+}
+
+// "Fields" column. With a synthetic blend: dominant subfield + weight + "+N more", full blend on
+// hover (native title — robust inside the scrollable table). Otherwise the single OpenAlex label;
+// "· blend pending" (italic) when explore looked and found no synthetic field, plain when the
+// composition wasn't fetched for this view (e.g. the author page).
+function FieldCell({ w }: { w: RecordItem }) {
+  const muted = "#9aa3af";
+  const comp = w.composition;
+  if (comp && comp.length > 0) {
+    const pct = (x: number) => Math.round(x * 100);
+    const d = comp[0];
+    const more = comp.length - 1;
+    const tip = "Synthetic field — " + comp.map((c) => `${c.name} ${pct(c.weight)}%`).join(" · ");
+    return (
+      <span className="ftagsm" title={tip} style={{ cursor: "help" }}>
+        {d.short} <span style={{ color: muted }}>{pct(d.weight)}%</span>
+        {more > 0 ? (
+          <span style={{ color: muted, borderBottom: `1px dotted ${muted}` }}> · +{more} more</span>
+        ) : null}
+      </span>
+    );
+  }
+  if (comp) {
+    return (
+      <span className="ftagsm">
+        {w.subfield || "—"} <span style={{ fontStyle: "italic", color: muted }}>· blend pending</span>
+      </span>
+    );
+  }
+  return <span className="ftagsm">{w.subfield || "—"}</span>;
 }
 
 export default function RecordTable({
@@ -129,7 +162,7 @@ export default function RecordTable({
                   </div>
                 </td>
                 <td>
-                  <span className="ftagsm">{w.subfield || "—"}</span>
+                  <FieldCell w={w} />
                   <br />
                   {w.calibrated ? (
                     <span className="seeddot">calibrated</span>
