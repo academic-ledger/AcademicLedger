@@ -236,15 +236,25 @@ def _compose(conn, labels, H, seed, snapshot, as_of, model_version):
                            else metric(synth_obs, age, raw_age))
                 synth_m["n"] = n_cit
 
-            # Official = the synthetic field when computed, else the single-label field stand-in.
-            official = "synthetic" if has_synth else "field"
-            off = synth_m if has_synth else field_m
+            # Official class: prefer the synthetic field when it yields a calibrated forecast (§5).
+            # If the synthetic field is computed but observed-only (its community isn't calibrated)
+            # while the single OpenAlex subfield IS calibrated, keep that subfield official so the
+            # paper still shows a calibrated forecast (the honest stand-in) with the synthetic blend
+            # shown alongside. Only when neither is calibrated does observed-only synthetic lead.
+            if has_synth and synth_m and synth_m["calibrated"]:
+                official, off = "synthetic", synth_m
+            elif field_m and field_m["calibrated"]:
+                official, off = "field", field_m
+            elif has_synth:
+                official, off = "synthetic", synth_m
+            else:
+                official, off = "field", field_m
             # Stored metrics are lean (point + interval + obs); the bulky class_prob is kept
             # only once, in the top-level column, for the official metric (paper-page hero).
             lean = lambda m: None if m is None else {k: m[k] for k in m if k != "class_prob"}
             metrics = {"field": lean(field_m), "synthetic": lean(synth_m), "official": official}
 
-            if has_synth:
+            if official == "synthetic":
                 ref = {"field": "synthetic-field", "field_label": "synthetic field",
                        "kind": "synthetic", "vintage_year": year, "n": synth_m["n"],
                        "gp_weight": synth_m.get("gp_weight"), "field_percentile": field_obs}
