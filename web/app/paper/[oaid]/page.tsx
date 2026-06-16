@@ -114,6 +114,11 @@ export default async function PaperPage({ params }: { params: { oaid: string } }
                       settled standing{age ? ` · decided at ${age} years` : ""} · at maturity the
                       eventual percentile ≈ the observed percentile, with little left to forecast
                     </>
+                  ) : rec.reference_class?.coverage === "fitted" ? (
+                    <>
+                      eventual percentile · 90% interval ·{" "}
+                      <em>preliminary — this community isn&rsquo;t back-tested yet</em>
+                    </>
                   ) : (
                     <>eventual percentile · point estimate with 90% interval · <em>illustrative</em></>
                   )}
@@ -155,6 +160,14 @@ export default async function PaperPage({ params }: { params: { oaid: string } }
                     {" "}
                     · <span title="share of the reference class in back-tested subfields">
                       {Math.round(rec.reference_class.gp_weight * 100)}% back-tested
+                    </span>
+                  </>
+                )}
+                {rec.reference_class.coverage === "fitted" && (
+                  <>
+                    {" "}
+                    · <span title="calibrated on matured data, but this community hasn't passed the leave-one-vintage-out back-test yet — treat the forecast as preliminary">
+                      preliminary · {Math.round((rec.reference_class.gp_weight ?? 0) * 100)}% back-tested
                     </span>
                   </>
                 )}

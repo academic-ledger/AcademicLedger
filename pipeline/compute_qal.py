@@ -175,24 +175,30 @@ def _compose(conn, labels, H, seed, snapshot, as_of, model_version):
         blend the posteriors by the synthetic-field weights; confidence (gp_weight) = the share of
         the reference class in back-tested subfields. A forecast shows when >=50% of the weight is
         gate-passed; else the maturity rule for a decided paper; else observed-only."""
-        gpW = 0.0
+        gpW = calW = 0.0
         m = q5 = q95 = 0.0
         acc = {c: 0.0 for c in CUTS}
         for p in (parts or []):
             s, ws, pct = p.get("sid"), p.get("weight", 0.0), p.get("pct")
-            if pct is None or confidence_by_comm.get(s) != "gate-passed":
+            conf = confidence_by_comm.get(s)
+            if pct is None or conf not in ("gate-passed", "fitted"):
                 continue
             cell = cl.predict_cell(calib_by_comm.get(s, {}), age, pct)
             if not cell:
                 continue
-            gpW += ws
+            calW += ws
+            if conf == "gate-passed":
+                gpW += ws
             m += ws * cell["median"]; q5 += ws * cell["q5"]; q95 += ws * cell["q95"]
             for c in CUTS:
                 acc[c] += ws * cell[f"p_ge{c}"]
         gp_weight = round(gpW, 2)
-        if gpW >= 0.5:
-            n = lambda x: x / gpW
-            return {"obs": synth_obs, "calibrated": True, "coverage": "gate-passed", "gp_weight": gp_weight,
+        # A forecast shows when >=50% of the reference class is calibrated (gate-passed OR fitted);
+        # it's labeled 'gate-passed' only if >=50% is back-tested, else 'fitted' (preliminary).
+        if calW >= 0.5:
+            n = lambda x: x / calW
+            tier = "gate-passed" if gpW >= 0.5 else "fitted"
+            return {"obs": synth_obs, "calibrated": True, "coverage": tier, "gp_weight": gp_weight,
                     "point": round(n(m), 1), "ci_lo": round(n(q5), 1), "ci_hi": round(n(q95), 1),
                     "class_prob": {f"ge{c}": round(n(acc[c]), 4) for c in CUTS}}
         if raw_age >= H:

@@ -271,34 +271,50 @@ export async function syntheticField(oaid: string): Promise<SynthResult | null> 
 
 const H = 10;
 
-// The gate-passed calibration cell for a community at (age, observed pct), linearly interpolated
-// between the bracketing grid points — only for a community whose calibration is gate-passed.
-async function gatePassedCell(community: string, age: number, obs: number) {
+type CalibCell = {
+  median: number; q5: number; q95: number;
+  ge50: number; ge75: number; ge90: number; ge95: number; ge99: number;
+};
+
+// A calibration cell for a community at (age, obs): gate-passed OR fitted (calibrated on matured
+// data but not yet back-test-certified). Returns the interpolated cell plus its tier, so the blend
+// can surface fitted-tier forecasts labeled "preliminary". A community's cells share one tier.
+async function calibCell(
+  community: string,
+  age: number,
+  obs: number
+): Promise<{ cell: CalibCell; tier: "gate-passed" | "fitted" } | null> {
   const rows = await query<any>(
-    `select obs_pct_bin, eventual_median, ci_lo, ci_hi, p_ge50, p_ge75, p_ge90, p_ge95, p_ge99
+    `select obs_pct_bin, eventual_median, ci_lo, ci_hi, p_ge50, p_ge75, p_ge90, p_ge95, p_ge99, confidence
        from calibration_models
-      where community=$1 and age_years=$2 and model_version='qal-0.1' and confidence='gate-passed'
+      where community=$1 and age_years=$2 and model_version='qal-0.1'
+        and confidence in ('gate-passed','fitted')
       order by obs_pct_bin`,
     [community, age]
   );
   if (!rows.length) return null;
+  const tier: "gate-passed" | "fitted" = rows[0].confidence === "gate-passed" ? "gate-passed" : "fitted";
   const gs = rows.map((r) => Number(r.obs_pct_bin));
-  const mk = (r: any) => ({
+  const mk = (r: any): CalibCell => ({
     median: +r.eventual_median, q5: +r.ci_lo, q95: +r.ci_hi,
     ge50: +r.p_ge50, ge75: +r.p_ge75, ge90: +r.p_ge90, ge95: +r.p_ge95, ge99: +r.p_ge99,
   });
-  if (obs <= gs[0]) return mk(rows[0]);
-  if (obs >= gs[gs.length - 1]) return mk(rows[rows.length - 1]);
-  const i = gs.findIndex((g) => g > obs);
-  const c0 = mk(rows[i - 1]);
-  const c1 = mk(rows[i]);
-  const t = (obs - gs[i - 1]) / (gs[i] - gs[i - 1]);
-  const lerp = (a: number, b: number) => a * (1 - t) + b * t;
-  return {
-    median: lerp(c0.median, c1.median), q5: lerp(c0.q5, c1.q5), q95: lerp(c0.q95, c1.q95),
-    ge50: lerp(c0.ge50, c1.ge50), ge75: lerp(c0.ge75, c1.ge75), ge90: lerp(c0.ge90, c1.ge90),
-    ge95: lerp(c0.ge95, c1.ge95), ge99: lerp(c0.ge99, c1.ge99),
-  };
+  let cell: CalibCell;
+  if (obs <= gs[0]) cell = mk(rows[0]);
+  else if (obs >= gs[gs.length - 1]) cell = mk(rows[rows.length - 1]);
+  else {
+    const i = gs.findIndex((g) => g > obs);
+    const c0 = mk(rows[i - 1]);
+    const c1 = mk(rows[i]);
+    const t = (obs - gs[i - 1]) / (gs[i] - gs[i - 1]);
+    const lerp = (a: number, b: number) => a * (1 - t) + b * t;
+    cell = {
+      median: lerp(c0.median, c1.median), q5: lerp(c0.q5, c1.q5), q95: lerp(c0.q95, c1.q95),
+      ge50: lerp(c0.ge50, c1.ge50), ge75: lerp(c0.ge75, c1.ge75), ge90: lerp(c0.ge90, c1.ge90),
+      ge95: lerp(c0.ge95, c1.ge95), ge99: lerp(c0.ge99, c1.ge99),
+    };
+  }
+  return { cell, tier };
 }
 
 export interface SyntheticQal {
@@ -309,7 +325,7 @@ export interface SyntheticQal {
   basis: "references" | "co-citation" | "author-prior";
   gp_weight: number; // share of the reference class sitting in back-tested (gate-passed) subfields
   calibrated: boolean;
-  coverage: "gate-passed" | "mature" | "observed";
+  coverage: "gate-passed" | "fitted" | "mature" | "observed";
   qal: { point: number; ci90: [number, number]; class_prob: ClassProb; buckets: ReturnType<typeof buckets> } | null;
 }
 
@@ -374,15 +390,17 @@ async function blendQal(sf: SynthResult): Promise<SyntheticQal | null> {
     obs, weights: sf.weights, dominant: sf.parts[0]?.sid ?? null, vintage: sf.vintage, basis: sf.basis,
   };
 
-  // blend each gate-passed subfield's posterior (its calibration applied to the focal's percentile
-  // in that subfield), weighted by the synthetic-field weights; gpW = total gate-passed weight.
-  let gpW = 0;
+  // blend each CALIBRATED subfield's posterior (gate-passed or fitted), weighted by the synthetic-
+  // field weights. gpW = back-tested weight; calW = total calibrated weight (gate-passed + fitted).
+  let gpW = 0, calW = 0;
   let m = 0, q5 = 0, q95 = 0;
   const acc: ClassProb = { ge50: 0, ge75: 0, ge90: 0, ge95: 0, ge99: 0 };
   for (const { sid, weight, pct } of sf.parts) {
-    const cell = await gatePassedCell(sid, age, pct);
-    if (!cell) continue; // this subfield isn't back-tested -> its share contributes no forecast
-    gpW += weight;
+    const r = await calibCell(sid, age, pct);
+    if (!r) continue; // this subfield has no calibration -> its share contributes no forecast
+    calW += weight;
+    if (r.tier === "gate-passed") gpW += weight;
+    const cell = r.cell;
     m += weight * cell.median;
     q5 += weight * cell.q5;
     q95 += weight * cell.q95;
@@ -394,16 +412,17 @@ async function blendQal(sf: SynthResult): Promise<SyntheticQal | null> {
   }
   const gp_weight = Math.round(gpW * 100) / 100;
 
-  // (1) enough of the reference class is back-tested -> blended gate-passed forecast
-  if (gpW >= GP_MIN) {
-    const n = (x: number) => x / gpW; // renormalize over the gate-passed weight
+  // (1) enough of the reference class is calibrated -> blended forecast. Labeled "gate-passed" only
+  // if >=50% is back-tested; otherwise "fitted" (preliminary — calibrated but not yet back-tested).
+  if (calW >= GP_MIN) {
+    const n = (x: number) => x / calW; // renormalize over the calibrated weight
     const cp: ClassProb = {
       ge50: Math.round(n(acc.ge50) * 100) / 100, ge75: Math.round(n(acc.ge75) * 100) / 100,
       ge90: Math.round(n(acc.ge90) * 100) / 100, ge95: Math.round(n(acc.ge95) * 100) / 100,
       ge99: Math.round(n(acc.ge99) * 100) / 100,
     };
     return {
-      ...base, gp_weight, calibrated: true, coverage: "gate-passed",
+      ...base, gp_weight, calibrated: true, coverage: gpW >= GP_MIN ? "gate-passed" : "fitted",
       qal: { point: Math.round(n(m)), ci90: [Math.round(n(q5)), Math.round(n(q95))], class_prob: cp, buckets: buckets(cp) },
     };
   }
