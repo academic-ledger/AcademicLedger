@@ -10,7 +10,7 @@ on:
 jobs:
   drain:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 50
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
       OPENALEX_MAILTO: ${{ secrets.OPENALEX_MAILTO }}
@@ -20,4 +20,4 @@ jobs:
         with: { python-version: '3.12' }
       - run: pip install -r pipeline/requirements.txt
       - name: Drain the view queue (polite pool — free)
-        run: python pipeline/synth_worker.py --limit 200
+        run: python pipeline/synth_worker.py --limit 120
