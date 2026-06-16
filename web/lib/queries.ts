@@ -297,9 +297,12 @@ export async function getPaperRecord(oaid: string) {
   );
   const c = cached.length ? cached[0] : null;
   const composition = await getComposition(oaid);
-  // No cached synthetic blend for this paper -> queue it for the free-pool worker to compute and
-  // persist, so the next view (and Explore) serve the real synthetic field, not the stand-in.
-  if (!composition) await enqueueSynthView(oaid);
+  // No cached synthetic blend -> queue it for the free-pool worker to compute and persist, so the
+  // next view (and Explore) serve the real synthetic field, not the stand-in. Gated to papers with
+  // >=1 citation: uncited papers (~62% of the corpus) sit in the uncited atom with no meaningful
+  // forecast, and public crawler traffic on them would otherwise flood the queue (≈99% of it).
+  const SYNTH_MIN_CITES = 1;
+  if (!composition && (work.cites ?? 0) >= SYNTH_MIN_CITES) await enqueueSynthView(oaid);
 
   const base = {
     oaid: work.oaid,
