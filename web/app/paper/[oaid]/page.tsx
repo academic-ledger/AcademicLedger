@@ -21,7 +21,10 @@ export default async function PaperPage({ params }: { params: { oaid: string } }
     return (
       <>
         <Brand />
-        <div className="notfound">No record for {params.oaid}.</div>
+        <div className="notfound">
+          This paper isn&rsquo;t in the academic Ledger index yet. Explore indexed work from the{" "}
+          <a href="/explore">Explore</a> page.
+        </div>
       </>
     );
   }

@@ -286,9 +286,10 @@ async function storedWork(oaid: string) {
 }
 
 export async function getPaperRecord(oaid: string) {
-  const work = (await fetchWork(oaid)) ?? (await storedWork(oaid));
-  if (!work) return null;
-
+  // Index gate FIRST — DB only, zero OpenAlex. A paper-page view for an id OUTSIDE our index (e.g.
+  // an anonymous crawler hitting arbitrary OpenAlex ids) must not trigger any metered API call;
+  // that was the budget-drain vector. Only papers we've indexed (a qal_records row exists) proceed
+  // to the live OpenAlex display + QaL treatment. Out-of-index ids get a cheap "not indexed" page.
   const cached = await query<any>(
     `select obs_percentile, calibrated, qal_point, qal_ci_lo, qal_ci_hi,
             class_prob, reference_class, metrics
@@ -296,6 +297,11 @@ export async function getPaperRecord(oaid: string) {
     [oaid]
   );
   const c = cached.length ? cached[0] : null;
+  if (!c) return null; // not in the academic Ledger index — no OpenAlex calls
+
+  const work = (await fetchWork(oaid)) ?? (await storedWork(oaid));
+  if (!work) return null;
+
   const composition = await getComposition(oaid);
   // No cached synthetic blend -> queue it for the free-pool worker. Gated to papers that are (a) in
   // our corpus (c != null — the worker can only store a blend for an oaid in `works`, and won't
