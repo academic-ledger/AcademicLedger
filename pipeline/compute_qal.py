@@ -59,20 +59,10 @@ def obs_percentile(cdf, cites):
     return float(cdf[i]["pct"])
 
 
-def main():
-    db = os.environ.get("DATABASE_URL")
-    if not db:
-        print("No DATABASE_URL; this job expects the datastore. See README.")
-        return
-    import psycopg
-
-    labels, H, seed = load_labels()
-    snapshot = os.environ.get("OPENALEX_SNAPSHOT")  # None -> pick latest per cohort
-    as_of = int(os.environ.get("AS_OF_YEAR", "2026"))
-    model_version = os.environ.get("MODEL_VERSION", "qal-0.1")
-
-    conn = psycopg.connect(db, keepalives=1, keepalives_idle=30,
-                           keepalives_interval=10, keepalives_count=5)
+def _compose(conn, labels, H, seed, snapshot, as_of, model_version):
+    """One full compose pass: read cohorts/calibration/synthetic + every work, write qal_records.
+    Idempotent (UPSERT on oaid), so the caller can safely retry the whole pass if Neon drops the
+    connection mid-run. Returns (n_written, n_calibrated)."""
     n_written = 0
     n_calibrated = 0
     with conn.cursor() as cur:
@@ -274,9 +264,46 @@ def main():
                 flush(wcur)
         flush(wcur)
     conn.commit()
-    conn.close()
     print(f"compute_qal: wrote {n_written} records ({n_calibrated} calibrated, "
           f"{n_written - n_calibrated} calibration-pending)")
+    return n_written, n_calibrated
+
+
+def main():
+    db = os.environ.get("DATABASE_URL")
+    if not db:
+        print("No DATABASE_URL; this job expects the datastore. See README.")
+        return
+    import psycopg
+    import time
+
+    labels, H, seed = load_labels()
+    snapshot = os.environ.get("OPENALEX_SNAPSHOT")  # None -> pick latest per cohort
+    as_of = int(os.environ.get("AS_OF_YEAR", "2026"))
+    model_version = os.environ.get("MODEL_VERSION", "qal-0.1")
+
+    # Neon can drop a long-lived connection mid-run (the 2026-06-15 crash). The compose pass is
+    # idempotent, so on an OperationalError we reconnect and re-run it from the top.
+    attempt = 0
+    while True:
+        conn = psycopg.connect(db, keepalives=1, keepalives_idle=30,
+                               keepalives_interval=10, keepalives_count=5)
+        try:
+            _compose(conn, labels, H, seed, snapshot, as_of, model_version)
+            conn.close()
+            return
+        except psycopg.OperationalError as e:
+            attempt += 1
+            try:
+                conn.close()
+            except Exception:
+                pass
+            if attempt > 5:
+                print(f"[fatal] compute_qal: too many reconnects ({attempt}): {e}")
+                raise
+            print(f"[reconnect] Neon connection lost ({e}); retrying compute_qal "
+                  f"(attempt {attempt})")
+            time.sleep(min(30, 2 ** attempt))
 
 
 if __name__ == "__main__":

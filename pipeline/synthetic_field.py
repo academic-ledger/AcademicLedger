@@ -52,8 +52,23 @@ TOPIC_ALPHA = 0.55      # blend weight on the paper's OWN topics vs the author p
 
 _COHORT = {}            # (subfield, year) -> {"total", "p0", "base"} cached cohort metadata
 
+# --- OpenAlex spend safety. This backfill once ran up a ~$20 bill on the premium key (the
+# highest-cited papers scan ~1000 citers each). It does NOT need premium — the free polite pool
+# does the identical work — so main() defaults to polite and only spends on explicit --use-premium,
+# with a --max-calls circuit breaker even then. ---
+_N_CALLS = 0            # OpenAlex calls made this process
+_CALL_CAP = 0           # 0 = unlimited; set to a positive cap by main() for premium runs
+
+
+class CallCapReached(Exception):
+    """Raised when a --use-premium run hits its --max-calls cap, to stop before billing more."""
+
 
 def _get(params, tries=6):
+    global _N_CALLS
+    _N_CALLS += 1
+    if _CALL_CAP and _N_CALLS > _CALL_CAP:
+        raise CallCapReached(f"reached --max-calls={_CALL_CAP} OpenAlex-call cap (safety stop)")
     if MAILTO:
         params["mailto"] = MAILTO
     if API_KEY:
@@ -311,7 +326,22 @@ def main():
     ap.add_argument("--per-community", type=int, default=100)
     ap.add_argument("--oaids", default="")
     ap.add_argument("--oaids-file", default="")  # newline-separated oaids (large backfills)
+    ap.add_argument("--use-premium", action="store_true",
+                    help="use the metered OpenAlex premium key; DEFAULT is the free polite pool "
+                         "(backfills don't need premium and ran up a bill once)")
+    ap.add_argument("--max-calls", type=int, default=3000,
+                    help="safety cap on OpenAlex calls for a --use-premium run; stops cleanly when hit "
+                         "(0 = unlimited)")
     args = ap.parse_args()
+
+    global API_KEY, _CALL_CAP
+    if args.use_premium:
+        _CALL_CAP = max(0, args.max_calls)
+        print(f"OpenAlex: PREMIUM key (metered) — safety cap {_CALL_CAP or 'none'} calls.", flush=True)
+    else:
+        API_KEY = ""  # free polite pool by default — a backfill must never silently bill
+        print("OpenAlex: free polite pool (default). Pass --use-premium to use the metered key.", flush=True)
+
     db = os.environ.get("DATABASE_URL")
     if not db:
         raise SystemExit("DATABASE_URL not set")
@@ -335,6 +365,9 @@ def main():
     for i, oaid in enumerate(todo, 1):
         try:
             rec = synthetic_field(oaid)
+        except CallCapReached as e:
+            print(f"  [{i}] stopping cleanly: {e} (built {built} this run; rerun to resume)", flush=True)
+            break
         except requests.exceptions.RequestException as e:
             print(f"  [{i}] {oaid}: skipped ({str(e)[:50]})", flush=True)
             continue
