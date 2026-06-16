@@ -1,0 +1,23 @@
+name: synth-view-worker
+# Drains the synthetic-field view queue (papers viewed without a cached blend) and persists their
+# blends, so paper pages + Explore keep improving. Runs on the FREE polite pool — no premium key in
+# the job env, so it can NEVER spend the OpenAlex paid budget. Replaces the Mac launchd job
+# com.academicledger.synthworker (retired — no reason for it to live on a laptop).
+on:
+  schedule:
+    - cron: '17 */6 * * *'   # every 6 hours (offset off the top-of-hour cron crowd)
+  workflow_dispatch: {}        # manual run button
+jobs:
+  drain:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      OPENALEX_MAILTO: ${{ secrets.OPENALEX_MAILTO }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install -r pipeline/requirements.txt
+      - name: Drain the view queue (polite pool — free)
+        run: python pipeline/synth_worker.py --limit 200

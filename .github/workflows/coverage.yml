@@ -1,0 +1,33 @@
+name: daily-coverage
+# Stage-one OID coverage rollout + recompute served QaL records. Runs on the FREE polite pool — no
+# premium key in the job env, so it NEVER spends the OpenAlex paid budget. Replaces the Mac launchd
+# job com.academicledger.coverage (retired). Cheap by design: the per-subfield calibration is
+# checkpointed in Neon (coverage_progress), so already-calibrated subfields are skipped and nothing
+# is re-pulled (typical run: a few dozen requests for the footprint refresh).
+on:
+  schedule:
+    - cron: '30 1 * * *'    # 01:30 UTC daily (matches the old launchd time)
+  workflow_dispatch: {}
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      OPENALEX_MAILTO: ${{ secrets.OPENALEX_MAILTO }}
+      AS_OF_YEAR: '2026'
+      H_LONG_HORIZON: '10'
+      SAMPLE_N: '1000'
+      CALIB_N: '10000'
+      MODEL_VERSION: qal-0.1
+      OPENALEX_SNAPSHOT: rollout-2026-06
+      H_HALFLIFE: '6'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install -r pipeline/requirements.txt
+      - name: Coverage rollout (polite pool — free)
+        run: python pipeline/coverage_rollout.py --steps 123
+      - name: Recompute served QaL records
+        run: python pipeline/compute_qal.py
