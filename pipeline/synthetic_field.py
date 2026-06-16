@@ -28,6 +28,9 @@ from collections import Counter, defaultdict
 
 import requests
 
+import _env
+_env.load_env()  # load repo-root .env (secrets) before the os.environ reads below
+
 API = "https://api.openalex.org/works"
 MAILTO = os.environ.get("OPENALEX_MAILTO", "")
 API_KEY = os.environ.get("OPENALEX_API_KEY", "")  # premium key: lifts the daily list budget
@@ -304,13 +307,17 @@ def main():
     ap.add_argument("--targets", default="")
     ap.add_argument("--per-community", type=int, default=100)
     ap.add_argument("--oaids", default="")
+    ap.add_argument("--oaids-file", default="")  # newline-separated oaids (large backfills)
     args = ap.parse_args()
     db = os.environ.get("DATABASE_URL")
     if not db:
         raise SystemExit("DATABASE_URL not set")
     import psycopg
     with psycopg.connect(db) as c0, c0.cursor() as cur:
-        if args.oaids:
+        if args.oaids_file:
+            with open(args.oaids_file) as f:
+                oaids = [ln.strip() for ln in f if ln.strip()]
+        elif args.oaids:
             oaids = [s.strip() for s in args.oaids.split(",") if s.strip()]
         else:
             oaids = _target_oaids(c0, args.targets, args.per_community)
