@@ -14,29 +14,9 @@ const BINS: { l: string; t: (x: number) => boolean }[] = [
   { l: "Below 50", t: (x) => x < 50 },
 ];
 
-export default function AuthorView({ payload }: { payload: AuthorPayload }) {
-  const { author, works } = payload;
-  const obsvals = works.map((w) => w.obs).filter((x): x is number => x != null);
-  const counts = BINS.map((b) => obsvals.filter(b.t).length);
-  const mx = Math.max(1, ...counts);
-
-  const fmap = new Map<string, { n: number; cal: boolean; field: string | null }>();
-  works.forEach((w) => {
-    const k = w.subfield || "Unclassified";
-    const cur = fmap.get(k) || { n: 0, cal: w.calibrated, field: w.field };
-    cur.n += 1;
-    fmap.set(k, cur);
-  });
-  const frows = [...fmap.entries()].sort((a, b) => b[1].n - a[1].n);
-  const calN = works.filter((w) => w.calibrated).length;
-
-  // Click a field to filter the Works table to that subfield (e.g. "what does OpenAlex call
-  // Museology in my record?"). null = show everything.
-  const [selSub, setSelSub] = useState<string | null>(null);
-  const shownWorks = selSub ? works.filter((w) => (w.subfield || "Unclassified") === selSub) : works;
-
+function AuthorHead({ author, shownHere }: { author: AuthorPayload["author"]; shownHere?: number }) {
   return (
-    <div className="wrap-author">
+    <>
       <div className="authtop">
         <span className="authtop-l">Jump to another author</span>
         <AuthorSearch />
@@ -65,12 +45,62 @@ export default function AuthorView({ payload }: { payload: AuthorPayload }) {
             <div className="v">{(author.cites || 0).toLocaleString()}</div>
             <div className="l">citations</div>
           </div>
-          <div className="c">
-            <div className="v">{works.length}</div>
-            <div className="l">shown here</div>
-          </div>
+          {shownHere != null && (
+            <div className="c">
+              <div className="v">{shownHere}</div>
+              <div className="l">shown here</div>
+            </div>
+          )}
         </div>
       </div>
+    </>
+  );
+}
+
+export default function AuthorView({ payload }: { payload: AuthorPayload }) {
+  const { author, works } = payload;
+
+  // OpenAlex couldn't be reached to list this author's works — say so, rather than render an empty
+  // portfolio that looks like a scholar with no work. The header stats come from the author entity.
+  if (payload.works_unavailable) {
+    return (
+      <div className="wrap-author">
+        <AuthorHead author={author} />
+        <div className="card" style={{ marginTop: 16 }}>
+          <p style={{ margin: 0, lineHeight: 1.55 }}>
+            <b>Couldn&rsquo;t load this author&rsquo;s works right now.</b> OpenAlex is rate-limited
+            for the Ledger server (its query budget resets at midnight UTC). The{" "}
+            <b>{author.works_count}</b> works and <b>{(author.cites || 0).toLocaleString()}</b>{" "}
+            citations above are from OpenAlex&rsquo;s author record — the per-paper QaL portfolio
+            will appear once the limit clears. Please try again shortly.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const obsvals = works.map((w) => w.obs).filter((x): x is number => x != null);
+  const counts = BINS.map((b) => obsvals.filter(b.t).length);
+  const mx = Math.max(1, ...counts);
+
+  const fmap = new Map<string, { n: number; cal: boolean; field: string | null }>();
+  works.forEach((w) => {
+    const k = w.subfield || "Unclassified";
+    const cur = fmap.get(k) || { n: 0, cal: w.calibrated, field: w.field };
+    cur.n += 1;
+    fmap.set(k, cur);
+  });
+  const frows = [...fmap.entries()].sort((a, b) => b[1].n - a[1].n);
+  const calN = works.filter((w) => w.calibrated).length;
+
+  // Click a field to filter the Works table to that subfield (e.g. "what does OpenAlex call
+  // Museology in my record?"). null = show everything.
+  const [selSub, setSelSub] = useState<string | null>(null);
+  const shownWorks = selSub ? works.filter((w) => (w.subfield || "Unclassified") === selSub) : works;
+
+  return (
+    <div className="wrap-author">
+      <AuthorHead author={author} shownHere={works.length} />
 
       <div className="twocol">
         <div className="card dist">

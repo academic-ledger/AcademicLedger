@@ -60,4 +60,5 @@ export interface AuthorHeader {
 export interface AuthorPayload {
   author: AuthorHeader;
   works: RecordItem[];
+  works_unavailable?: boolean; // true when OpenAlex couldn't be reached to list the works (429/timeout)
 }

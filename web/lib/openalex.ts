@@ -264,7 +264,11 @@ export async function autocompleteAuthors(q: string): Promise<AuthorSuggestion[]
 
 // The author's works, most-cited first, mapped like any other work (so each carries its own
 // byline, fields, and citations). Capped — an author page shows a portfolio, not everything.
-export async function fetchAuthorWorks(oaid: string, limit = 100): Promise<Work[]> {
+// Returns the author's works, or `null` when OpenAlex couldn't be reached (rate-limit/budget 429,
+// timeout, network). `null` ≠ `[]`: an empty array means the author genuinely has no works, while
+// `null` lets the caller show an honest "source unavailable" state instead of an empty portfolio
+// that falsely implies a scholar with no work.
+export async function fetchAuthorWorks(oaid: string, limit = 100): Promise<Work[] | null> {
   const select =
     "id,doi,title,publication_year,primary_topic,primary_location,authorships," +
     "cited_by_count,open_access,is_retracted";
@@ -277,10 +281,10 @@ export async function fetchAuthorWorks(oaid: string, limit = 100): Promise<Work[
       headers: { "User-Agent": `al-web/1.0 (${MAILTO})` },
       next: { revalidate: SEARCH_REVALIDATE },
     });
-    if (!r.ok) return [];
+    if (!r.ok) return null; // 429/budget/5xx -> unavailable, not "no works"
     const j: any = await r.json();
     return (j.results || []).map((w: any) => mapWork(w));
   } catch {
-    return [];
+    return null; // timeout / network -> unavailable
   }
 }

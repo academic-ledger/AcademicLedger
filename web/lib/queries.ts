@@ -471,7 +471,21 @@ export async function getAuthorRecord(oaid: string): Promise<AuthorPayload | nul
     [oaid]
   );
   const exSet = new Set(excluded.map((r) => r.work_oaid));
-  const works = (await fetchAuthorWorks(oaid, 100)).filter((w) => !exSet.has(w.oaid));
+  const fetched = await fetchAuthorWorks(oaid, 100);
+  if (fetched === null) {
+    // OpenAlex unavailable (rate-limited/budget/timeout). Return the author header (from the entity
+    // fetch, which succeeded) with a flag, so the page says so honestly rather than rendering an
+    // empty portfolio that looks like a scholar with no work.
+    return {
+      author: {
+        name: ent.name ?? oaid, aff: ent.affiliation, orcid: ent.orcid, oaid: ent.oaid,
+        works_count: ent.works_count ?? 0, cites: ent.cited_by_count ?? 0, seed: SEED_SUBFIELDS,
+      },
+      works: [],
+      works_unavailable: true,
+    };
+  }
+  const works = fetched.filter((w) => !exSet.has(w.oaid));
 
   const ids = works.map((w) => w.oaid);
   const cachedRows = ids.length
