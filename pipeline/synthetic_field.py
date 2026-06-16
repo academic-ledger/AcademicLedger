@@ -41,7 +41,10 @@ UA = {"User-Agent": f"al-pipeline/1.0 ({MAILTO})"}
 TAU = float(os.environ.get("H_HALFLIFE", "6")) / math.log(2)  # recency decay timescale
 K_LAMBDA = float(os.environ.get("K_LAMBDA", "20"))
 N_MIN_REFS = 5          # usable references below which the reference stage is skipped
-MAX_CITERS = 1000       # cap citing works scanned for the community mixture
+MAX_CITERS = int(os.environ.get("MAX_CITERS", "300"))  # cap citing works scanned for the community
+                        # mixture. 300 estimates the top-NEIGH_SIZE co-cited blend stably while
+                        # bounding cost — high-cited papers were the runaway expense (each scanned
+                        # page is a 200-record list query, the priciest OpenAlex call type).
 NEIGH_SIZE = 200        # co-cited works kept for the community topic mixture
 MAX_AUTHORS = 5         # cap the author-prior fan-out (one OpenAlex call per author)
 AUTHOR_WORKS = 50       # recent works per author used to build the prior

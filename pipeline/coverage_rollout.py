@@ -224,7 +224,7 @@ def resolve_author(surname, penn_id):
             "n_candidates": len(cands)}
 
 
-def step1_footprint(conn):
+def step1_footprint(db):
     print("STEP 1 — OID footprint", flush=True)
     penn = _penn_id()
     print(f"  Penn institution id: {penn}", flush=True)
@@ -277,7 +277,11 @@ def step1_footprint(conn):
     os.makedirs("data", exist_ok=True)
     with open("data/oid_footprint.json", "w") as f:
         json.dump(footprint, f, indent=2)
-    # persist subfield names (bonus: fills the UI composition/labels, no extra OpenAlex calls)
+    # persist subfield names (bonus: fills the UI composition/labels, no extra OpenAlex calls).
+    # The footprint scan above can run for many minutes holding no DB state, during which Neon
+    # drops the idle connection — the cause of the 2026-06-15 crash. Open a fresh short-lived
+    # connection here (the pattern synthetic_field.py uses) so the write can't die on a stale socket.
+    conn = _connect(db)
     with conn.cursor() as cur:
         for sid, nm in names.items():
             if nm:
@@ -287,6 +291,7 @@ def step1_footprint(conn):
     cp_mark(conn, "footprint", "", 0, "done",
             detail={"resolved": len(resolved), "cover90": mark90, "cover95": mark95,
                     "low_conf": [a["surname"] for a in resolved if a["confidence"] != "high"]})
+    conn.close()
 
     # target set = ranked NON-seed subfields up to COVER_TO cumulative (the head, seed excluded)
     targets = [r["sid"] for r in rows if not r["is_seed"] and r["cumulative"] <= COVER_TO]
@@ -607,11 +612,10 @@ def main():
     if not db:
         raise SystemExit("DATABASE_URL not set")
     import psycopg
-    conn = _connect(db)
     targets = [t.strip() for t in args.targets.split(",") if t.strip()]
 
     if "1" in args.steps:
-        t = step1_footprint(conn)
+        t = step1_footprint(db)  # manages its own short-lived connection (long OpenAlex scan)
         if not targets:
             targets = t
     if not targets:  # resume case: rebuild target set from the persisted footprint
@@ -622,6 +626,8 @@ def main():
         except Exception:
             targets = []
     targets = [t for t in targets if t not in SEED]
+
+    conn = _connect(db)  # fresh connection for steps 2/3 (step 1 used its own short-lived one)
 
     # Resilient run: Neon can drop a long-lived connection (especially under concurrent load —
     # this is why synthetic_field.py uses short-lived connections). Every step skips
