@@ -1,0 +1,9 @@
+# academic Ledger — prototype (MVP). Crawling is disabled for now, deliberately:
+#  1. QaL point estimates and synthetic fields are explicitly illustrative pending calibration —
+#     we don't want them indexed or cited yet.
+#  2. Author pages and uncached paper pages compute live from the OpenAlex API (metered budget);
+#     a crawler walking bylines would drain that budget that's meant for invited human viewers.
+# Direct visitors with a link are unaffected — robots.txt only governs automated crawlers.
+# Revisit (allow indexing) once calibration is broad and the corpus is served from our own store.
+User-agent: *
+Disallow: /
