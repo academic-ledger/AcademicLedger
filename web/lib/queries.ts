@@ -2,7 +2,7 @@ import { query } from "./db";
 import type { AuthorPayload, Metrics, MetricView, RecordItem } from "./types";
 import { buckets, classProb, type QalPoint } from "./qal";
 import { fetchWork, fetchAuthor, fetchAuthorWorks, searchWorks, type Work } from "./openalex";
-import { syntheticQal } from "./synthetic";
+import { syntheticQal, enqueueSynthView } from "./synthetic";
 import { SUBFIELD_SHORT } from "./subfieldShort";
 
 const SEED = new Set(["1800", "1802", "1803"]);
@@ -297,6 +297,9 @@ export async function getPaperRecord(oaid: string) {
   );
   const c = cached.length ? cached[0] : null;
   const composition = await getComposition(oaid);
+  // No cached synthetic blend for this paper -> queue it for the free-pool worker to compute and
+  // persist, so the next view (and Explore) serve the real synthetic field, not the stand-in.
+  if (!composition) await enqueueSynthView(oaid);
 
   const base = {
     oaid: work.oaid,

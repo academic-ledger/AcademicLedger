@@ -322,9 +322,51 @@ const GP_MIN = 0.5;
 // blend-weighted — gate-passed to the extent the weight sits in back-tested subfields; "pending"
 // (observed-only) appears only when the bulk of the weight lands in subfields we haven't
 // calibrated. The maturity rule still applies to decided papers.
+// Read-through: rebuild a previously-computed blend from the synthetic_field cache (zero OpenAlex),
+// so a paper computed once — by the backfill, the view-queue worker, or an earlier view — renders
+// instantly and reliably, instead of a live recompute that can fail on budget/timeout/contention.
+// Vintage comes from the cached qal_records display year (the cache row doesn't store it).
+async function cachedBlend(oaid: string): Promise<SynthResult | null> {
+  const rows = await query<any>(
+    `select s.obs_percentile, s.parts, s.weights, s.n_refs, s.lam,
+            (q.display->>'year')::int as year
+       from synthetic_field s
+       left join qal_records q on q.oaid = s.oaid
+      where s.oaid = $1`,
+    [oaid]
+  );
+  if (!rows.length) return null;
+  const r = rows[0];
+  const parts = (r.parts || []) as { sid: string; weight: number; pct: number }[];
+  if (!parts.length || r.year == null) return null; // pre-parts row or unknown vintage -> recompute
+  const w = r.weights || {};
+  const weights = Array.isArray(w)
+    ? w.map((x: any) => ({ sid: String(x.sid), weight: Number(x.weight) }))
+    : Object.entries(w).map(([sid, weight]) => ({ sid, weight: Number(weight) }));
+  const basis: SynthResult["basis"] =
+    r.lam == null ? "author-prior" : Number(r.lam) === 0 ? "references" : "co-citation";
+  return { obs: Number(r.obs_percentile), weights, parts, vintage: Number(r.year), n_refs: r.n_refs ?? 0, basis };
+}
+
+// Fire-and-forget: queue an oaid for the synth-view worker to compute + persist its blend on the
+// free polite pool. Never throws — a page must still render if the enqueue fails.
+export async function enqueueSynthView(oaid: string): Promise<void> {
+  try {
+    await query(`insert into synth_view_queue (oaid) values ($1) on conflict (oaid) do nothing`, [oaid]);
+  } catch {
+    /* best-effort */
+  }
+}
+
 export async function syntheticQal(oaid: string): Promise<SyntheticQal | null> {
-  const sf = await syntheticField(oaid);
+  // Prefer the cached blend (zero OpenAlex, robust); fall back to a live compute on a cache miss.
+  const sf = (await cachedBlend(oaid)) ?? (await syntheticField(oaid));
   if (!sf) return null;
+  return blendQal(sf);
+}
+
+// Blend-weighted calibration of a SynthResult into a served QaL (DB-only; no OpenAlex calls).
+async function blendQal(sf: SynthResult): Promise<SyntheticQal | null> {
   const obs = sf.obs;
   const rawAge = NOW - sf.vintage;
   const age = Math.max(1, Math.min(H - 1, rawAge));
