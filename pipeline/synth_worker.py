@@ -54,6 +54,9 @@ def main():
             """SELECT q.oaid FROM synth_view_queue q
                  LEFT JOIN qal_records r ON r.oaid = q.oaid
                 WHERE q.attempts < %s
+                  -- only papers in `works`: synthetic_field.oaid has an FK to works(oaid), so a
+                  -- blend for a paper outside our corpus (e.g. a crawler-hit id) can't be stored.
+                  AND EXISTS (SELECT 1 FROM works w WHERE w.oaid=q.oaid)
                   AND NOT EXISTS (SELECT 1 FROM synthetic_field s
                                    WHERE s.oaid=q.oaid AND s.parts IS NOT NULL)
                 ORDER BY (r.display->>'cites')::int DESC NULLS LAST
@@ -71,18 +74,20 @@ def main():
     print(f"synth-view worker: pool={pool}; {len(oaids)} papers to compute", flush=True)
     done = 0
     for i, oaid in enumerate(oaids, 1):
+        # The whole per-paper unit is guarded: a compute error, a transient Neon drop on upsert, or
+        # any other single-paper failure bumps that row and moves on — it never crashes the run.
         try:
             rec = sf.synthetic_field(oaid)
-        except Exception as e:  # network/retries-exhausted/cap — record and move on
+            if rec:
+                sf._upsert(db, rec)
+                _dequeue(db, oaid)
+                done += 1
+            else:
+                _bump(db, oaid, "synthetic_field returned None (could not place)")
+        except Exception as e:  # network / retries-exhausted / DB transient — record and move on
             _bump(db, oaid, str(e)[:200])
             print(f"  [{i}] {oaid}: error ({str(e)[:60]})", flush=True)
             continue
-        if rec:
-            sf._upsert(db, rec)
-            _dequeue(db, oaid)
-            done += 1
-        else:
-            _bump(db, oaid, "synthetic_field returned None (could not place)")
         if i % 25 == 0:
             print(f"  [{i}/{len(oaids)}] persisted={done}", flush=True)
     print(f"done: persisted {done} blends ({len(oaids) - done} unresolved this run)", flush=True)
