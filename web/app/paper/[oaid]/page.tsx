@@ -166,6 +166,17 @@ export default async function PaperPage({ params }: { params: { oaid: string } }
                   </>
                 )}
               </div>
+            ) : rec.composition && rec.composition.length ? (
+              // The synthetic field IS computed (the blend strip shows below), but this community
+              // isn't back-tested yet, so the calibrated number above comes from the dominant
+              // single field. Be honest about that rather than calling the synthetic field "pending".
+              <div className="qal-rc">
+                <b>Reference class:</b> synthetic field{" "}
+                <span style={{ color: "#9aa3af" }}>(shown below)</span>
+                <br />
+                forecast above is calibrated on the dominant single field — synthetic calibration
+                pending for this community
+              </div>
             ) : (
               <div className="qal-rc">
                 <b>Reference class:</b> single-field percentile{" "}
