@@ -297,12 +297,13 @@ export async function getPaperRecord(oaid: string) {
   );
   const c = cached.length ? cached[0] : null;
   const composition = await getComposition(oaid);
-  // No cached synthetic blend -> queue it for the free-pool worker to compute and persist, so the
-  // next view (and Explore) serve the real synthetic field, not the stand-in. Gated to papers with
-  // >=1 citation: uncited papers (~62% of the corpus) sit in the uncited atom with no meaningful
-  // forecast, and public crawler traffic on them would otherwise flood the queue (≈99% of it).
+  // No cached synthetic blend -> queue it for the free-pool worker. Gated to papers that are (a) in
+  // our corpus (c != null — the worker can only store a blend for an oaid in `works`, and won't
+  // process anything else), and (b) have >=1 citation (uncited papers sit in the uncited atom with
+  // no meaningful forecast). Without the corpus gate, crawler-hit ids outside the index flood the
+  // queue with rows the worker can never process.
   const SYNTH_MIN_CITES = 1;
-  if (!composition && (work.cites ?? 0) >= SYNTH_MIN_CITES) await enqueueSynthView(oaid);
+  if (!composition && c && (work.cites ?? 0) >= SYNTH_MIN_CITES) await enqueueSynthView(oaid);
 
   const base = {
     oaid: work.oaid,
@@ -384,12 +385,18 @@ export async function getPaperRecord(oaid: string) {
     };
   }
 
-  // On-the-fly synthetic field for an uncached paper (or one without a calibrated cache row).
-  try {
-    const s = await trySynthetic();
-    if (s) return s;
-  } catch {
-    // fall through to the field-based universal layer
+  // On-the-fly synthetic field — only for papers IN our corpus (a cached qal_records row exists,
+  // even if not yet calibrated). For papers OUTSIDE the index (c == null — e.g. anonymous
+  // crawler-hit ids), we skip the expensive live compute: it's ~15-40 metered OpenAlex calls per
+  // view, an obvious cost/DoS vector on an anonymous endpoint. Those fall through to the cheap
+  // universal layer (and were enqueued above for the free worker).
+  if (c) {
+    try {
+      const s = await trySynthetic();
+      if (s) return s;
+    } catch {
+      // fall through to the field-based universal layer
+    }
   }
 
   // Universal layer: observed field percentile on the fly, calibration-pending.
