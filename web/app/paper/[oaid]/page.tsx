@@ -5,6 +5,10 @@ import { getPaperRecord } from "@/lib/queries";
 import { SUBFIELD_SHORT } from "@/lib/subfieldShort";
 
 export const dynamic = "force-dynamic";
+// Keep paper pages out of search indexes (illustrative QaL pending calibration) and tell compliant
+// crawlers not to follow links from here (e.g. into author pages). Misbehaving bots are handled by
+// the zero-cost out-of-index gate in getPaperRecord, not this.
+export const metadata = { robots: { index: false, follow: false } };
 
 const BUCKET_DEFS = [
   { key: "lt50", xl: "<50", lo: 0, hi: 50 },
