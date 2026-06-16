@@ -48,12 +48,16 @@ def main():
     import psycopg
     # claim a batch: queued, under the attempt cap, and not already computed (parts present)
     with psycopg.connect(db) as c, c.cursor() as cur:
+        # Prioritize by citations: public crawlers enqueue the whole long tail, so compute the
+        # papers people actually care about first (highest-cited), not merely first-crawled.
         cur.execute(
             """SELECT q.oaid FROM synth_view_queue q
+                 LEFT JOIN qal_records r ON r.oaid = q.oaid
                 WHERE q.attempts < %s
                   AND NOT EXISTS (SELECT 1 FROM synthetic_field s
                                    WHERE s.oaid=q.oaid AND s.parts IS NOT NULL)
-                ORDER BY q.requested_at LIMIT %s""",
+                ORDER BY (r.display->>'cites')::int DESC NULLS LAST
+                LIMIT %s""",
             (args.max_attempts, args.limit))
         oaids = [r[0] for r in cur.fetchall()]
         # drop any queued rows already satisfied (computed by the backfill/compute_qal meanwhile)
