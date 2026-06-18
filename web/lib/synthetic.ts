@@ -13,7 +13,9 @@ import { buckets, classProb, type ClassProb, type QalPoint } from "./qal";
 
 const OA = "https://api.openalex.org";
 const MAILTO = process.env.OPENALEX_MAILTO || "ktulrich@gmail.com";
-const API_KEY = process.env.OPENALEX_API_KEY || "";
+// Default to the FREE polite pool (no api_key) so bot traffic can't drain the metered budget.
+// Set OPENALEX_WEB_PREMIUM=1 in the Vercel env to re-enable the premium key once bots are blocked.
+const API_KEY = process.env.OPENALEX_WEB_PREMIUM === "1" ? (process.env.OPENALEX_API_KEY || "") : "";
 const AUTH = `&mailto=${encodeURIComponent(MAILTO)}${API_KEY ? `&api_key=${encodeURIComponent(API_KEY)}` : ""}`;
 const TAU = 6 / Math.log(2); // recency decay timescale (H_HALFLIFE = 6)
 const REVALIDATE = 60 * 60 * 24 * 7; // cache OpenAlex sub-fetches a week

@@ -5,7 +5,11 @@
 import type { Authorship } from "./types";
 
 const MAILTO = process.env.OPENALEX_MAILTO || "ktulrich@gmail.com";
-const API_KEY = process.env.OPENALEX_API_KEY || ""; // premium key: lifts the daily list budget
+// The web defaults to the FREE polite pool (no api_key) so anonymous/bot traffic can't drain the
+// metered OpenAlex budget — a paper/author page is just credits, but a crawler hitting them adds up.
+// Re-enable the premium key (faster, higher limits) only when bots are fully blocked, by setting
+// OPENALEX_WEB_PREMIUM=1 in the Vercel env. The Python pipeline is unaffected (it reads .env).
+const API_KEY = process.env.OPENALEX_WEB_PREMIUM === "1" ? (process.env.OPENALEX_API_KEY || "") : "";
 const AUTH = `&mailto=${encodeURIComponent(MAILTO)}${API_KEY ? `&api_key=${encodeURIComponent(API_KEY)}` : ""}`;
 const REVALIDATE = 60 * 60 * 24; // 1 day
 const AUTHOR_TIMEOUT_MS = 1200; // typeahead must stay snappy even if /authors?search is degraded
