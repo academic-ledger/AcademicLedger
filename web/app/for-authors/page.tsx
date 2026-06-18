@@ -36,6 +36,10 @@ export default function ForAuthorsPage() {
         </p>
         <ul className="princ">
           <li>
+            <b>SSRN</b> &mdash; economics, finance, management, law, and the social sciences; mints
+            DOIs (the <code>10.2139/ssrn.*</code> prefix) and is well indexed.
+          </li>
+          <li>
             <b>arXiv</b> &mdash; physics, math, CS, and quantitative fields; indexed directly.
           </li>
           <li>
@@ -52,8 +56,8 @@ export default function ForAuthorsPage() {
           </li>
         </ul>
         <p>
-          SSRN works too, but prefer a venue that issues a <b>DOI</b>: a SSRN posting without one may
-          never enter the open record we rate from.
+          The common thread is a <b>DOI</b> in the open record &mdash; that&rsquo;s what lets the
+          Ledger find and rate the work, whichever repository you choose.
         </p>
 
         <h2>What happens next</h2>
