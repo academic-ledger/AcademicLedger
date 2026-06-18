@@ -14,7 +14,7 @@ export default function AuthStatus() {
   if (data?.user) {
     return (
       <span className="authstat">
-        <span className="who">
+        <span className="authwho">
           Signed in as <b>{data.user.name}</b>
           <span className="verified" title="Identity verified via ORCID OAuth">
             {" "}

@@ -70,45 +70,6 @@ async function fetchOrcidWorks(orcid: string): Promise<OrcidWork[]> {
   }
 }
 
-// ── TEMPORARY C1 auth-error capture (remove before merge) ────────────────────────────────────
-// Vercel function logs are awkward to read, so the NextAuth logger also records errors here and
-// /api/auth-debug reads them back. Best-effort; never throws.
-export async function recordAuthError(message: string, detail: string | null): Promise<void> {
-  try {
-    await query(`create table if not exists _auth_debug (
-      id serial primary key, at timestamptz not null default now(), message text, detail text
-    )`);
-    await query(`insert into _auth_debug (message, detail) values ($1, $2)`, [
-      (message ?? "").slice(0, 2000),
-      (detail ?? "")?.slice(0, 6000) || null,
-    ]);
-  } catch {
-    /* best-effort */
-  }
-}
-export async function recentAuthErrors(): Promise<any[]> {
-  try {
-    return await query(`select at, message, detail from _auth_debug order by id desc limit 5`);
-  } catch {
-    return [];
-  }
-}
-// TEMP C1 verification — confirm the users row + cached works landed (public fields only).
-export async function debugCounts(): Promise<any> {
-  try {
-    const users = (await query<{ n: number }>(`select count(*)::int n from users`))[0]?.n ?? 0;
-    const works = (await query<{ n: number }>(`select count(*)::int n from orcid_works`))[0]?.n ?? 0;
-    const recent = await query(
-      `select orcid_id, display_name, created_at, last_login_at,
-              (select count(*)::int from orcid_works ow where ow.user_id = u.id) as works
-         from users u order by last_login_at desc limit 3`
-    );
-    return { users, orcid_works: works, recent };
-  } catch (e: any) {
-    return { error: String(e?.message ?? e) };
-  }
-}
-
 // On login: upsert the user (keyed by ORCID iD) and refresh their cached works. Touches only
 // `users` and `orcid_works`.
 export async function upsertUserAndCacheWorks(orcid: string, name: string | null): Promise<void> {
