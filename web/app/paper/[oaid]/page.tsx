@@ -27,8 +27,9 @@ export default async function PaperPage({ params }: { params: { oaid: string } }
       <>
         <Brand />
         <div className="notfound">
-          This paper isn&rsquo;t in the academic Ledger index yet. Explore indexed work from the{" "}
-          <a href="/explore">Explore</a> page.
+          We couldn&rsquo;t find this work in the open scholarly record yet. If it&rsquo;s your
+          paper, see <a href="/for-authors">For authors</a> for how to get it listed &mdash; or
+          browse indexed work on <a href="/explore">Explore</a>.
         </div>
       </>
     );
