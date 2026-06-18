@@ -1,6 +1,7 @@
 import Brand from "@/components/Brand";
 import Byline from "@/components/Byline";
 import CitationCard from "@/components/CitationCard";
+import SyntheticLoader from "@/components/SyntheticLoader";
 import { getPaperRecord } from "@/lib/queries";
 import { SUBFIELD_SHORT } from "@/lib/subfieldShort";
 
@@ -71,6 +72,7 @@ export default async function PaperPage({ params }: { params: { oaid: string } }
   return (
     <>
       <Brand />
+      <SyntheticLoader oaid={rec.oaid} needed={rec.reference_class?.kind !== "synthetic"} />
       <div className="wrap-paper">
         <h1 className="title">{rec.title}</h1>
         {(rec.authorships?.length || rec.authors) && (

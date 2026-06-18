@@ -2,7 +2,7 @@ import { query } from "./db";
 import type { AuthorPayload, Metrics, MetricView, RecordItem } from "./types";
 import { buckets, classProb, type QalPoint } from "./qal";
 import { fetchWork, fetchAuthor, fetchAuthorWorks, searchWorks, type Work } from "./openalex";
-import { syntheticQal, enqueueSynthView } from "./synthetic";
+import { syntheticQal } from "./synthetic";
 import { SUBFIELD_SHORT } from "./subfieldShort";
 
 const SEED = new Set(["1800", "1802", "1803"]);
@@ -285,6 +285,87 @@ async function storedWork(oaid: string) {
   };
 }
 
+// ---- On-demand synthetic field (the EXPENSIVE op) ---------------------------------------------
+// The §5 synthetic reference class costs ~15-40 OpenAlex calls. It is computed ONLY from the
+// client-triggered /api/synthetic/:oaid endpoint (a real browser, after the page mounts) — never on
+// a server page GET. Results land in `synthetic_cache` (any oaid; no FK, unlike synthetic_field),
+// which the page GET reads. So a flat crawler GET (no JS) gets the cheap universal layer and never
+// triggers the compute.
+
+let _scReady = false;
+async function ensureSyntheticCache(): Promise<void> {
+  if (_scReady) return;
+  try {
+    await query(
+      `create table if not exists synthetic_cache (
+         oaid text primary key,
+         payload jsonb not null,
+         computed_at timestamptz not null default now()
+       )`
+    );
+    _scReady = true;
+  } catch {
+    /* best-effort; read/write are guarded too */
+  }
+}
+
+async function readSyntheticCache(oaid: string): Promise<any | null> {
+  try {
+    const rows = await query<any>(
+      `select payload from synthetic_cache
+        where oaid = $1 and computed_at > now() - interval '40 days'`,
+      [oaid]
+    );
+    return rows.length ? rows[0].payload : null;
+  } catch {
+    return null; // table missing / transient -> treat as a cache miss
+  }
+}
+
+export async function writeSyntheticCache(oaid: string, payload: any): Promise<void> {
+  await ensureSyntheticCache();
+  try {
+    await query(
+      `insert into synthetic_cache (oaid, payload, computed_at) values ($1, $2, now())
+         on conflict (oaid) do update set payload = excluded.payload, computed_at = now()`,
+      [oaid, JSON.stringify(payload)]
+    );
+  } catch {
+    /* best-effort */
+  }
+}
+
+// Compute the official synthetic display overrides for one paper (the EXPENSIVE op, via
+// syntheticQal's live fallback). Returns the fields getPaperRecord merges over the universal base,
+// or null if the paper can't be placed in a community. Called only by the /api/synthetic endpoint.
+export async function computeSyntheticDisplay(oaid: string): Promise<any | null> {
+  const work = (await fetchWork(oaid)) ?? (await storedWork(oaid));
+  if (!work) return null;
+  const sq = await syntheticQal(work.oaid);
+  if (!sq) return null;
+  const fieldObs =
+    work.sid && work.year != null ? await cohortPercentile(work.sid, work.year, work.cites) : null;
+  const composition = (await namedComposition(sq.weights)) ?? (await getComposition(oaid));
+  return {
+    composition,
+    reference_class: {
+      field: "synthetic-field",
+      field_label: "synthetic field",
+      kind: "synthetic",
+      vintage_year: sq.vintage,
+      dominant: sq.dominant,
+      coverage: sq.coverage,
+      basis: sq.basis,
+      gp_weight: sq.gp_weight,
+      field_percentile: fieldObs,
+    },
+    obs_percentile: sq.obs,
+    calibrated: sq.calibrated,
+    qal: sq.qal,
+    ...(sq.calibrated ? {} : { status: "calibration-pending" as const }),
+  };
+}
+
 export async function getPaperRecord(oaid: string) {
   // Pull any cached record first (DB only). A row may NOT exist for papers outside the prior index —
   // that's fine now. The universal layer (display + observed field percentile) is cheap to serve for
@@ -305,13 +386,6 @@ export async function getPaperRecord(oaid: string) {
   if (!work) return null; // the work truly doesn't exist on OpenAlex
 
   const composition = await getComposition(oaid);
-  // No cached synthetic blend -> queue it for the free-pool worker. Gated to papers that are (a) in
-  // our corpus (c != null — the worker can only store a blend for an oaid in `works`, and won't
-  // process anything else), and (b) have >=1 citation (uncited papers sit in the uncited atom with
-  // no meaningful forecast). Without the corpus gate, crawler-hit ids outside the index flood the
-  // queue with rows the worker can never process.
-  const SYNTH_MIN_CITES = 1;
-  if (!composition && c && (work.cites ?? 0) >= SYNTH_MIN_CITES) await enqueueSynthView(oaid);
 
   const base = {
     oaid: work.oaid,
@@ -334,50 +408,17 @@ export async function getPaperRecord(oaid: string) {
     data_snapshot: "openalex (live display + cached QaL)",
   };
 
-  // The official reference class (§5): rank the paper against its TRUE community (its recency-
-  // weighted bibliography mixture, with co-citation / author-prior fallbacks), correcting
-  // OpenAlex's single label. Computed live + HTTP-cached. Returns null if it can't be placed.
-  const trySynthetic = async () => {
-    const sq = await syntheticQal(work.oaid);
-    if (!sq) return null;
-    const fieldObs =
-      work.sid && work.year != null ? await cohortPercentile(work.sid, work.year, work.cites) : null;
-    return {
-      ...base,
-      composition: (await namedComposition(sq.weights)) ?? composition,
-      reference_class: {
-        field: "synthetic-field",
-        field_label: "synthetic field",
-        kind: "synthetic",
-        vintage_year: sq.vintage,
-        dominant: sq.dominant,
-        coverage: sq.coverage,
-        basis: sq.basis, // 'references' | 'co-citation' | 'author-prior' (how the community was inferred)
-        gp_weight: sq.gp_weight, // share of the reference class that is back-tested
-        field_percentile: fieldObs, // the single OpenAlex-label percentile, for contrast
-      },
-      obs_percentile: sq.obs,
-      calibrated: sq.calibrated,
-      qal: sq.qal,
-      ...(sq.calibrated ? {} : { status: "calibration-pending" as const }),
-    };
-  };
+  // Official synthetic reference class (§5) — CACHE-ONLY on this server GET (zero OpenAlex). The
+  // expensive ~15-40-call compute runs only in the client-triggered /api/synthetic/:oaid endpoint,
+  // which fills `synthetic_cache`; a flat crawler GET (no JS) therefore never triggers it and just
+  // gets the cheap universal layer below. (See computeSyntheticDisplay + SyntheticLoader.)
+  const sc = await readSyntheticCache(oaid);
+  if (sc) return { ...base, ...sc };
 
-  // Calibrated: serve the cached posterior; display is the live work. But a cached row whose
-  // reference class is a pre-synthetic single-field stand-in (computed before the synthetic field
-  // was propagated to this paper) is upgraded to the live synthetic field — the official §5
-  // reference class — whenever that resolves to a calibrated result, so older cached papers show
-  // their true community without waiting for the monthly batch refresh. Never downgrades a
-  // calibrated row to pending.
+  // Calibrated: serve the cached posterior (DB only); display is the live work. A pre-synthetic
+  // cached row is upgraded to the synthetic field via the client-triggered endpoint (cached above),
+  // so there's no live compute on this path either. Never downgrades a calibrated row to pending.
   if (c && c.calibrated && c.qal_point != null) {
-    if (c.reference_class?.kind !== "synthetic") {
-      try {
-        const s = await trySynthetic();
-        if (s && s.calibrated) return s;
-      } catch {
-        /* fall back to the cached field-based posterior */
-      }
-    }
     const qal: QalPoint = { point: Number(c.qal_point), lo: Number(c.qal_ci_lo), hi: Number(c.qal_ci_hi) };
     const cp = c.class_prob ?? classProb(qal);
     const ref = c.reference_class ?? {};
@@ -391,18 +432,6 @@ export async function getPaperRecord(oaid: string) {
       calibrated: true,
       qal: { point: qal.point, ci90: [qal.lo, qal.hi] as [number, number], class_prob: cp, buckets: buckets(cp) },
     };
-  }
-
-  // On-the-fly synthetic field — the official §5 reference class — for the focal paper being viewed.
-  // ~15-40 OpenAlex calls, but FREE on the all-polite pool (the budget drain was the premium key ×
-  // crawler volume, never the per-paper cost). Now computed for ANY focal paper, in- or out-of-index;
-  // crawler volume is bounded by robots.txt + noindex + the edge rate-limit. Returns null when the
-  // paper can't be placed in a community, falling through to the cheap universal layer below.
-  try {
-    const s = await trySynthetic();
-    if (s) return s;
-  } catch {
-    // fall through to the field-based universal layer
   }
 
   // Universal layer: observed field percentile on the fly, calibration-pending.
