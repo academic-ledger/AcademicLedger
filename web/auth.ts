@@ -32,8 +32,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       issuer: ORCID_ISSUER,
       clientId: process.env.ORCID_CLIENT_ID,
       clientSecret: process.env.ORCID_CLIENT_SECRET,
+      // ORCID supports ONLY the `openid` scope (discovery: scopes_supported = ["openid"]). Auth.js's
+      // default OIDC scope is "openid profile email" — ORCID rejects the extra scopes *before* login
+      // and bounces straight back as an error, so we must request openid only.
+      authorization: { params: { scope: "openid" } },
       // ORCID's authorization server is happiest with a plain `state` check; its PKCE/nonce
-      // support has historically been uneven. If sandbox discovery advertises PKCE we can re-enable.
+      // support has historically been uneven (discovery advertises no PKCE).
       checks: ["state"],
       profile(profile: any) {
         return { id: profile.sub, name: nameFrom(profile), orcid: profile.sub };
