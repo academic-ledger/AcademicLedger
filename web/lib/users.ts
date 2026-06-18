@@ -93,6 +93,21 @@ export async function recentAuthErrors(): Promise<any[]> {
     return [];
   }
 }
+// TEMP C1 verification — confirm the users row + cached works landed (public fields only).
+export async function debugCounts(): Promise<any> {
+  try {
+    const users = (await query<{ n: number }>(`select count(*)::int n from users`))[0]?.n ?? 0;
+    const works = (await query<{ n: number }>(`select count(*)::int n from orcid_works`))[0]?.n ?? 0;
+    const recent = await query(
+      `select orcid_id, display_name, created_at, last_login_at,
+              (select count(*)::int from orcid_works ow where ow.user_id = u.id) as works
+         from users u order by last_login_at desc limit 3`
+    );
+    return { users, orcid_works: works, recent };
+  } catch (e: any) {
+    return { error: String(e?.message ?? e) };
+  }
+}
 
 // On login: upsert the user (keyed by ORCID iD) and refresh their cached works. Touches only
 // `users` and `orcid_works`.
