@@ -286,10 +286,13 @@ async function storedWork(oaid: string) {
 }
 
 export async function getPaperRecord(oaid: string) {
-  // Index gate FIRST — DB only, zero OpenAlex. A paper-page view for an id OUTSIDE our index (e.g.
-  // an anonymous crawler hitting arbitrary OpenAlex ids) must not trigger any metered API call;
-  // that was the budget-drain vector. Only papers we've indexed (a qal_records row exists) proceed
-  // to the live OpenAlex display + QaL treatment. Out-of-index ids get a cheap "not indexed" page.
+  // Pull any cached record first (DB only). A row may NOT exist for papers outside the prior index —
+  // that's fine now. The universal layer (display + observed field percentile) is cheap to serve for
+  // ANY paper: one FREE single-record OpenAlex fetch + a DB cohort lookup, and the factory now
+  // provides cohort_percentiles for every subfield (not just the seed). The metered work — the
+  // synthetic-field compute below — stays free on the all-polite key and bounded by
+  // robots.txt + noindex + the edge rate-limit, which is what guards the anonymous endpoint now that
+  // the premium-key budget vector is gone. (Was: a hard index gate that returned "not indexed".)
   const cached = await query<any>(
     `select obs_percentile, calibrated, qal_point, qal_ci_lo, qal_ci_hi,
             class_prob, reference_class, metrics
@@ -297,10 +300,9 @@ export async function getPaperRecord(oaid: string) {
     [oaid]
   );
   const c = cached.length ? cached[0] : null;
-  if (!c) return null; // not in the academic Ledger index — no OpenAlex calls
 
   const work = (await fetchWork(oaid)) ?? (await storedWork(oaid));
-  if (!work) return null;
+  if (!work) return null; // the work truly doesn't exist on OpenAlex
 
   const composition = await getComposition(oaid);
   // No cached synthetic blend -> queue it for the free-pool worker. Gated to papers that are (a) in
@@ -391,18 +393,16 @@ export async function getPaperRecord(oaid: string) {
     };
   }
 
-  // On-the-fly synthetic field — only for papers IN our corpus (a cached qal_records row exists,
-  // even if not yet calibrated). For papers OUTSIDE the index (c == null — e.g. anonymous
-  // crawler-hit ids), we skip the expensive live compute: it's ~15-40 metered OpenAlex calls per
-  // view, an obvious cost/DoS vector on an anonymous endpoint. Those fall through to the cheap
-  // universal layer (and were enqueued above for the free worker).
-  if (c) {
-    try {
-      const s = await trySynthetic();
-      if (s) return s;
-    } catch {
-      // fall through to the field-based universal layer
-    }
+  // On-the-fly synthetic field — the official §5 reference class — for the focal paper being viewed.
+  // ~15-40 OpenAlex calls, but FREE on the all-polite pool (the budget drain was the premium key ×
+  // crawler volume, never the per-paper cost). Now computed for ANY focal paper, in- or out-of-index;
+  // crawler volume is bounded by robots.txt + noindex + the edge rate-limit. Returns null when the
+  // paper can't be placed in a community, falling through to the cheap universal layer below.
+  try {
+    const s = await trySynthetic();
+    if (s) return s;
+  } catch {
+    // fall through to the field-based universal layer
   }
 
   // Universal layer: observed field percentile on the fly, calibration-pending.
