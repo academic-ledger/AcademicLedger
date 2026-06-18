@@ -12,16 +12,17 @@ academic Ledger (aL) reframes academic publishing by separating **distribution**
 - `web/API_CONTRACT.md` — the read-API shape the web app consumes.
 
 ## Architecture (internalize this split)
-Three pieces. **Vercel never does heavy compute.**
-- **GitHub** — repo + Actions. The batch pipeline runs here on a monthly cron (`.github/workflows/refresh.yml`).
+Four pieces. **Vercel never does heavy compute.**
+- **GitHub** — repo + Actions. The *light* batch (seed-cohort calibration, the synthetic-field worker, coverage rollout) runs here on cron. Actions can't do the *full-corpus* scan: 6h job cap + cross-cloud transfer from the AWS-hosted OpenAlex S3.
+- **AWS EC2 (us-east-1), on demand** — the *heavy* batch. `pipeline/factory.py` scans the full OpenAlex bulk snapshot in one in-region DuckDB pass (~1h, ~$0.50) and writes comprehensive `cohort_percentiles` to Neon. Launched and torn down by `pipeline/factory_launch.py` — a throwaway self-terminating box, no SSH (this network blocks outbound 22 *and* 5432; it reports via the serial console). See the academic-ledger-aws-factory memory.
 - **Vercel** — the Next.js web app and a light read-only API. It reads precomputed tables and serves pages. Custom domain academic-ledger.org.
-- **Neon (managed Postgres)** — the data layer (`db/schema.sql`). The pipeline writes it; Vercel reads it.
+- **Neon (managed Postgres)** — the data layer (`db/schema.sql`). The pipeline (Actions + the EC2 factory) writes it; Vercel reads it.
 
 Cheap things can run on the fly (work fetch, exact within-cohort percentile via two count queries, calibration-table lookup, retraction flag). Graph things (co-citation neighborhood / RCR, PageRank) must be precomputed in batch and cached. See QaL_spec.md §11.
 
 ## Stack
 - `web/` — Next.js (App Router, TypeScript). Route handlers under `app/api/*` implement `web/API_CONTRACT.md`. Port the mocks; keep them responsive and mobile-friendly (QaL_spec.md interface requirements: single column below ~700px, wide tables scroll within their container, renders at ~380px).
-- `pipeline/` — Python batch jobs. Run order: `pull_cohort.py` → `build_percentiles.py` → `calibrate.py` → `compute_qal.py`. Config in `pipeline/cohorts.yml`.
+- `pipeline/` — Python batch jobs. Seed/calibrated path: `pull_cohort.py` → `build_percentiles.py` → `calibrate.py` → `compute_qal.py` (config in `pipeline/cohorts.yml`). For the **full-corpus universal layer**, `factory.py` supersedes `pull_cohort.py`+`build_percentiles.py` — it builds `cohort_percentiles` for *every* subfield straight from the bulk snapshot (in-region, no API); `calibrate.py`/`compute_qal.py` still run for the Layer-B seed.
 - `db/schema.sql` — Postgres DDL: `works`, `cohort_percentiles`, `calibration_models`, `qal_records`, `authors`.
 
 ## Product decisions already made (honor unless told otherwise)

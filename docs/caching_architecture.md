@@ -72,6 +72,11 @@ performance optimization to make when it bites, not a day-one necessity.
 1. Add `title`/`authors`/`venue` to `qal_records`; populate from current `works`.
 2. Point explore (`getExplore`) and the paper-page fallback at `qal_records` display fields.
 3. Move `cohort_percentiles` rebuild to a streaming pass (no persisted works); make calibrate
-   pull its cohorts transiently.
+   pull its cohorts transiently. **Streaming pass implemented** — `pipeline/factory.py`: one
+   DuckDB pass over the OpenAlex bulk snapshot → mid-rank CDF per (subfield, year) → Neon, works
+   never persisted, **every** subfield (not just the seed). It runs on a throwaway in-region EC2
+   box via `pipeline/factory_launch.py`, because the full snapshot scan is too large for GitHub
+   Actions (6h cap + cross-cloud transfer from the AWS-hosted OpenAlex S3); ~1h, ~$0.50/run.
+   See the academic-ledger-aws-factory memory. (calibrate's transient-cohort pull still pending.)
 4. Drop the `works` table.
 5. Fold all of the above into the M6 monthly cron.
