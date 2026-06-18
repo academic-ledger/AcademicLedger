@@ -32,6 +32,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       issuer: ORCID_ISSUER,
       clientId: process.env.ORCID_CLIENT_ID,
       clientSecret: process.env.ORCID_CLIENT_SECRET,
+      // ORCID's token endpoint accepts ONLY client_secret_post (discovery:
+      // token_endpoint_auth_methods_supported = ["client_secret_post"]). Auth.js defaults to
+      // client_secret_basic, which ORCID rejects → the code-for-token exchange fails in the
+      // callback with a Configuration error. Force post.
+      client: { token_endpoint_auth_method: "client_secret_post" },
       // ORCID supports ONLY the `openid` scope (discovery: scopes_supported = ["openid"]). Auth.js's
       // default OIDC scope is "openid profile email" — ORCID rejects the extra scopes *before* login
       // and bounces straight back as an error, so we must request openid only.
