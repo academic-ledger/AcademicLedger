@@ -1,4 +1,5 @@
 import Link from "next/link";
+import AuthStatus from "./AuthStatus";
 
 type Tab = "explore" | "author" | "about" | "for-authors" | null;
 
@@ -40,6 +41,7 @@ export default function Brand({
         </Link>
         {/* static reveal.js deck served from /public, so a plain anchor (not router Link) */}
         <a href="/talk.html">Talk</a>
+        <AuthStatus />
       </nav>
     </header>
   );
