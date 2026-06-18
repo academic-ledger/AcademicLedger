@@ -27,12 +27,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   // TEMP C1: capture errors to the DB (readable at /api/auth-debug) + the console.
   logger: {
     error(error: any) {
+      // Auth.js nests the real cause at error.cause.err — dig it out (was logging [object Object]).
+      const cause: any = error?.cause;
+      const inner: any = cause?.err ?? cause;
+      const msg: string = inner?.message || error?.message || String(error);
       try {
-        console.error("[auth][error]", error?.message, error?.cause ?? "", error?.stack ?? "");
+        console.error("[auth][error]", msg, inner?.stack ?? "");
       } catch {}
       void recordAuthError(
-        error?.message ?? String(error),
-        [error?.cause && String(error.cause), error?.stack].filter(Boolean).join("\n")
+        msg,
+        [inner?.name, inner?.message, inner?.stack, error?.stack].filter(Boolean).join("\n")
       );
     },
   },
