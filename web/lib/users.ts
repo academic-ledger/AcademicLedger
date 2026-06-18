@@ -70,6 +70,30 @@ async function fetchOrcidWorks(orcid: string): Promise<OrcidWork[]> {
   }
 }
 
+// ── TEMPORARY C1 auth-error capture (remove before merge) ────────────────────────────────────
+// Vercel function logs are awkward to read, so the NextAuth logger also records errors here and
+// /api/auth-debug reads them back. Best-effort; never throws.
+export async function recordAuthError(message: string, detail: string | null): Promise<void> {
+  try {
+    await query(`create table if not exists _auth_debug (
+      id serial primary key, at timestamptz not null default now(), message text, detail text
+    )`);
+    await query(`insert into _auth_debug (message, detail) values ($1, $2)`, [
+      (message ?? "").slice(0, 2000),
+      (detail ?? "")?.slice(0, 6000) || null,
+    ]);
+  } catch {
+    /* best-effort */
+  }
+}
+export async function recentAuthErrors(): Promise<any[]> {
+  try {
+    return await query(`select at, message, detail from _auth_debug order by id desc limit 5`);
+  } catch {
+    return [];
+  }
+}
+
 // On login: upsert the user (keyed by ORCID iD) and refresh their cached works. Touches only
 // `users` and `orcid_works`.
 export async function upsertUserAndCacheWorks(orcid: string, name: string | null): Promise<void> {

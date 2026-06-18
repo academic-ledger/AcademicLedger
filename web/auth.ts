@@ -1,5 +1,5 @@
 import NextAuth from "next-auth";
-import { upsertUserAndCacheWorks } from "@/lib/users";
+import { upsertUserAndCacheWorks, recordAuthError } from "@/lib/users";
 
 // ── ORCID sign-in (Auth.js v5, OIDC) ──────────────────────────────────────────────────────────
 // The endpoints are discovered from {issuer}/.well-known/openid-configuration, so flipping the
@@ -23,6 +23,19 @@ function nameFrom(profile: any): string {
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   trustHost: true,
+  debug: true, // TEMP C1: verbose error logging (remove before merge)
+  // TEMP C1: capture errors to the DB (readable at /api/auth-debug) + the console.
+  logger: {
+    error(error: any) {
+      try {
+        console.error("[auth][error]", error?.message, error?.cause ?? "", error?.stack ?? "");
+      } catch {}
+      void recordAuthError(
+        error?.message ?? String(error),
+        [error?.cause && String(error.cause), error?.stack].filter(Boolean).join("\n")
+      );
+    },
+  },
   session: { strategy: "jwt" },
   providers: [
     {
