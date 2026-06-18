@@ -4,9 +4,9 @@ import { getAuthorRecord } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
 
-// The nav "Author" tab lands here. Default to the project initiator (Karl Ulrich); use the
-// in-page search to jump to any other author. Specific authors live at /author/:oaid.
-const DEFAULT_AUTHOR = "A5040079549"; // Karl T. Ulrich
+// The nav "Author" tab lands here. Default to a recognizable example author; use the in-page
+// search to jump to any other author. Specific authors live at /author/:oaid.
+const DEFAULT_AUTHOR = "A5003086136"; // Charles Darwin
 
 export default async function AuthorIndex() {
   const payload = await getAuthorRecord(DEFAULT_AUTHOR);
