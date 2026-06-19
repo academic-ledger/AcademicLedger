@@ -96,6 +96,8 @@ export default function AuthorView({ payload }: { payload: AuthorPayload }) {
   // Click a field to filter the Works table to that subfield (e.g. "what does OpenAlex call
   // Museology in my record?"). null = show everything.
   const [selSub, setSelSub] = useState<string | null>(null);
+  const [fieldsOpen, setFieldsOpen] = useState(false);
+  const FIELDS_PREVIEW = 8; // initial rows ≈ the portfolio box height; rest behind "show all"
   const shownWorks = selSub ? works.filter((w) => (w.subfield || "Unclassified") === selSub) : works;
 
   return (
@@ -138,7 +140,7 @@ export default function AuthorView({ payload }: { payload: AuthorPayload }) {
             <span className="src">· click a field to filter the works below</span>
           </h2>
           <div>
-            {frows.map(([sf, o]) => (
+            {(fieldsOpen ? frows : frows.slice(0, FIELDS_PREVIEW)).map(([sf, o]) => (
               <div
                 className={`frow click${selSub === sf ? " sel" : ""}`}
                 key={sf}
@@ -161,6 +163,11 @@ export default function AuthorView({ payload }: { payload: AuthorPayload }) {
               </div>
             ))}
           </div>
+          {frows.length > FIELDS_PREVIEW && (
+            <button className="linkbtn fields-more" onClick={() => setFieldsOpen((o) => !o)}>
+              {fieldsOpen ? "Show fewer" : `Show all ${frows.length} fields →`}
+            </button>
+          )}
           <div className="coverline">
             <b>
               {calN} of {works.length}
