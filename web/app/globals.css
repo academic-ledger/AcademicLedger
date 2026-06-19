@@ -65,7 +65,7 @@ a:hover { text-decoration: underline; }
 .pnotes-err { color: #c0392b; font-size: 13px; margin: 8px 0 0; }
 .pnotes-actions { display: flex; gap: 8px; margin-top: 12px; }
 .pnotes-fine { font-size: 12px; color: var(--muted); margin: 8px 0 0; }
-.fields-more { margin: 6px 0 2px; font-size: 13px; }
+button.fields-more { margin: 6px 0 2px; font-size: 13px; }
 @media (max-width: 600px) {
   .authstat, .authbtn { margin-left: 0; }
   .authstat .authwho { white-space: normal; }
