@@ -5,7 +5,7 @@ export const metadata = { title: "For authors — academic Ledger" };
 export default function ForAuthorsPage() {
   return (
     <>
-      <Brand active="for-authors" badge="research preview" />
+      <Brand active="for-authors" />
       <div className="wrap-about">
         <p className="kicker">For authors</p>
         <h1>Get your work on the Ledger</h1>

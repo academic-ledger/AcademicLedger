@@ -3,7 +3,7 @@ import Brand from "@/components/Brand";
 export default function AboutPage() {
   return (
     <>
-      <Brand active="about" badge="research preview" />
+      <Brand active="about" />
       <div className="wrap-about">
         <p className="kicker">About academic Ledger</p>
         <h1>

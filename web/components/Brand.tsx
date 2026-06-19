@@ -5,7 +5,7 @@ type Tab = "explore" | "author" | "about" | "for-authors" | null;
 
 export default function Brand({
   active = null,
-  badge = "prototype · MVP",
+  badge = "BETA",
 }: {
   active?: Tab;
   badge?: string;
@@ -22,7 +22,7 @@ export default function Brand({
             <span className="le">Ledger</span>
           </span>
         </Link>
-        <span className="proto" title="Level 0 prototype; QaL values are illustrative pending calibration">
+        <span className="proto" title="Beta — QaL values are illustrative pending calibration">
           {badge}
         </span>
       </div>

@@ -4,7 +4,7 @@ import Brand from "@/components/Brand";
 export default function Home() {
   return (
     <>
-      <Brand badge="research preview" />
+      <Brand />
       <div className="wrap-home">
         <h1>
           All you need is Q<span className="a">a</span>L
