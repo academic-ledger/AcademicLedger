@@ -39,7 +39,9 @@ export default async function PaperPage({ params }: { params: { oaid: string } }
   }
 
   const calibrated = rec.calibrated && rec.qal;
-  const age = rec.year ? Math.max(1, 2026 - rec.year + 1) : null;
+  // Only the publication YEAR is known, so years-on-record = currentYear − pubYear (rounded). A
+  // same-year paper is 0 → the "N years on the record" / "N yr" labels are then omitted.
+  const age = rec.year ? Math.max(0, 2026 - rec.year) : null;
   const src = rec.doi || `https://openalex.org/${rec.oaid}`;
 
   // Field summary pill (replaces the bare "synthetic field" label): the explore Top-1 + N treatment
@@ -107,7 +109,7 @@ export default async function PaperPage({ params }: { params: { oaid: string } }
           {rec.year && (
             <>
               Posted <b>{rec.year}</b>
-              {age ? ` · ${age} years on the record` : ""}
+              {age ? ` · ${age} year${age === 1 ? "" : "s"} on the record` : ""}
             </>
           )}
         </p>
@@ -135,7 +137,7 @@ export default async function PaperPage({ params }: { params: { oaid: string } }
                 <div className="qal-cap">
                   {rec.reference_class?.coverage === "mature" ? (
                     <>
-                      settled standing{age ? ` · decided at ${age} years` : ""} · at maturity the
+                      settled standing{age ? ` · decided at ${age} year${age === 1 ? "" : "s"}` : ""} · at maturity the
                       eventual percentile ≈ the observed percentile, with little left to forecast
                     </>
                   ) : rec.reference_class?.coverage === "fitted" ? (
