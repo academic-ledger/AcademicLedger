@@ -11,7 +11,7 @@ export default function ForAuthorsPage() {
         <h1>Get your work on the Ledger</h1>
         <p className="lede">
           academic Ledger certifies scholarship; it does not distribute or host it. Here is how to
-          get a new paper rated &mdash; and where to post it so we can.
+          get a new paper on the ledger and rated.
         </p>
 
         <h2>We certify; we don&rsquo;t host</h2>
