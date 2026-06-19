@@ -221,23 +221,73 @@ async function attachCompositions(items: RecordItem[]) {
   const wmap = new Map(wrows.map((r) => [r.oaid, r.weights]));
   const names = await query<{ id: string; name: string }>(`select id, name from subfields`);
   const nameMap = new Map(names.map((r) => [r.id, r.name]));
+  const short = (sid: string, name: string) => SUBFIELD_SHORT[sid] ?? name;
+
+  // Also read the on-demand cache that PAPER VIEWS populate (synthetic_cache, any oaid, incl.
+  // out-of-corpus works). A paper the reader has opened gets its blend + QaL computed and cached
+  // there; without this it would still read "blend pending" on the author/explore listing. Gap-fill
+  // only — never override an in-corpus work's batch-computed metrics.
+  let scmap = new Map<string, any>();
+  try {
+    const screws = await query<{ oaid: string; payload: any }>(
+      `select oaid, payload from synthetic_cache where oaid = any($1)`,
+      [oaids]
+    );
+    scmap = new Map(screws.map((r) => [r.oaid, r.payload]));
+  } catch {
+    /* synthetic_cache may not exist yet */
+  }
+
   for (const it of items) {
     const w = wmap.get(it.oaid);
-    if (!w) {
-      it.composition = [];
-      continue;
+    it.composition = w
+      ? (Array.isArray(w)
+          ? w.map((x) => ({ sid: x.sid, weight: Number(x.weight) }))
+          : Object.entries(w).map(([sid, weight]) => ({ sid, weight: Number(weight) }))
+        )
+          .filter((e) => e.weight > 0)
+          .sort((a, b) => b.weight - a.weight)
+          .slice(0, 8)
+          .map(({ sid, weight }) => {
+            const name = nameMap.get(sid) ?? `Subfield ${sid}`;
+            return { sid, name, short: short(sid, name), weight };
+          })
+      : [];
+
+    const sc = scmap.get(it.oaid);
+    if (sc) {
+      if ((!it.composition || it.composition.length === 0) && Array.isArray(sc.composition)) {
+        it.composition = sc.composition
+          .map((e: any) => {
+            const sid = String(e.sid);
+            const name = e.name ?? nameMap.get(sid) ?? `Subfield ${sid}`;
+            return { sid, name, weight: Number(e.weight), short: short(sid, name) };
+          })
+          .filter((e: any) => e.weight > 0)
+          .sort((a: any, b: any) => b.weight - a.weight)
+          .slice(0, 8);
+      }
+      if (!it.metrics?.synthetic) {
+        const q = sc.qal
+          ? { point: sc.qal.point, lo: sc.qal.ci90?.[0] ?? sc.qal.point, hi: sc.qal.ci90?.[1] ?? sc.qal.point }
+          : null;
+        it.metrics = {
+          field: it.metrics?.field ?? null,
+          synthetic: {
+            obs: Number(sc.obs_percentile ?? it.obs ?? 0),
+            calibrated: !!sc.calibrated,
+            qal: q,
+            coverage: sc.reference_class?.coverage ?? null,
+          },
+          official: "synthetic",
+        };
+        if (it.obs == null && sc.obs_percentile != null) it.obs = Number(sc.obs_percentile);
+        if (it.qal == null && q) {
+          it.qal = q;
+          it.calibrated = !!sc.calibrated;
+        }
+      }
     }
-    const entries: { sid: string; weight: number }[] = Array.isArray(w)
-      ? w.map((x) => ({ sid: x.sid, weight: Number(x.weight) }))
-      : Object.entries(w).map(([sid, weight]) => ({ sid, weight: Number(weight) }));
-    it.composition = entries
-      .filter((e) => e.weight > 0)
-      .sort((a, b) => b.weight - a.weight)
-      .slice(0, 8)
-      .map(({ sid, weight }) => {
-        const name = nameMap.get(sid) ?? `Subfield ${sid}`;
-        return { sid, name, short: SUBFIELD_SHORT[sid] ?? name, weight };
-      });
   }
 }
 
