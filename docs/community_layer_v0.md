@@ -47,16 +47,19 @@ Acceptance:
 - On login, fetch and cache the member's ORCID works (DOIs / Work IDs) into `orcid_works`, for Stories 2 and 3.
 - Out of scope: dues, profile editing, any write to a paper.
 
-## Story 2 — Author note on your own paper
+## Story 2 — Canonical version & author notes  *(BUILT — `feature/community-c2-note`)*
 
-*As a signed-in author, I can add a short public note to a paper I authored, e.g. "early working paper; please cite W2234445."*
+*As a signed-in author, I can mark another version of my work as the canonical one and attach notes, so readers land on the best version and get my context — without anyone editing the record or the QaL.*
 
-Acceptance:
-- The note box appears only on papers whose DOI/Work ID is in the member's `orcid_works` (authorship confirmed), or on a paper the member has claimed (Story 3).
-- Free text plus an optional structured "superseded by / cite instead: [Work ID]" field (feeds the future reference-checker and an upstream-to-OpenAlex path).
-- Renders on the paper page attributed to the member with ORCID and a "verified author" label and date, under the corrections area with the show-corrections toggle.
-- Member can edit or delete their own note; does not change QaL; rate-limited; takedown path.
-- Out of scope: notes on papers you did not author or claim, replies/threading, dues.
+A **"Canonical version & author notes"** block sits above the Cite card on the paper page. CTA is **"+ Add a note."** Refined to **multiple structured items** (not one free-text box): an author commonly references several papers (canonical version, a superseding journal version, related work), so each is its own attributed item with a clean, validated link — and the structure stays machine-readable for future version-merging automation.
+
+Acceptance (as built):
+- **Repeatable items**, each = `{ optional target paper (typeahead → resolves to an academic Ledger entity), relation, plain-text comment }`. Relations: **`canonical`** (one per paper — enforced; demotes any prior), `supersedes`, `related`, or `note` (comment only, no link). Comments are plain text (escaped; no HTML — no link-injection surface).
+- **Authorship gate, server-verified:** the editor + write API require the session ORCID to be on the paper's OpenAlex byline **or** the paper's DOI to be in the member's cached `orcid_works`. Neither → it's the Story-3 "claim" case (not yet built), so the author can't post until C3.
+- Renders attributed to the author — *"— [Name] · ✓ ORCID-verified author · [date]"*, canonical/related as hyperlinks. **Never changes QaL**; the original OpenAlex view is always present. Signed-out potential authors get a "Sign in with ORCID to add a note" nudge.
+- Author can edit/remove their own items; capped per paper; takedown path. **Overlay only — writes `paper_notes`, never the metric tables.**
+- Architecture (first author-originated authenticated write): `paper_notes` table (migration 008, one-to-many; `target_oaid`/`target_title`/`relation`/`body`); write API `POST/PUT/DELETE /api/paper/[oaid]/note` (auth + authorship gate); `/api/works/search` for the picker; display-merge in the paper page; the editor is a client island (`PaperNotes`).
+- Out of scope: notes on papers you didn't author or claim (needs C3), bidirectional "this *is* canonical / older versions" backlinks, auto-merging versions, replies/threading, dues.
 
 ## Story 3 — Claim a paper
 

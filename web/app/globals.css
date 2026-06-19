@@ -42,6 +42,29 @@ a:hover { text-decoration: underline; }
 .authbtn { margin-left: 15px; font-size: 12px; background: none; border: 1px solid var(--line); color: var(--muted); border-radius: 6px; padding: 3px 9px; cursor: pointer; font-family: inherit; }
 .authbtn:hover { color: #111; border-color: #b8c0cc; }
 .authbtn-in { color: #111; border-color: #b8c0cc; font-weight: 600; }
+
+/* C2 — canonical version & author notes block */
+.pnotes h2 { margin-top: 0; }
+.pnotes-list { list-style: none; padding: 0; margin: 0 0 14px; display: flex; flex-direction: column; gap: 12px; }
+.pnotes-list > li { border-left: 3px solid var(--line); padding-left: 12px; }
+.pnotes-rel { font-size: 14px; color: var(--navy); }
+.pnotes-rel a { color: #2b6cb0; }
+.pnotes-body { font-size: 14px; color: #26344b; margin-top: 3px; line-height: 1.5; }
+.pnotes-attr { font-size: 12px; color: var(--muted); margin-top: 4px; }
+.pnotes-attr .verified { color: #2e7d32; font-weight: 600; }
+.pnotes-link { background: none; border: none; color: var(--muted); text-decoration: underline; cursor: pointer; font-size: 12px; padding: 0; font-family: inherit; }
+.pnotes-link:hover { color: #111; }
+.pnotes-nudge { font-size: 14px; color: var(--muted); margin: 0; line-height: 1.6; }
+.pnotes-editor { border: 1px solid var(--line); border-radius: 9px; padding: 14px; margin-top: 10px; background: #fafbfc; }
+.pnotes-flabel { display: block; font-size: 12px; color: var(--muted); margin: 8px 0 4px; font-weight: 600; }
+.pnotes-editor .authsearch input, .pnotes-editor textarea, .pnotes-relrow select { width: 100%; font-family: inherit; font-size: 14px; padding: 7px 9px; border: 1px solid var(--line); border-radius: 6px; box-sizing: border-box; }
+.pnotes-editor textarea { min-height: 64px; resize: vertical; }
+.pnotes-picked { font-size: 14px; }
+.pnotes-relrow { margin-top: 8px; }
+.pnotes-relrow select { width: auto; }
+.pnotes-err { color: #c0392b; font-size: 13px; margin: 8px 0 0; }
+.pnotes-actions { display: flex; gap: 8px; margin-top: 12px; }
+.pnotes-fine { font-size: 12px; color: var(--muted); margin: 8px 0 0; }
 @media (max-width: 600px) {
   .authstat, .authbtn { margin-left: 0; }
   .authstat .authwho { white-space: normal; }

@@ -2,7 +2,10 @@ import Brand from "@/components/Brand";
 import Byline from "@/components/Byline";
 import CitationCard from "@/components/CitationCard";
 import SyntheticLoader from "@/components/SyntheticLoader";
+import PaperNotes from "@/components/PaperNotes";
 import { getPaperRecord } from "@/lib/queries";
+import { auth } from "@/auth";
+import { listNotes, getUserIdByOrcid, isAuthorOfWork } from "@/lib/notes";
 import { SUBFIELD_SHORT } from "@/lib/subfieldShort";
 
 export const dynamic = "force-dynamic";
@@ -69,6 +72,17 @@ export default async function PaperPage({ params }: { params: { oaid: string } }
   ]
     .filter(Boolean)
     .join(" ");
+
+  // C2 — author-originated overlay (canonical version + notes). Read for everyone; the editor shows
+  // only for the signed-in ORCID-verified author of THIS paper. Cheap: one DB read + (if signed in)
+  // an authorship check against the byline ORCIDs we already have + the cached ORCID works.
+  const notes = await listNotes(rec.oaid);
+  let canEdit = false;
+  const session: any = await auth();
+  if (session?.orcid) {
+    const uid = await getUserIdByOrcid(session.orcid);
+    if (uid) canEdit = await isAuthorOfWork(session.orcid, uid, { authorships: rec.authorships, doi: rec.doi });
+  }
 
   return (
     <>
@@ -318,6 +332,9 @@ export default async function PaperPage({ params }: { params: { oaid: string } }
             </div>
           </div>
         </div>
+
+        {/* ===== CANONICAL VERSION & AUTHOR NOTES (C2 overlay; ORCID-gated) ===== */}
+        <PaperNotes oaid={rec.oaid} notes={notes} canEdit={canEdit} />
 
         {/* ===== CITATION ===== */}
         <CitationCard citation={citation} />
