@@ -101,14 +101,14 @@ export default function AboutPage() {
           <h2>Who, and how to reach us</h2>
           <p className="names">Initiated by G&eacute;rard Cachon, Christian Terwiesch, and Karl Ulrich.</p>
           <p style={{ marginBottom: 0 }}>
-            academic Ledger is a work in progress and a research preview; the numbers shown today are
+            academic Ledger is a work in progress, currently in Beta; the numbers shown today are
             illustrative pending calibration. We welcome reactions, criticism, and ideas. Contact any
             one of us through the usual methods with your feedback.
           </p>
         </div>
 
         <footer>
-          academic Ledger · research preview. Quality estimates are built from the open scholarly
+          academic Ledger · Beta. Quality estimates are built from the open scholarly
           record and are illustrative pending calibration.
         </footer>
       </div>

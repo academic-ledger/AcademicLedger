@@ -206,7 +206,7 @@ export default function AuthorView({ payload }: { payload: AuthorPayload }) {
       </p>
 
       <footer>
-        <span className="wh">academic Ledger</span> · author view, Level 0 prototype. Identity,
+        <span className="wh">academic Ledger</span> · author view, Beta. Identity,
         works, citations, fields and open-access status from OpenAlex (CC0). Observed percentiles
         computed live by exact within-(subfield, year) count queries. QaL forecast intervals are{" "}
         <em>illustrative pending calibration</em> (QaL_spec.md, §5). No participant data; no conferred

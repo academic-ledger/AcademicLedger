@@ -82,7 +82,7 @@ export default function ForAuthorsPage() {
         </p>
 
         <footer>
-          academic Ledger &middot; research preview. We point to the canonical record of each work
+          academic Ledger &middot; Beta. We point to the canonical record of each work
           and never host or archive it; quality estimates are built from the open scholarly record
           and are illustrative pending calibration.
         </footer>

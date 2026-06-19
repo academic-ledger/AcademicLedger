@@ -444,7 +444,7 @@ export default function ExploreClient() {
       )}
 
       <footer>
-        <span className="wh">academic Ledger</span> · explore view, Level 0 prototype. Records,
+        <span className="wh">academic Ledger</span> · explore view, Beta. Records,
         citations, fields and open-access status from OpenAlex (CC0). Two reference classes are shown
         side by side: the single-subfield field percentile and the synthetic field (a recency-weighted
         topic-mixture of full cohorts, §5); the <b>official</b> number is the synthetic field, fixed to
