@@ -23,19 +23,12 @@
   .reveal ul, .reveal ol, .reveal li, .reveal p { font-size: 16pt; }
   .reveal ul ul li { font-size: 14pt; color: #444; }
   .reveal img { display: block; margin: 14px auto 0; max-height: 60vh; box-shadow: none; border: 0; }
-  /* Keep text legible beside images. Two fixes: let flex rows shrink (min-width:0),
-     and size side-by-side images to the slide in px rather than vh (which does not
-     map to reveal's fixed slide coordinates). Targets only images that are a direct
-     child of a flex row, so standalone figure slides are untouched. */
+  /* Side-by-side flex rows: let them shrink and cap images to the fixed slide box. */
   .reveal section > div[style*="flex"] { min-width: 0; }
   .reveal section > div[style*="flex"] > * { min-width: 0; }
   .reveal section > div[style*="flex"] > img {
-    max-height: 440px !important;
-    max-width: 48% !important;
-    width: auto !important;
-    height: auto !important;
-    object-fit: contain;
-    margin: 0;
+    max-height: 440px !important; max-width: 48% !important;
+    width: auto !important; height: auto !important; object-fit: contain; margin: 0;
   }
   .reveal .credit { font-size: 12pt; color: #666; }
   .reveal .small { font-size: 12pt; color: #666; }
@@ -47,26 +40,13 @@
   .reveal .c-ref  { background: #2166ac; }
   .reveal .c-can  { background: #b8860b; }
   .reveal .muted  { color: #8a8a8a; }
-  .reveal .pub { display:inline-block; width:1.35em; height:1.35em; line-height:1.3em; text-align:center;
-                 border:1.6px solid #1b7837; border-radius:50%; font-weight:700; font-size:10pt; color:#1b7837;
-                 margin-right:7px; vertical-align:middle; }
   .reveal .doi { color:#2166ac; font-size:11pt; }
   .reveal a.demo { color:#1b7837; font-weight:600; font-size:14pt; text-decoration:none; border-bottom:1px solid #9fcbb0; }
-  /* aL top bar (sans-serif throughout; only the lockup name is serif) */
-  .topbar { position:fixed; top:0; left:0; right:0; height:44px; z-index:40; background:#fff;
-            border-bottom:1px solid #e6e6e6; display:flex; align-items:center; justify-content:space-between; padding:0 18px;
-            font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; }
-  .topbar .left { display:flex; align-items:center; gap:11px; }
-  .topbar .lock { display:inline-flex; align-items:center; gap:10px; text-decoration:none; }
-  .topbar .al { width:26px; height:26px; border-radius:22%; background:#111; color:#fff; display:inline-flex;
-                align-items:center; justify-content:center; font-family:"Cormorant Garamond",Georgia,serif; font-weight:600; font-size:18px; line-height:1; }
-  .topbar .al .i { font-style:italic; font-weight:500; }
-  .topbar .nm { font-family:"Cormorant Garamond",Garamond,serif; font-size:21px; line-height:1; }
-  .topbar .nm .ac { font-style:italic; font-weight:400; color:#555; font-size:.95em; }
-  .topbar .nm .le { font-weight:500; color:#111; }
-  .topbar .proto { font-size:10px; letter-spacing:.06em; text-transform:uppercase; color:#b06a00; background:#fff5d6; border:1px solid #e6cf7a; padding:1px 7px; border-radius:10px; }
-  .topbar .nav a { color:#6b7280; margin-left:13px; text-decoration:none; font-size:12.5px; }
-  .topbar .nav a.on { color:#111; font-weight:600; }
+  /* Markdown tables (Marp source uses these instead of hand-built HTML tables). */
+  .reveal table { border-collapse: collapse; font-size: 13pt; margin: 10px 0; }
+  .reveal th, .reveal td { border: 1px solid #dcdfe4; padding: 6px 9px; text-align: left; vertical-align: top; }
+  .reveal th { background: #eef1f5; color: #1b2a4a; }
+  .reveal code { font-size: .9em; background: #f1f4f8; padding: 1px 6px; border-radius: 4px; }
   .deck { position:fixed; top:0; left:0; right:0; bottom:0; }
   .deck .reveal { width:100%; height:100%; }
 </style>
@@ -75,452 +55,454 @@
 <div class="deck">
 <div class="reveal">
   <div class="slides">
-
-    <section>
-      <div style="display:flex; gap:44px; align-items:center;">
-        <div style="flex:1; min-width:0;">
-          <h1 style="margin:0 0 6px;">All You Need is Q<span style="font-style:italic;">a</span>L</h1>
-          <p style="font-size:18pt; margin:0 0 4px; color:#1b2a4a;"><strong>The Crisis in Academic Publishing</strong></p>
-          <p style="font-size:13.5pt; font-style:italic; color:#555; margin:0 0 26px;">Symptoms, Diagnoses, and a Potential Solution Concept</p>
-          <p style="margin:0;">Karl T. Ulrich<br><span class="credit">(Joint work with Gérard Cachon and Christian Terwiesch)</span></p>
-          <p class="credit" style="margin-top:4px;">July 9, 2026 · OID Department Seminar · The Wharton School</p>
-        </div>
-        <img src="images/title-image-referees.png" alt="A scholar reads a paper beneath portraits of masked, anonymous referees"
-             style="flex:0 0 auto; max-height:66vh; width:auto; border-radius:10px; box-shadow:0 8px 30px rgba(0,0,0,.22); margin:0;">
-      </div>
+    <section class="center">
+      <h1>All You Need is Q<em>a</em>L</h1>
+<p><strong>The Crisis in Academic Publishing</strong></p>
+<p><em>Symptoms, Diagnoses, and a Potential Solution Concept</em></p>
+<p>Karl T. Ulrich
+<em>(Joint work with Gérard Cachon and Christian Terwiesch)</em></p>
+<p>July 9, 2026 · OID Department Seminar · The Wharton School</p>
+<p><img src="images/title-image-referees.png" alt="" style="height:340px"></p>
       <aside class="notes">Title is a deliberate provocation (the Beatles' "All You Need Is Love"; "Attention Is All You Need"). Deliver the qualifiers in the body: QaL is necessary but not sufficient; it needs an integrity floor, must be decided late, must report a reference class and interval, and must be hard to game.</aside>
     </section>
 
     <section>
       <h2>Published Articles are the Coin of the Realm</h2>
-      <div style="display:flex; gap:30px; align-items:center;">
-        <ul style="flex:1;">
-          <li>Unit of work in academia</li>
-          <li>Vary widely in embodied effort</li>
-          <li>"Refereed" journal an important categorization</li>
-          <li>"A journal" the most important categorization</li>
-          <li>"Quality" matters, but assessing quality is tricky</li>
-        </ul>
-        <img src="images/KT-econometrica.png" alt="Kahneman &amp; Tversky, Prospect Theory, Econometrica 1979"
-             style="flex:0 0 auto; max-height:72vh; width:auto; border:1px solid #ccc; box-shadow:0 3px 14px rgba(0,0,0,.16); margin:0;">
-      </div>
-      <aside class="notes">Kahneman &amp; Tversky, "Prospect Theory," Econometrica 47(2), 1979. Nobel-recognized, foundational, top journal: the article as coin of the realm.</aside>
+<div style="display:flex; gap:30px; align-items:center;">
+<div>
+<ul>
+<li>Unit of work in academia</li>
+<li>Vary widely in embodied effort</li>
+<li>"Refereed" journal an important categorization</li>
+<li>"A journal" the most important categorization</li>
+<li>"Quality" matters, but assessing quality is tricky</li>
+</ul>
+</div>
+<p><img src="images/KT-econometrica.png" alt=""></p>
+</div>
+      <aside class="notes">Kahneman & Tversky, "Prospect Theory," Econometrica 47(2), 1979. Nobel-recognized, foundational, top journal: the article as coin of the realm.</aside>
     </section>
 
     <section>
       <h2>What We Mean by Quality</h2>
-      <ul>
-        <li>Many dimensions of quality: interestingness, importance, impact, novelty, elegance, humor, clarity, rigor, popularity, methodological purity, and so on</li>
-        <li>For the system, we collapse them to a single scalar <strong>Q</strong>, the eventual recognized value of the work; correctness and importance are <em>inputs</em> to Q, not separately certified axes</li>
-        <li>Ex ante uncertainty about Q is high</li>
-        <li>Review effort narrows that uncertainty only modestly; <strong>time reveals most of it</strong></li>
-        <li>A finer two-dimensional view, separating correctness C from impact I, is a useful extension we keep as a branch</li>
-      </ul>
-      <p class="ref">Cachon, Girotra &amp; Netessine (2020), "Interesting, Important, and Impactful Operations Management," M&amp;SOM 22(1)</p>
+<ul>
+<li>Many dimensions of quality: interestingness, importance, impact, novelty, elegance, humor, clarity, rigor, popularity, methodological purity, and so on</li>
+<li>For the system, we collapse them to a single scalar <strong>Q</strong>, the eventual recognized value of the work; correctness and importance are <em>inputs</em> to Q, not separately certified axes</li>
+<li>Ex ante uncertainty about Q is high</li>
+<li>Review effort narrows that uncertainty only modestly; <strong>time reveals most of it</strong></li>
+<li>A finer two-dimensional view, separating correctness C from impact I, is a useful extension we keep as a branch</li>
+</ul>
+<p><span class="ref">Cachon, Girotra &amp; Netessine (2020), "Interesting, Important, and Impactful Operations Management," M&amp;SOM 22(1)</span></p>
     </section>
 
     <section>
       <h2>Many Available Metrics for Q; Authority-Weighted Citations ("PageRank") Likely Pretty Good</h2>
-      <div style="display:grid; grid-template-columns:1fr 36%; gap:28px; align-items:center;">
-        <div style="min-width:0;">
-          <ul>
-            <li>Estimate <strong>Q from realized impact</strong>: the percentile, within field and vintage, of citation count &mdash; excluding self-citations (or authority-weighted citations, essentially PageRank)</li>
-            <li>A confidence interval for Q begins at <strong>[0, 100]</strong>; one citation moves it to about <strong>[50, 100]</strong>; with enough evidence it narrows, e.g., <strong>[82, 84]</strong></li>
-            <li>No single number is needed: a wealth of independent signals is measurable, and they accrue over time</li>
-            <li>The more independent the signals, the less the estimate of Q can be gamed</li>
-          </ul>
-        </div>
-        <img src="images/quality-metrics-image.png" alt="A full dashboard of paper metrics"
-             style="max-width:100%; max-height:430px; width:auto; height:auto; border:1px solid #ccc; box-shadow:0 3px 14px rgba(0,0,0,.16); margin:0; justify-self:end;">
-      </div>
+<div style="display:flex; gap:30px; align-items:center;">
+<div>
+<ul>
+<li>Estimate <strong>Q from realized impact</strong>: the percentile, within field and vintage, of citation count — excluding self-citations (or authority-weighted citations, essentially PageRank)</li>
+<li>A confidence interval for Q begins at <strong>[0, 100]</strong>; one citation moves it to about <strong>[50, 100]</strong>; with enough evidence it narrows, e.g., <strong>[82, 84]</strong></li>
+<li>No single number is needed: a wealth of independent signals is measurable, and they accrue over time</li>
+<li>The more independent the signals, the less the estimate of Q can be gamed</li>
+</ul>
+</div>
+<p><img src="images/quality-metrics-image.png" alt=""></p>
+</div>
     </section>
 
     <section>
       <h2>The Distribution of Q Is Heavy-Tailed (and the Mode is 0)</h2>
-      <p class="small" style="margin:0 0 2px;">Quality Q, proxied by citation-based impact.</p>
-      <img src="images/fig_citation_distribution.png" alt="Citation distribution: lognormal body with a heavy power-law tail"
-           style="max-height:58vh; box-shadow:0 3px 14px rgba(0,0,0,.12);">
-      <p class="ref">Management Science &amp; OR, OpenAlex (all journals), published 2015 and cited through 2026; n = 10,000 sample. About 48% uncited and median 1, yet the top 1% of papers hold 27% of all citations. <strong>Psychology is essentially identical</strong> (median 0, ~53% uncited, σ ≈ 1.5, top 1% ≈ 26%): citation distributions are universal across fields.</p>
-      <p class="ref">Radicchi, Fortunato &amp; Castellano (2008), <em>PNAS</em> 105(45):17268&ndash;17272; Brzezinski (2015), <em>Scientometrics</em> 103(1):213&ndash;228; Thelwall (2016), <em>Journal of Informetrics</em> 10(2):336&ndash;346.</p>
+<p><span class="small">Quality Q, proxied by citation-based impact.</span></p>
+<p><img src="images/fig_citation_distribution.png" alt="" style="height:430px"></p>
+<p><span class="small">Management Science &amp; OR, OpenAlex (all journals), published 2015, cited through 2026; n=10,000. ~48% uncited, median 1, yet the top 1% hold 27% of all citations. Psychology is essentially identical (median 0, ~53% uncited, σ≈1.5, top 1%≈26%): citation distributions are universal across fields.</span></p>
+<p><span class="ref">Radicchi, Fortunato &amp; Castellano (2008), <em>PNAS</em> 105(45):17268–17272; Brzezinski (2015), <em>Scientometrics</em> 103(1):213–228; Thelwall (2016), <em>Journal of Informetrics</em> 10(2):336–346.</span></p>
     </section>
 
     <section>
       <h2>Reporting Q as a Percentile Class</h2>
-      <div style="display:grid; grid-template-columns:40% 1fr; gap:28px; align-items:center;">
-        <div style="min-width:0;">
-          <ul>
-            <li>Raw citation counts are heavy-tailed and hard to compare across fields and years</li>
-            <li>Transform each paper to its <strong>percentile within its own field and publication year</strong></li>
-            <li>Report membership in standard classes: <strong>top 1%, 5%, 10%, 25%, 50%</strong></li>
-            <li>These are the NSF / Leiden percentile classes, a standard in research evaluation</li>
-            <li>About half of all papers sit at or near zero citations: an atom at the bottom</li>
-          </ul>
-          <p class="small">A percentile is intuitive, field-fair, and robust to the tail. The Ledger's tiers map onto these classes.</p>
-        </div>
-        <img src="images/fig_percentile_transform.png" alt="Raw heavy-tailed citations transformed to within-field-year percentile, with NSF classes marked"
-             style="max-width:100%; max-height:430px; width:auto; height:auto; box-shadow:0 3px 14px rgba(0,0,0,.12); margin:0;">
-      </div>
-      <p class="ref">Percentile classes: National Science Board, <em>Science &amp; Engineering Indicators</em> (NSB-2025-7); CWTS Leiden Ranking. Parameter-free alternative: Gl&auml;nzel &amp; Schubert (1988), "Characteristic Scores and Scales in Assessing Citation Impact," <em>Journal of Information Science</em> 14(2):123&ndash;127.</p>
+<div style="display:flex; gap:30px; align-items:center;">
+<div>
+<ul>
+<li>Raw citation counts are heavy-tailed and hard to compare across fields and years</li>
+<li>Transform each paper to its <strong>percentile within its own field and publication year</strong></li>
+<li>Report membership in standard classes: <strong>top 1%, 5%, 10%, 25%, 50%</strong></li>
+<li>These are the NSF / Leiden percentile classes, a standard in research evaluation</li>
+<li>About half of all papers sit at or near zero citations: an atom at the bottom</li>
+</ul>
+<p><span class="small">A percentile is intuitive, field-fair, and robust to the tail. The Ledger's tiers map onto these classes.</span></p>
+</div>
+<p><img src="images/fig_percentile_transform.png" alt=""></p>
+</div>
+<p><span class="ref">Percentile classes: National Science Board, <em>Science &amp; Engineering Indicators</em> (NSB-2025-7); CWTS Leiden Ranking. Parameter-free alternative: Glänzel &amp; Schubert (1988), "Characteristic Scores and Scales in Assessing Citation Impact," <em>Journal of Information Science</em> 14(2):123–127.</span></p>
     </section>
 
     <section>
-      <h2>Designing Q<span style="font-style:italic;">a</span>L: Composition and Choices</h2>
-      <div style="display:flex; gap:34px;">
-        <div style="flex:1;">
-          <p style="font-weight:700; color:#1b2a4a; margin:0 0 4px;">How it is composed</p>
-          <ul>
-            <li>A blend of <strong>robust, article-level, field-and-vintage-normalized</strong> signals, never a raw count</li>
-            <li>Spine: the paper's <strong>percentile within field and publication year</strong> (NSF / Leiden classes)</li>
-            <li>Topic heat handled by <strong>co-citation-neighborhood normalization</strong> (Relative Citation Ratio) and field-normalized scores (Leiden MNCS)</li>
-            <li><strong>Authority-weighted</strong> citations (PageRank-style), harder to game than raw counts</li>
-            <li>Correctness signals fold in over time: replications, corrections, retractions</li>
-            <li>Reported as a point estimate, a 90% interval, and bucket probabilities, decided late</li>
-          </ul>
-        </div>
-        <div style="flex:1;">
-          <p style="font-weight:700; color:#1b2a4a; margin:0 0 4px;">Design questions</p>
-          <ul>
-            <li><strong>Transparent or opaque?</strong> Transparent method and inputs, auditable and reproducible; opaque metrics breed distrust. Gaming-resistance comes from <em>design</em>, not secrecy: many independent signals, authority-weighting, a percentile basis, and deciding late, so no single lever moves it</li>
-            <li><strong>Field-normalized how?</strong> Within field &times; vintage, plus article-level co-citation normalization; the reference class is always stated</li>
-            <li><strong>Proven, robust tools to invoke:</strong> percentile classes, field-normalized scores (MNCS), the Relative Citation Ratio, Characteristic Scores and Scales &mdash; not the article-level Journal Impact Factor</li>
-          </ul>
-        </div>
-      </div>
-      <p class="ref">Responsible-metrics principles: Hicks, Wouters, Waltman, de Rijcke &amp; Rafols (2015), "The Leiden Manifesto for research metrics," <em>Nature</em> 520:429&ndash;431; San Francisco Declaration on Research Assessment (DORA, 2013). Article-level normalization: Hutchins, Yuan, Anderson &amp; Santangelo (2016), "Relative Citation Ratio," <em>PLoS Biology</em> 14(9):e1002541; CWTS Leiden Ranking (MNCS); Gl&auml;nzel &amp; Schubert (1988).</p>
+      <h2>Designing Q<em>a</em>L: Composition and Choices</h2>
+<div style="display:flex; gap:34px; font-size:21px;">
+<div>
+<p><strong>How it is composed</strong></p>
+<ul>
+<li>A blend of <strong>robust, article-level, field-and-vintage-normalized</strong> signals, never a raw count</li>
+<li>Spine: the paper's <strong>percentile within field and publication year</strong> (NSF / Leiden classes)</li>
+<li>Topic heat handled by <strong>co-citation-neighborhood normalization</strong> (Relative Citation Ratio) and field-normalized scores (Leiden MNCS)</li>
+<li><strong>Authority-weighted</strong> citations (PageRank-style), harder to game than raw counts</li>
+<li>Correctness signals fold in over time: replications, corrections, retractions</li>
+<li>Reported as a point estimate, a 90% interval, and bucket probabilities, decided late</li>
+</ul>
+</div>
+<div>
+<p><strong>Design questions</strong></p>
+<ul>
+<li><strong>Transparent or opaque?</strong> Transparent method and inputs, auditable and reproducible; opaque metrics breed distrust. Gaming-resistance comes from <em>design</em>, not secrecy: many independent signals, authority-weighting, a percentile basis, and deciding late</li>
+<li><strong>Field-normalized how?</strong> Within field × vintage, plus article-level co-citation normalization; the reference class is always stated</li>
+<li><strong>Proven, robust tools to invoke:</strong> percentile classes, field-normalized scores (MNCS), the Relative Citation Ratio, Characteristic Scores and Scales — not the article-level Journal Impact Factor</li>
+</ul>
+</div>
+</div>
+<p><span class="ref">Responsible-metrics principles: Hicks, Wouters, Waltman, de Rijcke &amp; Rafols (2015), "The Leiden Manifesto for research metrics," <em>Nature</em> 520:429–431; DORA (2013). Article-level normalization: Hutchins, Yuan, Anderson &amp; Santangelo (2016), "Relative Citation Ratio," <em>PLoS Biology</em> 14(9):e1002541; CWTS Leiden Ranking (MNCS); Glänzel &amp; Schubert (1988).</span></p>
     </section>
 
     <section>
       <h2>Estimates of Q Can Be Accurate After a Little Calendar Time</h2>
-      <p>The early signal is real: working-paper citations, downloads, and views are available within a year and already forecast eventual citation impact.</p>
-      <img src="images/fig_early_signal.png" alt="Early-citation signal vs eventual quality, January-2015 MS&amp;OR cohort" style="max-height:46vh;">
-      <p class="small"><a class="demo" href="index.html" target="_blank" rel="noopener">&#9654; Open the live Citation Race &#8599;</a></p>
-      <p class="ref">Early downloads predict later citations: in arXiv physics (N = 14,442 in high-energy physics) the download&ndash;citation correlation is r &asymp; 0.42, and downloads measured at <strong>6 months</strong> predict 2-year citation impact about as well as a full two years of data &mdash; Brody, Harnad &amp; Carr (2006), <em>JASIST</em> 57(8):1060&ndash;1072. A prospective study of 153 <em>BMJ</em> papers found the same (hits&ndash;citations r &asymp; 0.5) &mdash; Perneger (2004), <em>BMJ</em> 329:546&ndash;547.</p>
-      <aside class="notes">r &asymp; 0.4 explains roughly 16% of the variance in eventual citations, and the predictive signal plateaus by about 6 months: informative early, but far from determinative, which is exactly why the Ledger decides late. Present this live from the Citation Race app: year 1 finds only about half of the eventual top ten.</aside>
+<p>The early signal is real: working-paper citations, downloads, and views are available within a year and already forecast eventual citation impact.</p>
+<p><img src="images/fig_early_signal.png" alt="" style="width:780px"></p>
+<p><span class="small">▶ Open the live Citation Race: academicledger.vercel.app/index.html</span></p>
+<p><span class="ref">Early downloads predict later citations: in arXiv physics (N = 14,442 in high-energy physics) the download–citation correlation is r ≈ 0.42, and downloads measured at <strong>6 months</strong> predict 2-year citation impact about as well as a full two years of data — Brody, Harnad &amp; Carr (2006), <em>JASIST</em> 57(8):1060–1072. A prospective study of 153 <em>BMJ</em> papers found the same (hits–citations r ≈ 0.5) — Perneger (2004), <em>BMJ</em> 329:546–547.</span></p>
+      <aside class="notes">r ≈ 0.4 explains roughly 16% of the variance in eventual citations, and the predictive signal plateaus by about 6 months: informative early, far from determinative, which is exactly why the Ledger decides late. Year 1 finds only about half of the eventual top ten.</aside>
     </section>
 
     <section>
       <h2>The Societal Functions of Publishing</h2>
-      <div style="display:flex; gap:30px; align-items:center;">
-        <ul style="flex:1;">
-          <li><strong>Administration</strong>: time stamp, copy edit, typeset, archive, distribute</li>
-          <li><strong>Development</strong>: peer feedback and guidance for revision</li>
-          <li><strong>Promotion</strong>: communicating existence to the relevant audience</li>
-          <li><strong>Certification of quality</strong>: some of it knowable early, most revealed over time</li>
-        </ul>
-        <img src="images/Springer-splash-page.png" alt="Springer Nature: Publish an article"
-             style="flex:0 0 auto; max-height:38vh; width:auto; border:1px solid #ccc; box-shadow:0 3px 14px rgba(0,0,0,.16); margin:0;">
-      </div>
-      <p style="margin-top:12px;"><strong>Historically, Journals Performed All of these Functions</strong></p>
-      <ul>
-        <li>Most functions (except development) were completed nearly <strong>simultaneously</strong>, around the time of "publication"</li>
-        <li>Today the functions are increasingly <strong>unbundled</strong> (SSRN, arXiv, personal sites, social media, DIY publication-quality document prep, LLM copy editing)</li>
-        <li>Distribution is now largely irrelevant (PDF downloads, SSRN, open access)</li>
-      </ul>
-      <p class="ref">The functions of scholarly communication were canonically identified as registration, certification, awareness, and archiving by Roosendaal &amp; Geurts (1997), "Forces and Functions in Scientific Communication"; the case for <em>unbundling</em> (decoupling) them into independent services was made by Priem &amp; Hemminger (2012), <em>Frontiers in Computational Neuroscience</em> 6:19.</p>
+<div style="display:flex; gap:30px; align-items:center;">
+<div>
+<ul>
+<li><strong>Administration</strong>: time stamp, copy edit, typeset, archive, distribute</li>
+<li><strong>Development</strong>: peer feedback and guidance for revision</li>
+<li><strong>Promotion</strong>: communicating existence to the relevant audience</li>
+<li><strong>Certification of quality</strong>: some of it knowable early, most revealed over time</li>
+</ul>
+</div>
+<p><img src="images/Springer-splash-page.png" alt=""></p>
+</div>
+<p><strong>Historically, Journals Performed All of these Functions</strong></p>
+<ul>
+<li>Most functions (except development) were completed nearly <strong>simultaneously</strong>, around the time of "publication"</li>
+<li>Today the functions are increasingly <strong>unbundled</strong> (SSRN, arXiv, personal sites, social media, DIY publication-quality document prep, LLM copy editing)</li>
+<li>Distribution is now largely irrelevant (PDF downloads, SSRN, open access)</li>
+</ul>
+<p><span class="ref">The functions of scholarly communication were canonically identified as registration, certification, awareness, and archiving by Roosendaal &amp; Geurts (1997), "Forces and Functions in Scientific Communication"; the case for <em>unbundling</em> (decoupling) them into independent services was made by Priem &amp; Hemminger (2012), <em>Frontiers in Computational Neuroscience</em> 6:19.</span></p>
     </section>
 
     <section>
       <h2>Pre-Publication Peer Review Cannot Do the Job, for Two Reasons</h2>
-      <div style="display:flex; gap:40px;">
-        <div style="flex:1;">
-          <p style="font-weight:700; color:#1b2a4a; margin:0 0 6px;">1. The instrument is noisy</p>
-          <ul>
-            <li>Inter-rater reliability is low: 2&ndash;3 reviewers give a verdict little better than a guess</li>
-            <li>Reliability rises only slowly with more judges; you would need &gt;10 to dependably classify a marginal paper</li>
-            <li><em>Fixable in principle</em>: add judges (Spearman&ndash;Brown)</li>
-          </ul>
-          <img src="images/fig_reliability.png" alt="Reliability rises slowly with the number of reviewers" style="max-height:28vh; margin:4px auto 0;">
-        </div>
-        <div style="flex:1;">
-          <p style="font-weight:700; color:#1b2a4a; margin:0 0 6px;">2. The target is mostly exogenous</p>
-          <ul>
-            <li>Even a perfect read on a paper's knowable quality predicts little of its eventual Q</li>
-            <li>Most of what determines eventual Q &mdash; timing, attention, who cites whom &mdash; is realized <strong>after</strong> the decision</li>
-            <li><em>Not fixable</em> by any number of judges</li>
-          </ul>
-          <p style="margin-top:16px;"><strong>Reason 1 limits any small panel. Reason 2 limits any ex ante process, however many reviewers it uses.</strong></p>
-        </div>
-      </div>
-      <aside class="notes">Reason 1 is a reliability problem and is in principle fixable with more judges. Reason 2 is a validity ceiling and is not. The next two slides give the model and the resulting table.</aside>
+<div style="display:flex; gap:40px;">
+<div>
+<p><strong>1. The instrument is noisy</strong></p>
+<ul>
+<li>Inter-rater reliability is low: 2–3 reviewers give a verdict little better than a guess</li>
+<li>Reliability rises only slowly with more judges; you would need &gt;10 to dependably classify a marginal paper</li>
+<li><em>Fixable in principle</em>: add judges (Spearman–Brown)</li>
+</ul>
+<p><img src="images/fig_reliability.png" alt="" style="height:230px"></p>
+</div>
+<div>
+<p><strong>2. The target is mostly exogenous</strong></p>
+<ul>
+<li>Even a perfect read on a paper's knowable quality predicts little of its eventual Q</li>
+<li>Most of what determines eventual Q — timing, attention, who cites whom — is realized <strong>after</strong> the decision</li>
+<li><em>Not fixable</em> by any number of judges</li>
+</ul>
+<p><strong>Reason 1 limits any small panel. Reason 2 limits any ex ante process, however many reviewers it uses.</strong></p>
+</div>
+</div>
     </section>
 
     <section>
       <h2>A Simple Model, with Evidence for Each Parameter</h2>
-      <p style="margin:0 0 6px;">Eventual quality decomposes into a knowable component plus an exogenous shock; each reviewer sees the knowable component through noise:</p>
-      <p style="text-align:center; font-size:19pt; margin:8px 0 14px; color:#1b2a4a;">
-        <em>Q</em> = <em>q<sub>0</sub></em> + <em>u</em> &nbsp;&nbsp;&nbsp;&middot;&nbsp;&nbsp;&nbsp; <em>s<sub>i</sub></em> = <em>q<sub>0</sub></em> + <em>e<sub>i</sub></em>
-      </p>
-      <style>
-        .mtbl{ border-collapse:collapse; width:100%; font-size:13pt; }
-        .mtbl th,.mtbl td{ border:1px solid #dcdfe4; padding:7px 10px; text-align:left; vertical-align:top; }
-        .mtbl th{ background:#eef1f5; color:#1b2a4a; }
-        .mtbl .pl{ font-weight:700; white-space:nowrap; }
-      </style>
-      <table class="mtbl">
-        <tr><th>Parameter</th><th>Value</th><th>Evidence</th></tr>
-        <tr>
-          <td class="pl">Reviewer noise<br><span style="font-weight:400; color:#666;">reliability of one review</span></td>
-          <td>ICC &asymp; 0.34</td>
-          <td>Bornmann, Mutz &amp; Daniel (2010), <em>PLoS ONE</em> 5(12):e14331 (48 studies, 19,443 manuscripts); Cicchetti (1991), <em>Behavioral &amp; Brain Sciences</em> 14(1):119&ndash;186; NeurIPS revisit: ~50% of scoring was subjective &mdash; Cortes &amp; Lawrence (2021), arXiv:2109.09774</td>
-        </tr>
-        <tr>
-          <td class="pl">Validity ceiling<br><span style="font-weight:400; color:#666;">knowable quality &rarr; eventual Q</span></td>
-          <td>R&sup2; &asymp; 0.06</td>
-          <td>Success in cumulative-advantage markets is intrinsically unpredictable &mdash; Salganik, Dodds &amp; Watts (2006), <em>Science</em> 311:854&ndash;856; review scores do not predict citations of accepted papers &mdash; Cortes &amp; Lawrence (2021); impact is often realized years later ("sleeping beauties") &mdash; Ke, Ferrara, Radicchi &amp; Flammini (2015), <em>PNAS</em> 112(24):7426&ndash;7431</td>
-        </tr>
-      </table>
-      <p class="small"><em>q<sub>0</sub></em> = the knowable (ex ante) component of quality; <em>u</em> = the exogenous shock realized after the decision, so eventual quality <em>Q</em> = <em>q<sub>0</sub></em> + <em>u</em>; <em>e<sub>i</sub></em> = reviewer error. A review recovers at best <em>q<sub>0</sub></em>; even perfectly, it explains only about 6% of <em>Q</em>. Outcomes are binned into the NSF percentile classes; the validity ceiling is sourced from the publishing literature, not from our own idea-evaluation work.</p>
+<p>Eventual quality decomposes into a knowable component plus an exogenous shock; each reviewer sees the knowable component through noise:</p>
+<div style="text-align:center; font-size:30px; color:#1b2a4a; margin:6px 0 12px;">
+<p><i>Q</i> = <i>q<sub>0</sub></i> + <i>u</i> &nbsp;·&nbsp; <i>s<sub>i</sub></i> = <i>q<sub>0</sub></i> + <i>e<sub>i</sub></i></p>
+</div>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Value</th>
+<th>Evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Reviewer noise</strong> (reliability of one review)</td>
+<td>ICC ≈ 0.34</td>
+<td>Bornmann, Mutz &amp; Daniel (2010), <em>PLoS ONE</em> 5(12):e14331 (48 studies, 19,443 manuscripts); Cicchetti (1991), <em>Behavioral &amp; Brain Sciences</em> 14(1):119–186; NeurIPS revisit, ~50% of scoring subjective — Cortes &amp; Lawrence (2021), arXiv:2109.09774</td>
+</tr>
+<tr>
+<td><strong>Validity ceiling</strong> (knowable quality → eventual Q)</td>
+<td>R² ≈ 0.06</td>
+<td>Success in cumulative-advantage markets is intrinsically unpredictable — Salganik, Dodds &amp; Watts (2006), <em>Science</em> 311:854–856; review scores do not predict citations of accepted papers — Cortes &amp; Lawrence (2021); impact often realized years later ("sleeping beauties") — Ke, Ferrara, Radicchi &amp; Flammini (2015), <em>PNAS</em> 112(24):7426–7431</td>
+</tr>
+</tbody>
+</table>
+<p><span class="small"><em>q<sub>0</sub></em> = the knowable (ex ante) component of quality; <em>u</em> = the exogenous shock realized after the decision, so eventual quality <em>Q</em> = <em>q<sub>0</sub></em> + <em>u</em>; <em>e<sub>i</sub></em> = reviewer error. A review recovers at best <em>q<sub>0</sub></em>; even perfectly, it explains only about 6% of <em>Q</em>. Outcomes are binned into the NSF percentile classes; the validity ceiling is sourced from the publishing literature, not from our own idea-evaluation work.</span></p>
     </section>
 
     <section>
       <h2>The Result: More Reviewers Barely Help</h2>
-      <img src="images/fig_reviewer_table.png" alt="Probability of correctly categorizing a paper by tier, for 3 reviewers, 10 reviewers, and a perfect measure of quality"
-           style="max-height:52vh; box-shadow:0 3px 14px rgba(0,0,0,.10);">
-      <p class="ref">Probability a paper that truly belongs in a tier is placed there, under the model above (ICC 0.34; validity ceiling R&sup2; 0.06). "Perfect measure of quality" is a noise-free read of ex ante quality, not foreknowledge of the outcome. Going from 3 to 10 reviewers barely moves the numbers: the validity ceiling, not reviewer count, is the binding constraint.</p>
-      <aside class="notes">This is the punch line. The first failure (reliability) is what a bigger panel could in principle fix; the table shows that even an infinite, perfectly calibrated panel stalls because of the second failure (exogenous variance). Top-1% identification tops out near 4%.</aside>
+<p><img src="images/fig_reviewer_table.png" alt="" style="height:430px"></p>
+<p><span class="ref">Probability a paper that truly belongs in a tier is placed there, under the model above (ICC 0.34; validity ceiling R² 0.06). "Perfect measure of quality" is a noise-free read of ex ante quality, not foreknowledge of the outcome. Going from 3 to 10 reviewers barely moves the numbers: the validity ceiling, not reviewer count, is the binding constraint.</span></p>
     </section>
 
     <section>
       <h2>The System has Always been Infuriating; It May Be Getting Worse</h2>
-      <ul>
-        <li>Supply is increasing dramatically
-          <ul>
-            <li>LLM use in writing</li>
-            <li>Co-authorship inflation (no obvious net effect on the number of papers)</li>
-          </ul>
-        </li>
-        <li>Submissions to <em>Organization Science</em> up <strong>42%</strong> since ChatGPT (a COVID bump was 20%), almost entirely AI-generated text</li>
-        <li>Of the most AI-heavy manuscripts (70%+), ~70% are desk-rejected, vs 44% for low-AI</li>
-        <li>Reviewers increasingly rely on LLMs for referee reports (a "shadow AI review system")
-          <ul>
-            <li>Does not necessarily make the system worse, but we can probably use AI more deliberately</li>
-          </ul>
-        </li>
-        <li>Anecdotally, time to first review is increasing, but variance across journals is very high</li>
-      </ul>
-      <p class="small">Pierce, Gartenberg, Murray &amp; Hasan, "More versus Better," Organization Science (2026)</p>
+<ul>
+<li>
+<p>Supply is increasing dramatically</p>
+</li>
+<li>
+<p>LLM use in writing</p>
+</li>
+<li>
+<p>Co-authorship inflation (no obvious net effect on the number of papers)</p>
+</li>
+<li>
+<p>Submissions to <em>Organization Science</em> up <strong>42%</strong> since ChatGPT (a COVID bump was 20%), almost entirely AI-generated text</p>
+</li>
+<li>Of the most AI-heavy manuscripts (70%+), ~70% are desk-rejected, vs 44% for low-AI</li>
+<li>
+<p>Reviewers increasingly rely on LLMs for referee reports (a "shadow AI review system")</p>
+</li>
+<li>
+<p>Does not necessarily make the system worse, but we can probably use AI more deliberately</p>
+</li>
+<li>Anecdotally, time to first review is increasing, but variance across journals is very high</li>
+</ul>
+<p><span class="small">Pierce, Gartenberg, Murray &amp; Hasan, "More versus Better," Organization Science (2026)</span></p>
       <aside class="notes">Org Science AI Task Force; Lamar Pierce is EIC. Full paper DOI 10.1287/orsc.2026.ed.v37.n3.</aside>
     </section>
 
     <section>
-      <h2>Stakeholder Needs &ndash; Academic Publishing System</h2>
-      <ul>
-        <li>Credibly certify correctness, avoiding false negatives</li>
-        <li>Provide reliable, unbiased, hard-to-game evidence of impact</li>
-        <li>Minimize the time from submission to "reviewed publication" CV status</li>
-        <li>Allow papers to be "reviewed/published" while minimizing unproductive author effort</li>
-        <li>Engage the community in discovery, discussion, and constructive feedback</li>
-        <li>Embrace revision over time with a transparent history and serving the latest version</li>
-        <li>Exhibit grace towards low-citation papers and authors (the vast majority of the field)</li>
-        <li>Enable easy search and retrieval</li>
-        <li>Operate sustainably</li>
-      </ul>
-      <p class="ref" style="font-style:italic;">A cursory tour of academic forums (Hacker News, r/AskAcademia, r/professors) turns up every one of these, in far more colorful form.</p>
-      <p class="ref">On what the community wants from journals and review: Mulligan, Hall &amp; Raphael (2013), <em>JASIST</em> 64(1):132&ndash;161; Ithaka S+R <em>US Faculty Survey</em> (2021).</p>
+      <h2>Stakeholder Needs - Academic Publishing System</h2>
     </section>
 
     <section>
       <h2>The Journal System Could Possibly Be Fixed</h2>
-      <ul>
-        <li>We have faced long lead times and Reviewer 2 essentially forever. Not a new problem.</li>
-        <li>Tightly run journals with committed editors still seem to function reasonably well</li>
-        <li>"AI will save us" is the optimistic branch, but the evidence is mixed and the prospects are genuinely uncertain</li>
-        <li>LLMs are useful <em>assistants</em>: on realistic tests they catch only a minority of real or inserted errors, miss broken logic, can be gamed by hidden prompts, and skew lenient</li>
-        <li>They are strongest at triaging and improving reviews, weakest at identifying the very best work and at grounded technical verification</li>
-        <li>A diverse <strong>ensemble</strong> (the Galton move) may raise the floor cheaply, but the evidence does not yet support replacing human judgment</li>
-        <li>Still, journals could use LLMs for an initial filter to push net submission rates toward pre-LLM levels</li>
-      </ul>
-      <p class="ref">LLMs catch only roughly 20&ndash;40% of real or inserted errors and can miss broken logic entirely: Son et al. (2025, SPOT, arXiv:2505.11855); Xi et al. (2025, FLAWS, arXiv:2511.21843); Dycke &amp; Gurevych (2025, arXiv:2508.21422). Useful as assistance: Liang et al. (2024), <em>NEJM AI</em> 1(8). Gameable by hidden prompts: Gibney (2025), <em>Nature</em> 643:887&ndash;888. On the ensemble idea: Meincke, Terwiesch &amp; Huchzermeier (working paper).</p>
+<ul>
+<li>We have faced long lead times and Reviewer 2 essentially forever. Not a new problem.</li>
+<li>Tightly run journals with committed editors still seem to function reasonably well</li>
+<li>"AI will save us" is the optimistic branch, but the evidence is mixed and the prospects are genuinely uncertain</li>
+<li>LLMs are useful <em>assistants</em>: on realistic tests they catch only a minority of real or inserted errors, miss broken logic, can be gamed by hidden prompts, and skew lenient</li>
+<li>They are strongest at triaging and improving reviews, weakest at identifying the very best work and at grounded technical verification</li>
+<li>A diverse <strong>ensemble</strong> (the Galton move) may raise the floor cheaply, but the evidence does not yet support replacing human judgment</li>
+<li>Still, journals could use LLMs for an initial filter to push net submission rates toward pre-LLM levels</li>
+</ul>
+<p><span class="ref">LLMs catch only roughly 20–40% of real or inserted errors and can miss broken logic entirely: Son et al. (2025, SPOT, arXiv:2505.11855); Xi et al. (2025, FLAWS, arXiv:2511.21843); Dycke &amp; Gurevych (2025, arXiv:2508.21422). Useful as assistance: Liang et al. (2024), <em>NEJM AI</em> 1(8). Gameable by hidden prompts: Gibney (2025), <em>Nature</em> 643:887–888. On the ensemble idea: Meincke, Terwiesch &amp; Huchzermeier (working paper).</span></p>
     </section>
 
     <section>
       <h2>An Alternative Approach: The Academic Ledger</h2>
-      <ul>
-        <li>A neutral, non-profit <em>system of record</em> applies a light integrity screen <strong>immediately</strong> and certifies the work, without judging quality</li>
-        <li>Then evidence of quality <strong>accumulates over time</strong>, and the branding of recognition occurs with some delay, when confidence in the estimate of Q is high</li>
-        <li>Journals continue to exist and may remain important for branding, but the Ledger is the source of truth about quality</li>
-      </ul>
+<ul>
+<li>A neutral, non-profit <em>system of record</em> applies a light integrity screen <strong>immediately</strong> and certifies the work, without judging quality</li>
+<li>Then evidence of quality <strong>accumulates over time</strong>, and the branding of recognition occurs with some delay, when confidence in the estimate of Q is high</li>
+<li>Journals continue to exist and may remain important for branding, but the Ledger is the source of truth about quality</li>
+</ul>
     </section>
 
     <section>
       <h2>Three Sequential Categories of Papers: Certified, Refereed, Canon</h2>
-      <ul style="font-size:13pt;">
-        <li><strong>Certified.</strong> Authenticated by ORCID (the primary filter) and screened by automated tools and LLMs for fraud and obvious defects, not correctness, then archived, timestamped, and public within days. A floor against fraud and the obviously wrong, not a claim about quality. Fast and near-automatic; perhaps 1&ndash;5% are rejected.</li>
-        <li><strong>Refereed.</strong> Has earned named, signed reviews or endorsements from identified scholars above a published threshold. The tier that honestly merits the classification "peer reviewed," but in the open and on the record. Perhaps the standard is 90% confidence that the paper will eventually reach the 75th percentile of submissions.</li>
-        <li><strong>Canon.</strong> The curated, time-earned best, conferred from realized impact (use, citation, replication, discussion) and signed endorsements, by field panels under published criteria. Quality judged after the fact from evidence, not predicted. Perhaps approximately the 95th percentile of papers. Because it rests on evidence rather than a noisy verdict from two or three reviewers, it should in theory be more valuable than journal acceptance.</li>
-        <li><strong>Published.</strong> Optional nice-to-have curation via publication in a journal. Publication could, but need not, follow from the evidence.</li>
-      </ul>
-      <p class="small">One record: a CV line begins as <em>Certified</em> and is upgraded in place to <em>Refereed</em>, then <em>Canon</em>, as review and impact accrue. A credential that only appreciates.</p>
-      <aside class="notes">Refereed is the many-named-judges move; Canon is measured quality judged late. Certified screens for fraud and obvious error, not quality.</aside>
+<ul>
+<li><strong>Certified.</strong> Authenticated by ORCID (the primary filter) and screened by automated tools and LLMs for fraud and obvious defects, not correctness, then archived, timestamped, and public within days. A floor against fraud and the obviously wrong, not a claim about quality. Fast and near-automatic; perhaps 1–5% are rejected.</li>
+<li><strong>Refereed.</strong> Has earned named, signed reviews or endorsements from identified scholars above a published threshold. The tier that honestly merits the classification "peer reviewed," but in the open and on the record. Perhaps the standard is 90% confidence that the paper will eventually reach the 75th percentile of submissions.</li>
+<li><strong>Canon.</strong> The curated, time-earned best, conferred from realized impact (use, citation, replication, discussion) and signed endorsements, by field panels under published criteria. Quality judged after the fact from evidence, not predicted. Perhaps approximately the 95th percentile of papers. Because it rests on evidence rather than a noisy verdict from two or three reviewers, it should in theory be more valuable than journal acceptance.</li>
+<li><strong>Published.</strong> Optional nice-to-have curation via publication in a journal. Publication could, but need not, follow from the evidence.</li>
+</ul>
+<p><span class="small">One record: a CV line begins as <em>Certified</em> and is upgraded in place to <em>Refereed</em>, then <em>Canon</em>, as review and impact accrue. A credential that only appreciates.</span></p>
     </section>
 
     <section>
       <h2>The Certification Screen Should be a Low Bar</h2>
-      <ul>
-        <li><strong>Certified does not judge quality.</strong> It verifies identity and screens out fraud and the obviously wrong, nothing more</li>
-        <li><strong>Identity is the primary filter:</strong> ORCID authentication raises the cost of paper-mill, sock-puppet, and fabricated-author submissions</li>
-        <li>The automated and LLM screen targets a deliberately narrow set: fabrication, manipulated figures, paper-mill and "tortured phrase" text, fabricated or dead citations, gross statistical inconsistencies, and claims with no support</li>
-        <li>Much of this is handled by <strong>validated rule-based tools</strong> (image-duplication, statcheck, tortured-phrase and paper-mill detectors), with LLMs for triage. This is a low bar the evidence can support, unlike judging quality, which it does not attempt</li>
-        <li>Expected outcome: outright rejection of perhaps <strong>1&ndash;5%</strong> of ORCID-authenticated submissions</li>
-        <li><strong>Prefer conditional certification:</strong> admit borderline work with an attached, transparent summary of the LLM-generated concerns, and leave judgment to readers and to the later tiers</li>
-      </ul>
-      <p class="ref">LLMs cannot yet reliably certify correctness (Son et al. 2025, <em>SPOT</em>; Xi et al. 2025, <em>FLAWS</em>; Dycke &amp; Gurevych 2025) and are gameable (Gibney 2025, <em>Nature</em> 643:887). The screen is therefore scoped to fraud and obvious error, where rule-based tools (statcheck; image-duplication; tortured-phrase and SCIgen detectors) are already effective.</p>
+<ul>
+<li><strong>Certified does not judge quality.</strong> It verifies identity and screens out fraud and the obviously wrong, nothing more</li>
+<li><strong>Identity is the primary filter:</strong> ORCID authentication raises the cost of paper-mill, sock-puppet, and fabricated-author submissions</li>
+<li>The automated and LLM screen targets a deliberately narrow set: fabrication, manipulated figures, paper-mill and "tortured phrase" text, fabricated or dead citations, gross statistical inconsistencies, and claims with no support</li>
+<li>Much of this is handled by <strong>validated rule-based tools</strong> (image-duplication, statcheck, tortured-phrase and paper-mill detectors), with LLMs for triage. This is a low bar the evidence can support, unlike judging quality, which it does not attempt</li>
+<li>Expected outcome: outright rejection of perhaps <strong>1–5%</strong> of ORCID-authenticated submissions</li>
+<li><strong>Prefer conditional certification:</strong> admit borderline work with an attached, transparent summary of the LLM-generated concerns, and leave judgment to readers and to the later tiers</li>
+</ul>
+<p><span class="ref">LLMs cannot yet reliably certify correctness (Son et al. 2025, SPOT; Xi et al. 2025, FLAWS; Dycke &amp; Gurevych 2025) and are gameable (Gibney 2025, <em>Nature</em> 643:887). The screen is therefore scoped to fraud and obvious error, where rule-based tools (statcheck; image-duplication; tortured-phrase and SCIgen detectors) are already effective.</span></p>
       <aside class="notes">The design deliberately does not rely on LLMs for correctness. The bar is fraud and the obviously wrong; everything else is admitted, optionally with disclosed concerns, and importance is decided later from evidence.</aside>
     </section>
 
     <section>
       <h2>The Same Paper, Several Ways</h2>
-      <div class="cvline"><span class="chip c-cert">Certified</span>Cachon, G., C. Terwiesch, and K. Ulrich. 2026. The Crisis in Academic Publishing. <em>Academic Ledger</em> <span class="muted">[0, 100]</span>. <span class="doi">https://doi.org/10.59312/aldg.2026.0427</span></div>
-      <div class="cvline"><span class="chip c-ref">Refereed</span>Cachon, G., C. Terwiesch, and K. Ulrich. 2026. The Crisis in Academic Publishing. <em>Academic Ledger</em> <span class="muted">[75, 100]</span>. <span class="doi">https://doi.org/10.59312/aldg.2026.0427</span></div>
-      <div class="cvline"><span class="chip c-can">Canon</span>Cachon, G., C. Terwiesch, and K. Ulrich. 2026. The Crisis in Academic Publishing. <em>Academic Ledger</em> <span class="muted">[95, 100]</span>. <span class="doi">https://doi.org/10.59312/aldg.2026.0427</span></div>
-      <div class="cvline"><span class="chip c-can">Canon</span><span class="pub" title="published in a journal">P</span>Cachon, G., C. Terwiesch, and K. Ulrich. 2026. The Crisis in Academic Publishing. <em>Academic Ledger</em>. <span class="muted">(also appears in Quantitative Science Studies 7(2):512&ndash;540, 2026)</span>. <span class="doi">https://doi.org/10.59312/aldg.2026.0427</span></div>
-      <p class="small">One record, one DOI, one act of authorship: the line is upgraded in place; the circled P flags the journal-published version, with its citation appended.</p>
-      <aside class="notes">The example is this talk. The journal citation and the DOI are fabricated for illustration, not real. Quantitative Science Studies is a real, well-fit venue (MIT Press, community-owned), used here illustratively.</aside>
+<p><code>[Certified]</code>  Cachon, G., C. Terwiesch, and K. Ulrich. 2026. The Crisis in Academic Publishing. <em>Academic Ledger</em> [0, 100]. https://doi.org/10.59312/aldg.2026.0427</p>
+<p><code>[Refereed]</code>  Cachon, G., C. Terwiesch, and K. Ulrich. 2026. The Crisis in Academic Publishing. <em>Academic Ledger</em> [75, 100]. https://doi.org/10.59312/aldg.2026.0427</p>
+<p><code>[Canon]</code>  Cachon, G., C. Terwiesch, and K. Ulrich. 2026. The Crisis in Academic Publishing. <em>Academic Ledger</em> [95, 100]. https://doi.org/10.59312/aldg.2026.0427</p>
+<p><code>[Canon]</code> Ⓟ Cachon, G., C. Terwiesch, and K. Ulrich. 2026. The Crisis in Academic Publishing. <em>Academic Ledger</em>. (also appears in Quantitative Science Studies 7(2):512–540, 2026). https://doi.org/10.59312/aldg.2026.0427</p>
+<p><span class="small">One record, one DOI, one act of authorship: the line is upgraded in place; the circled P flags the journal-published version, with its citation appended.</span></p>
+      <aside class="notes">The example is this talk. The journal citation and DOI are fabricated for illustration, not real. Quantitative Science Studies is a real, well-fit venue (MIT Press, community-owned), used here illustratively.</aside>
     </section>
 
     <section>
       <h2>What the Paper Record Looks Like on academic Ledger</h2>
-      <a href="paper.html" target="_blank" rel="noopener" title="Open the full live page">
-        <img src="images/aL-paper-view.png" alt="academic Ledger paper home page"
-             style="max-height:60vh; width:auto; border:1px solid #ccc; box-shadow:0 4px 18px rgba(0,0,0,.18);">
-      </a>
-      <p class="small">A paper's home on the Ledger: tier status, the QaL estimate, the journal-published flag, and impact that accrues over time.
-        Open the live page &middot; <a href="paper.html" target="_blank" rel="noopener" class="doi">academicledger.vercel.app/paper.html</a></p>
-      <aside class="notes">Click the image to open the full scrolling page. All figures, names, dates, and the journal citation on the page are illustrative.</aside>
+<p><a href="https://academicledger.vercel.app/paper.html"><img src="images/aL-paper-view.png" alt="" style="height:470px"></a></p>
+<p><span class="small">A paper's home on the Ledger: tier status, the journal-published flag, and impact that accrues over time. Open the live page: academicledger.vercel.app/paper.html</span></p>
     </section>
 
     <section>
       <h2>The Journal Perspective</h2>
-      <ul>
-        <li>The Ledger is consistent with the policies of most academic journals in social science</li>
-        <li>Journals could encourage authors to <strong>first publish on the Ledger</strong>, reducing their volume of low-quality submissions</li>
-        <li>The alternative to a hard reject could become "develop the work on the Ledger"</li>
-        <li>Editors could proactively scan the Ledger for work to invite, evaluating fit and quality based on evidence</li>
-      </ul>
+<ul>
+<li>The Ledger is consistent with the policies of most academic journals in social science</li>
+<li>Journals could encourage authors to <strong>first publish on the Ledger</strong>, reducing their volume of low-quality submissions</li>
+<li>The alternative to a hard reject could become "develop the work on the Ledger"</li>
+<li>Editors could proactively scan the Ledger for work to invite, evaluating fit and quality based on evidence</li>
+</ul>
     </section>
 
     <section>
       <h2>How Is This Not Just SSRN?</h2>
-      <ul>
-        <li>SSRN is a for-profit, owned by Elsevier (a journal publisher), with conflicted incentives</li>
-        <li>SSRN is a <strong>posting service, not a system of record</strong></li>
-        <li>Despite offering its own branded metric (PlumX), SSRN deliberately avoids an honest estimate of Q</li>
-        <li>It confers no credential that "counts," and its download metrics have been gameable and are reported only as a running cumulative total</li>
-        <li>The Ledger adds what SSRN lacks: neutral non-profit governance, an identity and integrity layer, signed review, "refereed" status, and an evidence-based estimate of Q in percentile terms</li>
-      </ul>
-      <aside class="notes">The gap from SSRN to the Ledger is certification, curation, neutral governance, and a real estimate of Q, not just hosting. PlumX aggregates attention counts but commits to no quality estimate.</aside>
+<ul>
+<li>SSRN is a for-profit, owned by Elsevier (a journal publisher), with conflicted incentives</li>
+<li>SSRN is a <strong>posting service, not a system of record</strong></li>
+<li>SSRN, despite offering its own branded metric (PlumX), deliberately avoids an honest estimate of Q</li>
+<li>It confers no credential that "counts," its download metrics have been gameable, and are reported only as a running cumulative total</li>
+<li>The Ledger adds what SSRN lacks: neutral non-profit governance, an identity and integrity layer, signed review, "refereed" status, and an evidence-based estimate of Q in percentile terms</li>
+</ul>
+      <aside class="notes">Drafted to answer Karl's heading; adjust freely.</aside>
     </section>
 
     <section>
       <h2>Could an Incumbent Implement the Ledger?</h2>
-      <style>
-        .ctbl{ border-collapse:collapse; width:100%; font-size:13px; }
-        .ctbl th,.ctbl td{ border:1px solid #dcdfe4; padding:5px 8px; text-align:left; vertical-align:top; }
-        .ctbl th{ background:#eef1f5; color:#1b2a4a; }
-        .ctbl .pl{ font-weight:700; white-space:nowrap; }
-        .ctbl .gov{ display:block; font-weight:400; color:#888; font-size:11px; }
-      </style>
-      <ul>
-        <li>An incumbent doing this well would be a <strong>win, not a loss</strong>. The aim is the system of record with a credible estimate of Q, by whatever means best realizes the goals.</li>
-        <li>What a record requires: <strong>neutral, non-commercial governance</strong>; permanence; coverage of all fields; an identity and integrity layer.</li>
-        <li>Barriers for anyone: the cold start (authors and endorsers together); recognition still locked to journal names and the impact factor; cross-field scope; durable funding; each incumbent's own inertia.</li>
-      </ul>
-      <table class="ctbl">
-        <tr><th>Player</th><th>Strengths as a record</th><th>Weaknesses / risk</th></tr>
-        <tr><td class="pl">arXiv<span class="gov">independent non-profit, from Jul 2026</span></td><td>Neutral, trusted, built to last; already spans physics to economics</td><td>Identity tied to physics, math, CS; no endorsement, curation, or metrics layer</td></tr>
-        <tr><td class="pl">SSRN<span class="gov">for-profit; Elsevier, 2016</span></td><td>Deep social-science adoption and author base</td><td>Owned by a journal publisher; conflicted incentives; wrong steward for a neutral record</td></tr>
-        <tr><td class="pl">bioRxiv / medRxiv<span class="gov">openRxiv, non-profit, 2025</span></td><td>Strong governance, fast growth, well funded (CZI)</td><td>Life and health sciences only</td></tr>
-        <tr><td class="pl">eLife<span class="gov">non-profit journal</span></td><td>Already layers signed review on preprints (our Refereed idea)</td><td>A journal, life-science scope; lost its impact factor when Clarivate balked</td></tr>
-        <tr><td class="pl">Octopus<span class="gov">UKRI-funded non-profit</span></td><td>Explicitly a "new primary research record"</td><td>Radical unit-of-research model; thin adoption; UK-centric</td></tr>
-        <tr><td class="pl">Big publishers<span class="gov">Elsevier, Springer Nature, Clarivate</span></td><td>Scale, money, distribution</td><td>Most conflicted; their economics oppose decoupling</td></tr>
-      </table>
-      <p class="small">Adjacent pieces exist but none certify or curate: OpenAlex, Crossref, ORCID (non-profit data and identity); Google Scholar, Semantic Scholar (discovery); ResearchGate (for-profit network).</p>
-      <aside class="notes">arXiv announced March 2026 it becomes an independent non-profit (separating from Cornell) on 1 July 2026, eight days before this talk, and already covers economics and quantitative finance. eLife lost its Journal Impact Factor in 2024 when Clarivate balked at its reviewed-preprint model.</aside>
+<ul>
+<li>An incumbent doing this well would be a <strong>win, not a loss</strong>. The aim is the system of record with a credible estimate of Q, by whatever means best realizes the goals.</li>
+<li>What a record requires: <strong>neutral, non-commercial governance</strong>, permanence, coverage of all fields, an identity and integrity layer.</li>
+<li>Barriers for anyone: the cold start (authors and endorsers together); recognition still locked to journal names and the impact factor; cross-field scope; durable funding; each incumbent's own inertia.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Player</th>
+<th>Strengths as a record</th>
+<th>Weaknesses / risk</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>arXiv</strong> (independent non-profit, from Jul 2026)</td>
+<td>Neutral, trusted, built to last; already spans physics to economics</td>
+<td>Identity tied to physics/math/CS; no endorsement, curation, or metrics layer</td>
+</tr>
+<tr>
+<td><strong>SSRN</strong> (for-profit; Elsevier, 2016)</td>
+<td>Deep social-science adoption and author base</td>
+<td>Owned by a journal publisher; conflicted; wrong steward for a neutral record</td>
+</tr>
+<tr>
+<td><strong>bioRxiv / medRxiv</strong> (openRxiv, non-profit, 2025)</td>
+<td>Strong governance, fast growth, well funded (CZI)</td>
+<td>Life and health sciences only</td>
+</tr>
+<tr>
+<td><strong>eLife</strong> (non-profit journal)</td>
+<td>Already layers signed review on preprints (our Refereed idea)</td>
+<td>A journal, life-science scope; lost its impact factor when Clarivate balked</td>
+</tr>
+<tr>
+<td><strong>Octopus</strong> (UKRI-funded non-profit)</td>
+<td>Explicitly a "new primary research record"</td>
+<td>Radical unit-of-research model; thin adoption; UK-centric</td>
+</tr>
+<tr>
+<td><strong>Big publishers</strong> (Elsevier, Springer Nature, Clarivate)</td>
+<td>Scale, money, distribution</td>
+<td>Most conflicted; their economics oppose decoupling</td>
+</tr>
+</tbody>
+</table>
+<p><span class="small">Adjacent pieces exist but none certify or curate: OpenAlex, Crossref, ORCID (non-profit data and identity); Google Scholar, Semantic Scholar (discovery); ResearchGate (for-profit network).</span></p>
     </section>
 
     <section>
       <h2>Cold Start and Graceful Evolution</h2>
-      <img src="images/fig_pathways.png" alt="Four feature sets as a Markov chain: QaL and Rankings, Community Engagement, Refereed Status, System of Record, with the graceful path highlighted"
-           style="max-height:56vh; box-shadow:0 3px 14px rgba(0,0,0,.10);">
-      <p class="ref">Four non-overlapping feature sets, drawn as states. <strong>QaL + Rankings</strong> is cold-start-proof and bootstraps the rest; <strong>Community Engagement</strong> supplies the reviews that earn <strong>Refereed Status</strong>; the <strong>System of Record</strong> is heaviest and comes last. Each of the first three is an acceptable place to stop, so the system stays additive to SSRN, arXiv, and journals and degrades gracefully. Canon is not a separate set: it emerges as QaL and Refereed mature.</p>
-      <aside class="notes">Most graceful path: QaL+Rankings, then Community Engagement, then Refereed Status, then System of Record. Each transition is enabled by the prior state and independently valuable; the only ungraceful move is jumping early to the record (a standards war with no community). The one hard step is Community to Refereed (reviewer supply): seed one field with reputation-credited signed reviews, reciprocity, and LLM-assisted developmental drafts with a human accountable.</aside>
+<p><img src="images/fig_pathways.png" alt="" style="height:470px"></p>
+<p><span class="ref">Four non-overlapping feature sets, drawn as states. <strong>QaL + Rankings</strong> is cold-start-proof and bootstraps the rest; <strong>Community Engagement</strong> supplies the reviews that earn <strong>Refereed Status</strong>; the <strong>System of Record</strong> is heaviest and comes last. Each of the first three is an acceptable place to stop, so the system stays additive to SSRN, arXiv, and journals and degrades gracefully. Canon is not a separate set: it emerges as QaL and Refereed mature.</span></p>
+      <aside class="notes">Most graceful path: QaL+Rankings, then Community Engagement, then Refereed Status, then System of Record. Each transition is enabled by the prior state and independently valuable; the only ungraceful move is jumping early to the record. The one hard step is Community to Refereed (reviewer supply): seed one field with reputation-credited signed reviews, reciprocity, and LLM-assisted developmental drafts with a human accountable.</aside>
     </section>
 
     <section>
       <h2>Open Questions</h2>
-      <ul>
-        <li>Actual development of QaL: how well can Q be estimated, and how early?</li>
-        <li>Does the system require radical change, or could the incumbents address the pain points?</li>
-        <li>How network-y is the Ledger? (Should there be just one Ledger?)</li>
-        <li>Could an institution host the Ledger (e.g., "academic Ledger is hosted by the Wharton School of the University of Pennsylvania")?</li>
-        <li>What is the unit of work? (papers, books, videos, other)</li>
-        <li>What resources are required to operate the Ledger at scale?</li>
-        <li>Could the Ledger be self-sustaining on fees? What other business models are there?</li>
-      </ul>
+<ul>
+<li>Actual development of QaL: How well can Q be estimated, and how early?</li>
+<li>Does the system require radical change, or could the incumbents address the pain points?</li>
+<li>How network-y is the Ledger? (Should there be just one Ledger?)</li>
+<li>Could an institution host the Ledger (e.g., "academic Ledger is hosted by the Wharton School of the University of Pennsylvania")?</li>
+<li>What is the unit of work? (papers, books, videos, other)</li>
+<li>What resources are required to operate the Ledger at scale?</li>
+<li>Could the Ledger be self-sustaining on fees? What other business models are there?</li>
+</ul>
     </section>
 
     <section>
       <h2>OTHER STUFF</h2>
-      <aside class="notes">Appendix and backup slides follow.</aside>
     </section>
 
     <section>
       <h2>Wine, the 100m Dash, Galton's Ox, and Figure Skating</h2>
-      <img src="images/fig_matrix.png" alt="precision-accuracy matrix" style="max-height:64vh;">
-      <aside class="notes">The x-axis is agreement AMONG judges (inter-rater), not whether one judge repeats herself. Sprint: instrument reads a real quantity; judges agree and the verdict is true. Galton's ox: judges disagree but are self-consistent and unbiased, so the crowd average converges. Figure skating: judges agree yet share a reputation prior (Findlay &amp; Ste-Marie 2004); shared bias does not cancel. Wine: judges disagree AND cannot reproduce their own scores (Hodgson 2008). Peer review: same profile as Galton (ICC ~0.34), dragged below by 2-3 judges and a shared reputation bias.</aside>
+<p><img src="images/fig_matrix.png" alt="" style="height:470px"></p>
+      <aside class="notes">The x-axis is agreement AMONG judges (inter-rater), not whether one judge repeats herself.
+     Sprint: an instrument reads a real quantity; judges agree and the verdict is true.
+     Galton's ox: judges disagree, but each is self-consistent and unbiased, so the crowd average converges. The one cell where more judges buys accuracy.
+     Figure skating: judges agree, yet share a reputation prior (Findlay & Ste-Marie 2004); shared bias does not cancel.
+     Wine: judges disagree AND cannot reproduce their own scores (Hodgson 2008); no stable signal to recover.
+     Peer review: same profile as Galton (ICC ~0.34), dragged below by 2-3 judges and a shared reputation bias.</aside>
     </section>
 
     <section>
       <h2>Utopia</h2>
-      <ul>
-        <li>Administration is smooth and fast: register, screen integrity, archive, timestamp, and disseminate within days</li>
-        <li>True signals of quality emerge <strong>smoothly and continuously</strong> as the field reads, uses, cites, and endorses; those signals are used for critical decisions in universities</li>
-        <li>Authors can <strong>respond, adapt, and improve</strong> the work, with the revision history on the record</li>
-        <li>Journals become nice-to-have <em>curation</em>; the revealed evidence is what matters for reputation and for evaluating scholarship</li>
-        <li>A more predictable, less capricious, less arbitrary world for emerging scholars; senior scholars with no patience for journals can opt out and still "publish"</li>
-      </ul>
-      <aside class="notes">The destination. The Ledger is one concrete way to get there.</aside>
+<ul>
+<li>Administration is smooth and fast: register, screen integrity, archive, timestamp, and disseminate within days</li>
+<li>True signals of quality emerge <strong>smoothly and continuously</strong> as the field reads, uses, cites, and endorses; those signals are used for critical decisions in universities</li>
+<li>Authors can <strong>respond, adapt, and improve</strong> the work, with the revision history on the record</li>
+<li>Journals become nice-to-have <em>curation</em>; the revealed evidence is what matters for reputation and for evaluating scholarship</li>
+<li>A more predictable, less capricious, less arbitrary world for emerging scholars; senior scholars with no patience for journals can opt out and still "publish"</li>
+</ul>
     </section>
 
     <section>
       <h2>Modest Success ("SSRN/arXiv+")</h2>
-      <p>A realistic near-term target: a system of record, plus&hellip;</p>
-      <ul>
-        <li>An automated fraud and integrity screen (a low bar, not full correctness) and certification</li>
-        <li>Community engagement, discussion, and endorsements</li>
-        <li>A comprehensive set of impact metrics</li>
-        <li>An estimate of Q in percentile terms, e.g., a 90% confidence interval [83, 90]</li>
-        <li>A designation of "refereed" that allows the work to "count"</li>
-      </ul>
-      <aside class="notes">Even short of the full vision, "SSRN/arXiv plus certification, curation, and an estimate of Q" would be a meaningful step.</aside>
+<p>A realistic near-term target: a system of record, plus…</p>
+<ul>
+<li>An automated fraud and integrity screen (a low bar, not full correctness) and certification</li>
+<li>Community engagement, discussion, and endorsements</li>
+<li>A comprehensive set of impact metrics</li>
+<li>An estimate of Q in percentile terms, e.g., a 90% confidence interval [83, 90]</li>
+<li>A designation of "refereed" that allows the work to "count"</li>
+</ul>
     </section>
 
     <section>
       <h2>The Cold-Start Problem</h2>
-      <ul>
-        <li>Posting on the Ledger is <strong>no-regrets</strong> for all authors</li>
-        <li>A founding board (N &asymp; 100) commits to (a) posting their work and (b) providing N endorsements</li>
-        <li>Leading journals add language to their instructions to authors</li>
-        <li>Institutional authority lends credibility (Wharton, INFORMS, and so on)</li>
-        <li>To start, all existing work could be scraped, indexed, analyzed, and reformatted</li>
-      </ul>
+<ul>
+<li>Posting on the Ledger is <strong>no-regrets</strong> for all authors</li>
+<li>A founding board (N ≈ 100) commits to (a) posting their work and (b) providing N endorsements</li>
+<li>Leading journals add language to their instructions to authors</li>
+<li>Institutional authority lends credibility (Wharton, INFORMS, and so on)</li>
+<li>To start, all existing work could be scraped, indexed, analyzed, and reformatted</li>
+</ul>
     </section>
 
     <section>
       <h2>Sketch of a Model for Establishing System Parameters</h2>
-      <ul>
-        <li>Eating our own dogfood: can a model usefully inform this system?</li>
-        <li>A two-stage decision problem</li>
-        <li>A scalar quality <strong>Q</strong> with a <strong>heavy-tailed</strong> distribution (most value sits in the tail)</li>
-        <li>A low-bar integrity gate at entry, then estimation of Q from accumulating evidence; the real decision is <em>when</em> to certify each tier</li>
-        <li>Targets a chosen level of false negatives and false positives, under a validity ceiling on early prediction</li>
-        <li>A two-dimensional (C, I) treatment is a useful extension we keep as a branch</li>
-      </ul>
-      <img src="images/fig2_entrybar.png" alt="entry bar model" style="max-height:40vh;">
-      <p class="small"><a class="demo" href="quality-percentile.html" target="_blank" rel="noopener">&#9654; Open the live belief-about-eventual-percentile model &#8599;</a> &middot; <a class="demo" href="quality.html" target="_blank" rel="noopener">2D (C, I) extension &#8599;</a></p>
-      <aside class="notes">A low entry bar is optimal under noisy early signals and heavy-tailed Q; sharp discrimination belongs later.</aside>
+<ul>
+<li>Eating our own dogfood: can a model usefully inform this system?</li>
+<li>A scalar quality <strong>Q</strong> with a <strong>heavy-tailed</strong> distribution (most value sits in the tail)</li>
+<li>A low-bar integrity gate at entry, then estimation of Q from accumulating evidence; the real decision is <em>when</em> to certify each tier</li>
+<li>Targets a chosen level of false negatives and false positives, under a validity ceiling on early prediction</li>
+<li>A two-dimensional (C, I) treatment is a useful extension we keep as a branch</li>
+</ul>
+<p><img src="images/fig2_entrybar.png" alt="" style="width:540px"></p>
+<p><span class="small">▶ Open the live belief-about-eventual-percentile model: academicledger.vercel.app/quality-percentile.html · 2D (C, I) extension: academicledger.vercel.app/quality.html</span></p>
     </section>
-
   </div>
 </div>
 </div>

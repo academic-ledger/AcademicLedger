@@ -368,7 +368,7 @@ Eventual quality decomposes into a knowable component plus an exogenous shock; e
 
 - SSRN is a for-profit, owned by Elsevier (a journal publisher), with conflicted incentives
 - SSRN is a **posting service, not a system of record**
-- SSRN, despite offering its own branded metric (PlumX) deliberately avoids an honest estimate of Q**
+- SSRN, despite offering its own branded metric (PlumX), deliberately avoids an honest estimate of Q
 - It confers no credential that "counts," its download metrics have been gameable, and are reported only as a running cumulative total
 - The Ledger adds what SSRN lacks: neutral non-profit governance, an identity and integrity layer, signed review, "refereed" status, and an evidence-based estimate of Q in percentile terms
 
