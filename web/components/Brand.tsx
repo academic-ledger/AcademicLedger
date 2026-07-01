@@ -1,7 +1,7 @@
 import Link from "next/link";
 import AuthStatus from "./AuthStatus";
 
-type Tab = "explore" | "author" | "about" | "for-authors" | null;
+type Tab = "explore" | "author" | "about" | "for-authors" | "talk" | null;
 
 export default function Brand({
   active = null,
@@ -39,8 +39,9 @@ export default function Brand({
         <Link className={active === "for-authors" ? "on" : ""} href="/for-authors">
           For authors
         </Link>
-        {/* static reveal.js deck served from /public, so a plain anchor (not router Link) */}
-        <a href="/talk.html">Talk</a>
+        <Link className={active === "talk" ? "on" : ""} href="/talk">
+          Talk
+        </Link>
         <AuthStatus />
       </nav>
     </header>

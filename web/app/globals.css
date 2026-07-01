@@ -66,6 +66,8 @@ a:hover { text-decoration: underline; }
 .pnotes-actions { display: flex; gap: 8px; margin-top: 12px; }
 .pnotes-fine { font-size: 12px; color: var(--muted); margin: 8px 0 0; }
 button.fields-more { margin: 6px 0 2px; font-size: 13px; }
+/* Talk: reveal deck framed under the site brand bar (~53px) */
+.talk-frame { display: block; width: 100%; border: 0; height: calc(100vh - 53px); height: calc(100dvh - 53px); }
 @media (max-width: 600px) {
   .authstat, .authbtn { margin-left: 0; }
   .authstat .authwho { white-space: normal; }

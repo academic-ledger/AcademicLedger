@@ -18,7 +18,7 @@ export default function AboutPage() {
         </p>
 
         <p>
-          <a className="talk-link" href="/talk.html">
+          <a className="talk-link" href="/talk">
             &#9654;&nbsp; View the seminar talk
           </a>
         </p>
