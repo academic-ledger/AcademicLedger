@@ -60,7 +60,8 @@ TEMPLATE = """<!doctype html>
      its natural width and overlaps the text. Fix: make the text column flex to fill remaining
      space, let the figure column shrink, and cap the image to its column (width) and the slide
      (height) while preserving aspect ratio. */
-  .reveal section > div[style*="flex"] { align-items: center; }
+  /* Don't force vertical centering here — image rows set align-items:center in their own inline
+     style, while two-text-column rows want their headers top-aligned (default stretch). */
   .reveal section > div[style*="flex"] > div { flex: 1 1 0; min-width: 0; }
   .reveal section > div[style*="flex"] > p,
   .reveal section > div[style*="flex"] > img { flex: 0 0 auto; min-width: 0; margin: 0; max-width: 48%; }

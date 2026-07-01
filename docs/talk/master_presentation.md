@@ -246,7 +246,7 @@ The early signal is real: working-paper citations, downloads, and views are avai
 
 ![w:780](../../web/public/images/fig_early_signal.png)
 
-<span class="small">▶ Open the live Citation Race: academicledger.vercel.app/index.html</span>
+<span class="small">▶ Open the live Citation Race: <a href="https://academicledger.vercel.app/index.html" target="_blank" rel="noopener">academicledger.vercel.app/index.html</a></span>
 
 <span class="ref">Early downloads predict later citations: in arXiv physics (N = 14,442 in high-energy physics) the download–citation correlation is r ≈ 0.42, and downloads measured at **6 months** predict 2-year citation impact about as well as a full two years of data — Brody, Harnad & Carr (2006), *JASIST* 57(8):1060–1072. A prospective study of 153 *BMJ* papers found the same (hits–citations r ≈ 0.5) — Perneger (2004), *BMJ* 329:546–547.</span>
 
@@ -427,7 +427,7 @@ td,th{ vertical-align:top; }
 
 [![h:470](../../web/public/images/aL-paper-view.png)](https://academicledger.vercel.app/paper.html)
 
-<span class="small">A paper's home on the Ledger: tier status, the journal-published flag, and impact that accrues over time. Open the live page: academicledger.vercel.app/paper.html</span>
+<span class="small">A paper's home on the Ledger: tier status, the journal-published flag, and impact that accrues over time. Open the live page: <a href="https://academicledger.vercel.app/paper.html" target="_blank" rel="noopener">academicledger.vercel.app/paper.html</a></span>
 
 ---
 ## Wine, the 100m Dash, Galton's Ox, and Figure Skating
@@ -484,4 +484,4 @@ A realistic near-term target: a system of record, plus…
 
 ![w:540](../../web/public/images/fig2_entrybar.png)
 
-<span class="small">▶ Open the live belief-about-eventual-percentile model: academicledger.vercel.app/quality-percentile.html · 2D (C, I) extension: academicledger.vercel.app/quality.html</span>
+<span class="small">▶ Open the live belief-about-eventual-percentile model: <a href="https://academicledger.vercel.app/quality-percentile.html" target="_blank" rel="noopener">academicledger.vercel.app/quality-percentile.html</a> · 2D (C, I) extension: <a href="https://academicledger.vercel.app/quality.html" target="_blank" rel="noopener">academicledger.vercel.app/quality.html</a></span>
