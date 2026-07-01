@@ -80,7 +80,7 @@
 <li>Unit of work in academia</li>
 <li>Vary widely in embodied effort</li>
 <li>"Refereed" journal an important categorization</li>
-<li>"A journal" the most important categorization</li>
+<li>" 'A' journal" is the most important categorization</li>
 <li>"Quality" matters, but assessing quality is tricky</li>
 </ul>
 </div>
@@ -92,11 +92,18 @@
     <section>
       <h2>What We Mean by Quality</h2>
 <ul>
-<li>Many dimensions of quality: interestingness, importance, impact, novelty, elegance, humor, clarity, rigor, popularity, methodological purity, and so on</li>
-<li>For the system, we collapse them to a single scalar <strong>Q</strong>, the eventual recognized value of the work; correctness and importance are <em>inputs</em> to Q, not separately certified axes</li>
-<li>Ex ante uncertainty about Q is high</li>
-<li>Review effort narrows that uncertainty only modestly; <strong>time reveals most of it</strong></li>
-<li>A finer two-dimensional view, separating correctness C from impact I, is a useful extension we keep as a branch</li>
+<li>
+<p>Many dimensions of quality: interestingness, importance, impact, novelty, elegance, humor, clarity, rigor, popularity, methodological purity, and so on</p>
+</li>
+<li>
+<p>For simplicity, we collapse them to a single scalar <strong>Q</strong>, the eventual recognized value of the work; correctness and importance are <em>inputs</em> to Q, not separately certified axes</p>
+</li>
+<li>
+<p>Ex ante uncertainty about Q is high</p>
+</li>
+<li>
+<p>Review effort narrows that uncertainty only modestly, and possibly mostly on the dimension of correctness; <strong>time reveals most of it</strong>, particularly on the importance dimension</p>
+</li>
 </ul>
 <p><span class="ref">Cachon, Girotra &amp; Netessine (2020), "Interesting, Important, and Impactful Operations Management," M&amp;SOM 22(1)</span></p>
     </section>
@@ -108,7 +115,7 @@
 <ul>
 <li>Estimate <strong>Q from realized impact</strong>: the percentile, within field and vintage, of citation count — excluding self-citations (or authority-weighted citations, essentially PageRank)</li>
 <li>A confidence interval for Q begins at <strong>[0, 100]</strong>; one citation moves it to about <strong>[50, 100]</strong>; with enough evidence it narrows, e.g., <strong>[82, 84]</strong></li>
-<li>No single number is needed: a wealth of independent signals is measurable, and they accrue over time</li>
+<li>In theory could estimate Q from a wealth of independent signals, and they accrue over time</li>
 <li>The more independent the signals, the less the estimate of Q can be gamed</li>
 </ul>
 </div>
@@ -125,59 +132,6 @@
     </section>
 
     <section>
-      <h2>Reporting Q as a Percentile Class</h2>
-<div style="display:flex; gap:30px; align-items:center;">
-<div>
-<ul>
-<li>Raw citation counts are heavy-tailed and hard to compare across fields and years</li>
-<li>Transform each paper to its <strong>percentile within its own field and publication year</strong></li>
-<li>Report membership in standard classes: <strong>top 1%, 5%, 10%, 25%, 50%</strong></li>
-<li>These are the NSF / Leiden percentile classes, a standard in research evaluation</li>
-<li>About half of all papers sit at or near zero citations: an atom at the bottom</li>
-</ul>
-<p><span class="small">A percentile is intuitive, field-fair, and robust to the tail. The Ledger's tiers map onto these classes.</span></p>
-</div>
-<p><img src="images/fig_percentile_transform.png" height="430"></p>
-</div>
-<p><span class="ref">Percentile classes: National Science Board, <em>Science &amp; Engineering Indicators</em> (NSB-2025-7); CWTS Leiden Ranking. Parameter-free alternative: Glänzel &amp; Schubert (1988), "Characteristic Scores and Scales in Assessing Citation Impact," <em>Journal of Information Science</em> 14(2):123–127.</span></p>
-    </section>
-
-    <section>
-      <h2>Designing Q<em>a</em>L: Composition and Choices</h2>
-<div style="display:flex; gap:34px; font-size:21px;">
-<div>
-<p><strong>How it is composed</strong></p>
-<ul>
-<li>A blend of <strong>robust, article-level, field-and-vintage-normalized</strong> signals, never a raw count</li>
-<li>Spine: the paper's <strong>percentile within field and publication year</strong> (NSF / Leiden classes)</li>
-<li>Topic heat handled by <strong>co-citation-neighborhood normalization</strong> (Relative Citation Ratio) and field-normalized scores (Leiden MNCS)</li>
-<li><strong>Authority-weighted</strong> citations (PageRank-style), harder to game than raw counts</li>
-<li>Correctness signals fold in over time: replications, corrections, retractions</li>
-<li>Reported as a point estimate, a 90% interval, and bucket probabilities, decided late</li>
-</ul>
-</div>
-<div>
-<p><strong>Design questions</strong></p>
-<ul>
-<li><strong>Transparent or opaque?</strong> Transparent method and inputs, auditable and reproducible; opaque metrics breed distrust. Gaming-resistance comes from <em>design</em>, not secrecy: many independent signals, authority-weighting, a percentile basis, and deciding late</li>
-<li><strong>Field-normalized how?</strong> Within field × vintage, plus article-level co-citation normalization; the reference class is always stated</li>
-<li><strong>Proven, robust tools to invoke:</strong> percentile classes, field-normalized scores (MNCS), the Relative Citation Ratio, Characteristic Scores and Scales — not the article-level Journal Impact Factor</li>
-</ul>
-</div>
-</div>
-<p><span class="ref">Responsible-metrics principles: Hicks, Wouters, Waltman, de Rijcke &amp; Rafols (2015), "The Leiden Manifesto for research metrics," <em>Nature</em> 520:429–431; DORA (2013). Article-level normalization: Hutchins, Yuan, Anderson &amp; Santangelo (2016), "Relative Citation Ratio," <em>PLoS Biology</em> 14(9):e1002541; CWTS Leiden Ranking (MNCS); Glänzel &amp; Schubert (1988).</span></p>
-    </section>
-
-    <section>
-      <h2>Estimates of Q Can Be Accurate After a Little Calendar Time</h2>
-<p>The early signal is real: working-paper citations, downloads, and views are available within a year and already forecast eventual citation impact.</p>
-<p><img src="images/fig_early_signal.png" alt="" style="width:780px"></p>
-<p><span class="small">▶ Open the live Citation Race: academicledger.vercel.app/index.html</span></p>
-<p><span class="ref">Early downloads predict later citations: in arXiv physics (N = 14,442 in high-energy physics) the download–citation correlation is r ≈ 0.42, and downloads measured at <strong>6 months</strong> predict 2-year citation impact about as well as a full two years of data — Brody, Harnad &amp; Carr (2006), <em>JASIST</em> 57(8):1060–1072. A prospective study of 153 <em>BMJ</em> papers found the same (hits–citations r ≈ 0.5) — Perneger (2004), <em>BMJ</em> 329:546–547.</span></p>
-      <aside class="notes">r ≈ 0.4 explains roughly 16% of the variance in eventual citations, and the predictive signal plateaus by about 6 months: informative early, far from determinative, which is exactly why the Ledger decides late. Year 1 finds only about half of the eventual top ten.</aside>
-    </section>
-
-    <section>
       <h2>The Societal Functions of Publishing</h2>
 <div style="display:flex; gap:30px; align-items:center;">
 <div>
@@ -185,7 +139,7 @@
 <li><strong>Administration</strong>: time stamp, copy edit, typeset, archive, distribute</li>
 <li><strong>Development</strong>: peer feedback and guidance for revision</li>
 <li><strong>Promotion</strong>: communicating existence to the relevant audience</li>
-<li><strong>Certification of quality</strong>: some of it knowable early, most revealed over time</li>
+<li><strong>Certification of quality</strong>: branding the work as a signal of quality</li>
 </ul>
 </div>
 <p><img src="images/Springer-splash-page.png" height="340" style="border:1px solid #ccc;"></p>
@@ -215,7 +169,7 @@
 <p><strong>2. The target is mostly exogenous</strong></p>
 <ul>
 <li>Even a perfect read on a paper's knowable quality predicts little of its eventual Q</li>
-<li>Most of what determines eventual Q — timing, attention, who cites whom — is realized <strong>after</strong> the decision</li>
+<li>Most of what determines eventual Q (timing, attention, who cites whom) is realized <strong>after</strong> the decision</li>
 <li><em>Not fixable</em> by any number of judges</li>
 </ul>
 <p><strong>Reason 1 limits any small panel. Reason 2 limits any ex ante process, however many reviewers it uses.</strong></p>
@@ -292,67 +246,79 @@
     </section>
 
     <section>
-      <h2>The Journal System Could Possibly Be Fixed</h2>
-<ul>
-<li>We have faced long lead times and Reviewer 2 essentially forever. Not a new problem.</li>
-<li>Tightly run journals with committed editors still seem to function reasonably well</li>
-<li>"AI will save us" is the optimistic branch, but the evidence is mixed and the prospects are genuinely uncertain</li>
-<li>LLMs are useful <em>assistants</em>: on realistic tests they catch only a minority of real or inserted errors, miss broken logic, can be gamed by hidden prompts, and skew lenient</li>
-<li>They are strongest at triaging and improving reviews, weakest at identifying the very best work and at grounded technical verification</li>
-<li>A diverse <strong>ensemble</strong> (the Galton move) may raise the floor cheaply, but the evidence does not yet support replacing human judgment</li>
-<li>Still, journals could use LLMs for an initial filter to push net submission rates toward pre-LLM levels</li>
-</ul>
-<p><span class="ref">LLMs catch only roughly 20–40% of real or inserted errors and can miss broken logic entirely: Son et al. (2025, SPOT, arXiv:2505.11855); Xi et al. (2025, FLAWS, arXiv:2511.21843); Dycke &amp; Gurevych (2025, arXiv:2508.21422). Useful as assistance: Liang et al. (2024), <em>NEJM AI</em> 1(8). Gameable by hidden prompts: Gibney (2025), <em>Nature</em> 643:887–888. On the ensemble idea: Meincke, Terwiesch &amp; Huchzermeier (working paper).</span></p>
-    </section>
-
-    <section>
       <h2>An Alternative Approach: The Academic Ledger</h2>
 <ul>
-<li>A neutral, non-profit <em>system of record</em> applies a light integrity screen <strong>immediately</strong> and certifies the work, without judging quality</li>
-<li>Then evidence of quality <strong>accumulates over time</strong>, and the branding of recognition occurs with some delay, when confidence in the estimate of Q is high</li>
+<li>A neutral, non-profit <em>system of record</em> applies a light integrity screen <strong>immediately</strong> and enters the work in a ledger, without judging quality</li>
+<li>Then evidence of quality <strong>accumulates over time</strong>, and the branding of recognition occurs with some delay, when confidence in the estimate of Q is sufficiently high</li>
 <li>Journals continue to exist and may remain important for branding, but the Ledger is the source of truth about quality</li>
 </ul>
     </section>
 
     <section>
-      <h2>Three Sequential Categories of Papers: Certified, Refereed, Canon</h2>
-<ul>
-<li><strong>Certified.</strong> Authenticated by ORCID (the primary filter) and screened by automated tools and LLMs for fraud and obvious defects, not correctness, then archived, timestamped, and public within days. A floor against fraud and the obviously wrong, not a claim about quality. Fast and near-automatic; perhaps 1–5% are rejected.</li>
-<li><strong>Refereed.</strong> Has earned named, signed reviews or endorsements from identified scholars above a published threshold. The tier that honestly merits the classification "peer reviewed," but in the open and on the record. Perhaps the standard is 90% confidence that the paper will eventually reach the 75th percentile of submissions.</li>
-<li><strong>Canon.</strong> The curated, time-earned best, conferred from realized impact (use, citation, replication, discussion) and signed endorsements, by field panels under published criteria. Quality judged after the fact from evidence, not predicted. Perhaps approximately the 95th percentile of papers. Because it rests on evidence rather than a noisy verdict from two or three reviewers, it should in theory be more valuable than journal acceptance.</li>
-<li><strong>Published.</strong> Optional nice-to-have curation via publication in a journal. Publication could, but need not, follow from the evidence.</li>
-</ul>
-<p><span class="small">One record: a CV line begins as <em>Certified</em> and is upgraded in place to <em>Refereed</em>, then <em>Canon</em>, as review and impact accrue. A credential that only appreciates.</span></p>
+      <h2>Estimates of Q Can Be Accurate After a Little Calendar Time</h2>
+<p>The early signal is real: working-paper citations, downloads, and views are available within a year and already forecast eventual citation impact.</p>
+<p><img src="images/fig_early_signal.png" alt="" style="width:780px"></p>
+<p><span class="small">▶ Open the live Citation Race: academicledger.vercel.app/index.html</span></p>
+<p><span class="ref">Early downloads predict later citations: in arXiv physics (N = 14,442 in high-energy physics) the download–citation correlation is r ≈ 0.42, and downloads measured at <strong>6 months</strong> predict 2-year citation impact about as well as a full two years of data — Brody, Harnad &amp; Carr (2006), <em>JASIST</em> 57(8):1060–1072. A prospective study of 153 <em>BMJ</em> papers found the same (hits–citations r ≈ 0.5) — Perneger (2004), <em>BMJ</em> 329:546–547.</span></p>
+      <aside class="notes">r ≈ 0.4 explains roughly 16% of the variance in eventual citations, and the predictive signal plateaus by about 6 months: informative early, far from determinative, which is exactly why the Ledger decides late. Year 1 finds only about half of the eventual top ten.</aside>
     </section>
 
     <section>
-      <h2>The Certification Screen Should be a Low Bar</h2>
+      <h2>Designing Q<em>a</em>L: Composition and Choices</h2>
+<div style="display:flex; gap:34px; font-size:21px;">
+<div>
+<p><strong>How it is composed</strong></p>
 <ul>
-<li><strong>Certified does not judge quality.</strong> It verifies identity and screens out fraud and the obviously wrong, nothing more</li>
+<li>A blend of <strong>robust, article-level, subfield-and-vintage-normalized</strong> signals, never a raw count</li>
+<li>Value is the paper's <strong>percentile within field and publication year</strong> (NSF / Leiden classes)</li>
+<li>Synthetic subfield constructed with <strong>co-citation-neighborhood normalization</strong> (Relative Citation Ratio) and subfield-normalized scores (Leiden MNCS)</li>
+<li><strong>Authority-weighted</strong> citations (PageRank-style), harder to game than raw counts (not yet implemented)</li>
+<li>Correctness signals fold in over time: replications, corrections, retractions (not yet implemented)</li>
+<li>Reported as a point estimate, a 90% interval, and bucket probabilities, all of which evolve with additional information</li>
+</ul>
+</div>
+<div>
+<p><strong>Design questions</strong></p>
+<ul>
+<li><strong>Transparent or opaque?</strong> Transparent method and inputs, auditable and reproducible; opaque metrics breed distrust. Gaming-resistance comes from <em>design</em>, not secrecy: many independent signals, authority-weighting, a percentile basis, and deciding late</li>
+<li><strong>Field-normalized how?</strong> Within field × vintage, plus article-level co-citation normalization; the reference class is always stated</li>
+<li><strong>Proven, robust tools to invoke:</strong> percentile classes, field-normalized scores (MNCS), the Relative Citation Ratio, Characteristic Scores and Scales — not the article-level Journal Impact Factor</li>
+</ul>
+</div>
+</div>
+<p><span class="ref">Responsible-metrics principles: Hicks, Wouters, Waltman, de Rijcke &amp; Rafols (2015), "The Leiden Manifesto for research metrics," <em>Nature</em> 520:429–431; DORA (2013). Article-level normalization: Hutchins, Yuan, Anderson &amp; Santangelo (2016), "Relative Citation Ratio," <em>PLoS Biology</em> 14(9):e1002541; CWTS Leiden Ranking (MNCS); Glänzel &amp; Schubert (1988).</span></p>
+    </section>
+
+    <section>
+      <h2>Reporting Q as a Percentile Class</h2>
+<div style="display:flex; gap:30px; align-items:center;">
+<div>
+<ul>
+<li>Raw citation counts are heavy-tailed and hard to compare across fields and years</li>
+<li>Transform each paper to its <strong>percentile within its own (sub)field and publication year</strong></li>
+<li>Report membership in standard classes: <strong>top 1%, 5%, 10%, 25%, 50%</strong></li>
+<li>These are the NSF / Leiden percentile classes, a standard in research evaluation</li>
+<li>About half of all papers sit at or near zero citations: an atom at the bottom</li>
+</ul>
+<p><span class="small">A percentile is intuitive, field-fair, and robust to the tail.</span></p>
+</div>
+<p><img src="images/fig_percentile_transform.png" height="430"></p>
+</div>
+<p><span class="ref">Percentile classes: National Science Board, <em>Science &amp; Engineering Indicators</em> (NSB-2025-7); CWTS Leiden Ranking. Parameter-free alternative: Glänzel &amp; Schubert (1988), "Characteristic Scores and Scales in Assessing Citation Impact," <em>Journal of Information Science</em> 14(2):123–127.</span></p>
+    </section>
+
+    <section>
+      <h2>The Initial Screen Should be a Low Bar</h2>
+<ul>
+<li><strong>Entry in the Ledger does not judge quality.</strong> It verifies identity and screens out fraud and the obviously wrong, nothing more</li>
 <li><strong>Identity is the primary filter:</strong> ORCID authentication raises the cost of paper-mill, sock-puppet, and fabricated-author submissions</li>
 <li>The automated and LLM screen targets a deliberately narrow set: fabrication, manipulated figures, paper-mill and "tortured phrase" text, fabricated or dead citations, gross statistical inconsistencies, and claims with no support</li>
 <li>Much of this is handled by <strong>validated rule-based tools</strong> (image-duplication, statcheck, tortured-phrase and paper-mill detectors), with LLMs for triage. This is a low bar the evidence can support, unlike judging quality, which it does not attempt</li>
 <li>Expected outcome: outright rejection of perhaps <strong>1–5%</strong> of ORCID-authenticated submissions</li>
-<li><strong>Prefer conditional certification:</strong> admit borderline work with an attached, transparent summary of the LLM-generated concerns, and leave judgment to readers and to the later tiers</li>
+<li><strong>Prefer conditional registration:</strong> admit borderline work with an attached, transparent summary of the LLM-generated concerns, and leave judgment to readers and to the later tiers</li>
 </ul>
 <p><span class="ref">LLMs cannot yet reliably certify correctness (Son et al. 2025, SPOT; Xi et al. 2025, FLAWS; Dycke &amp; Gurevych 2025) and are gameable (Gibney 2025, <em>Nature</em> 643:887). The screen is therefore scoped to fraud and obvious error, where rule-based tools (statcheck; image-duplication; tortured-phrase and SCIgen detectors) are already effective.</span></p>
       <aside class="notes">The design deliberately does not rely on LLMs for correctness. The bar is fraud and the obviously wrong; everything else is admitted, optionally with disclosed concerns, and importance is decided later from evidence.</aside>
-    </section>
-
-    <section>
-      <h2>The Same Paper, Several Ways</h2>
-<p><code>[Certified]</code>  Cachon, G., C. Terwiesch, and K. Ulrich. 2026. The Crisis in Academic Publishing. <em>Academic Ledger</em> [0, 100]. https://doi.org/10.59312/aldg.2026.0427</p>
-<p><code>[Refereed]</code>  Cachon, G., C. Terwiesch, and K. Ulrich. 2026. The Crisis in Academic Publishing. <em>Academic Ledger</em> [75, 100]. https://doi.org/10.59312/aldg.2026.0427</p>
-<p><code>[Canon]</code>  Cachon, G., C. Terwiesch, and K. Ulrich. 2026. The Crisis in Academic Publishing. <em>Academic Ledger</em> [95, 100]. https://doi.org/10.59312/aldg.2026.0427</p>
-<p><code>[Canon]</code> Ⓟ Cachon, G., C. Terwiesch, and K. Ulrich. 2026. The Crisis in Academic Publishing. <em>Academic Ledger</em>. (also appears in Quantitative Science Studies 7(2):512–540, 2026). https://doi.org/10.59312/aldg.2026.0427</p>
-<p><span class="small">One record, one DOI, one act of authorship: the line is upgraded in place; the circled P flags the journal-published version, with its citation appended.</span></p>
-      <aside class="notes">The example is this talk. The journal citation and DOI are fabricated for illustration, not real. Quantitative Science Studies is a real, well-fit venue (MIT Press, community-owned), used here illustratively.</aside>
-    </section>
-
-    <section>
-      <h2>What the Paper Record Looks Like on academic Ledger</h2>
-<p><a href="https://academicledger.vercel.app/paper.html"><img src="images/aL-paper-view.png" alt="" style="height:470px"></a></p>
-<p><span class="small">A paper's home on the Ledger: tier status, the journal-published flag, and impact that accrues over time. Open the live page: academicledger.vercel.app/paper.html</span></p>
     </section>
 
     <section>
@@ -362,6 +328,16 @@
 <li>Journals could encourage authors to <strong>first publish on the Ledger</strong>, reducing their volume of low-quality submissions</li>
 <li>The alternative to a hard reject could become "develop the work on the Ledger"</li>
 <li>Editors could proactively scan the Ledger for work to invite, evaluating fit and quality based on evidence</li>
+</ul>
+    </section>
+
+    <section>
+      <h2>How Might we Provide "Refereed" Status with Minimal Friction</h2>
+<ul>
+<li>"Incidental" voluntary reviews. (Signed comments from readers who are already interested organically in the work: (a) what did I most like about this paper?, (b) how could the author make this paper better?)</li>
+<li>Existing journals solicit articles from work posted on the Ledger.</li>
+<li>Emergent virtual journals with volunteer editorial boards by very specific topic. (I might actually want to be a reviewer for a Journal of Innovation Processes.)</li>
+<li>Automated LLM feedback using best current practices, posted with information on prompt and model.</li>
 </ul>
     </section>
 
@@ -450,6 +426,33 @@
 
     <section>
       <h2>OTHER STUFF</h2>
+    </section>
+
+    <section>
+      <h2>Three Sequential Categories of Papers: Certified, Refereed, Canon</h2>
+<ul>
+<li><strong>Certified.</strong> Authenticated by ORCID (the primary filter) and screened by automated tools and LLMs for fraud and obvious defects, not correctness, then archived, timestamped, and public within days. A floor against fraud and the obviously wrong, not a claim about quality. Fast and near-automatic; perhaps 1–5% are rejected.</li>
+<li><strong>Refereed.</strong> Has earned named, signed reviews or endorsements from identified scholars above a published threshold. The tier that honestly merits the classification "peer reviewed," but in the open and on the record. Perhaps the standard is 90% confidence that the paper will eventually reach the 75th percentile of submissions.</li>
+<li><strong>Canon.</strong> The curated, time-earned best, conferred from realized impact (use, citation, replication, discussion) and signed endorsements, by field panels under published criteria. Quality judged after the fact from evidence, not predicted. Perhaps approximately the 95th percentile of papers. Because it rests on evidence rather than a noisy verdict from two or three reviewers, it should in theory be more valuable than journal acceptance.</li>
+<li><strong>Published.</strong> Optional nice-to-have curation via publication in a journal. Publication could, but need not, follow from the evidence.</li>
+</ul>
+<p><span class="small">One record: a CV line begins as <em>Certified</em> and is upgraded in place to <em>Refereed</em>, then <em>Canon</em>, as review and impact accrue. A credential that only appreciates.</span></p>
+    </section>
+
+    <section>
+      <h2>The Same Paper, Several Ways</h2>
+<p><code>[Certified]</code>  Cachon, G., C. Terwiesch, and K. Ulrich. 2026. The Crisis in Academic Publishing. <em>Academic Ledger</em> [0, 100]. https://doi.org/10.59312/aldg.2026.0427</p>
+<p><code>[Refereed]</code>  Cachon, G., C. Terwiesch, and K. Ulrich. 2026. The Crisis in Academic Publishing. <em>Academic Ledger</em> [75, 100]. https://doi.org/10.59312/aldg.2026.0427</p>
+<p><code>[Canon]</code>  Cachon, G., C. Terwiesch, and K. Ulrich. 2026. The Crisis in Academic Publishing. <em>Academic Ledger</em> [95, 100]. https://doi.org/10.59312/aldg.2026.0427</p>
+<p><code>[Canon]</code> Ⓟ Cachon, G., C. Terwiesch, and K. Ulrich. 2026. The Crisis in Academic Publishing. <em>Academic Ledger</em>. (also appears in Quantitative Science Studies 7(2):512–540, 2026). https://doi.org/10.59312/aldg.2026.0427</p>
+<p><span class="small">One record, one DOI, one act of authorship: the line is upgraded in place; the circled P flags the journal-published version, with its citation appended.</span></p>
+      <aside class="notes">The example is this talk. The journal citation and DOI are fabricated for illustration, not real. Quantitative Science Studies is a real, well-fit venue (MIT Press, community-owned), used here illustratively.</aside>
+    </section>
+
+    <section>
+      <h2>What the Paper Record Looks Like on academic Ledger</h2>
+<p><a href="https://academicledger.vercel.app/paper.html"><img src="images/aL-paper-view.png" alt="" style="height:470px"></a></p>
+<p><span class="small">A paper's home on the Ledger: tier status, the journal-published flag, and impact that accrues over time. Open the live page: academicledger.vercel.app/paper.html</span></p>
     </section>
 
     <section>
