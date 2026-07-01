@@ -51,7 +51,10 @@ TEMPLATE = """<!doctype html>
   .reveal h2 { font-size: 18pt; color: #1b2a4a; text-transform: none; }
   .reveal section { text-align: left; }
   .reveal section.center { text-align: center; }
-  .reveal ul { width: 100%; }
+  /* Lists must fit their column. `width:100%` (content-box) + list padding/margin made the
+     <ul> ~60px wider than its flex column, so bullet text spilled under the adjacent figure.
+     border-box + auto width keeps the list inside its box. */
+  .reveal ul, .reveal ol { box-sizing: border-box; max-width: 100%; }
   .reveal ul, .reveal ol, .reveal li, .reveal p { font-size: 16pt; }
   .reveal ul ul li { font-size: 14pt; color: #444; }
   .reveal img { display: block; margin: 14px auto 0; max-height: 60vh; box-shadow: none; border: 0; }

@@ -116,7 +116,7 @@ July 9, 2026 · OID Department Seminar · The Wharton School
 
 - Most functions (except development) were completed nearly **simultaneously**, around the time of "publication"
 - Today the functions are increasingly **unbundled** (SSRN, arXiv, personal sites, social media, DIY publication-quality document prep, LLM copy editing)
-- Distribution is now largely irrelevant (PDF downloads, SSRN, open access)
+- Administration is now largely irrelevant (PDF downloads, SSRN, open access)
 
 <span class="ref">The functions of scholarly communication were canonically identified as registration, certification, awareness, and archiving by Roosendaal & Geurts (1997), "Forces and Functions in Scientific Communication"; the case for *unbundling* (decoupling) them into independent services was made by Priem & Hemminger (2012), *Frontiers in Computational Neuroscience* 6:19.</span>
 
@@ -240,7 +240,8 @@ Eventual quality decomposes into a knowable component plus an exogenous shock; e
 
 - A neutral, non-profit *system of record* applies a light integrity screen **immediately** and enters the work in a ledger, without judging quality
 - Then evidence of quality **accumulates over time**, and the branding of recognition occurs with some delay, when confidence in the estimate of Q is sufficiently high
-- Journals continue to exist and may remain important for branding, but the Ledger is the source of truth about quality
+- Legacy journals co-exist and may remain important for branding and curation around topics, but the Ledger is the source of truth about quality. 
+- Alternatives to conventional journals may emerge, built on top of the Ledger to deliver other benefits (e.g., engagement, improvement, focused curation)
 
 ---
 ## Estimates of Q Can Be Accurate After a Little Calendar Time

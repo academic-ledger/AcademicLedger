@@ -19,7 +19,10 @@
   .reveal h2 { font-size: 18pt; color: #1b2a4a; text-transform: none; }
   .reveal section { text-align: left; }
   .reveal section.center { text-align: center; }
-  .reveal ul { width: 100%; }
+  /* Lists must fit their column. `width:100%` (content-box) + list padding/margin made the
+     <ul> ~60px wider than its flex column, so bullet text spilled under the adjacent figure.
+     border-box + auto width keeps the list inside its box. */
+  .reveal ul, .reveal ol { box-sizing: border-box; max-width: 100%; }
   .reveal ul, .reveal ol, .reveal li, .reveal p { font-size: 16pt; }
   .reveal ul ul li { font-size: 14pt; color: #444; }
   .reveal img { display: block; margin: 14px auto 0; max-height: 60vh; box-shadow: none; border: 0; }
@@ -149,7 +152,7 @@
 <ul>
 <li>Most functions (except development) were completed nearly <strong>simultaneously</strong>, around the time of "publication"</li>
 <li>Today the functions are increasingly <strong>unbundled</strong> (SSRN, arXiv, personal sites, social media, DIY publication-quality document prep, LLM copy editing)</li>
-<li>Distribution is now largely irrelevant (PDF downloads, SSRN, open access)</li>
+<li>Administration is now largely irrelevant (PDF downloads, SSRN, open access)</li>
 </ul>
 <p><span class="ref">The functions of scholarly communication were canonically identified as registration, certification, awareness, and archiving by Roosendaal &amp; Geurts (1997), "Forces and Functions in Scientific Communication"; the case for <em>unbundling</em> (decoupling) them into independent services was made by Priem &amp; Hemminger (2012), <em>Frontiers in Computational Neuroscience</em> 6:19.</span></p>
     </section>
@@ -285,7 +288,8 @@
 <ul>
 <li>A neutral, non-profit <em>system of record</em> applies a light integrity screen <strong>immediately</strong> and enters the work in a ledger, without judging quality</li>
 <li>Then evidence of quality <strong>accumulates over time</strong>, and the branding of recognition occurs with some delay, when confidence in the estimate of Q is sufficiently high</li>
-<li>Journals continue to exist and may remain important for branding, but the Ledger is the source of truth about quality</li>
+<li>Legacy journals co-exist and may remain important for branding and curation around topics, but the Ledger is the source of truth about quality. </li>
+<li>Alternatives to conventional journals may emerge, built on top of the Ledger to deliver other benefits (e.g., engagement, improvement, focused curation)</li>
 </ul>
     </section>
 
