@@ -52,7 +52,9 @@
   .err { color: #b2182b; }
   .site-head { display:flex; align-items:center; justify-content:space-between; margin:0 0 20px; padding-bottom:14px; border-bottom:1px solid var(--line); }
   .site-head .nav a { color:var(--muted); margin-left:16px; text-decoration:none; font-size:13px; }
+  .site-head .left { display:inline-flex; align-items:center; gap:11px; }
   .brand { display:inline-flex; align-items:center; gap:11px; text-decoration:none; }
+  .proto { font-size:10px; letter-spacing:.06em; text-transform:uppercase; color:#b06a00; background:#fff5d6; border:1px solid #e6cf7a; padding:1px 7px; border-radius:10px; }
   .brand .al { width:30px; height:30px; border-radius:22%; background:#111; color:#fff; display:inline-flex;
                align-items:center; justify-content:center; font-family:"Cormorant Garamond",Georgia,serif; font-weight:600; font-size:21px; line-height:1; }
   .brand .al .i { font-style:italic; font-weight:500; }
@@ -65,11 +67,14 @@
 </head>
 <body>
   <header class="site-head">
-    <a class="brand" href="./" title="academic Ledger">
-      <span class="al"><span class="i">a</span>L</span>
-      <span class="nm"><span class="ac">academic</span><span class="le">Ledger</span></span>
-    </a>
-    <span class="nav"><a href="/explore">Explore</a><a href="/author">Author</a><a href="/about">About</a><a href="talk.html">Talk</a></span>
+    <span class="left">
+      <a class="brand" href="/" title="academic Ledger">
+        <span class="al"><span class="i">a</span>L</span>
+        <span class="nm"><span class="ac">academic</span><span class="le">Ledger</span></span>
+      </a>
+      <span class="proto" title="Beta — QaL values are illustrative pending calibration">BETA</span>
+    </span>
+    <span class="nav"><a href="/explore">Explore</a><a href="/author">Author</a><a href="/about">About</a><a href="/for-authors">For authors</a><a href="/talk">Talk</a></span>
   </header>
   <h1>Citation Race</h1>
   <p class="sub">How a cohort of same-journal, same-year papers sorts itself out over time. Live data from OpenAlex.</p>

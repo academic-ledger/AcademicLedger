@@ -158,6 +158,18 @@ def render_slide(raw):
 
 def main():
     text = open(SRC, encoding="utf-8").read().replace(IMG_FROM, IMG_TO)
+
+    # Source hygiene — catch edits that silently break rendering (an indented '---' is not
+    # recognized as a slide break; unbalanced <div> tags swallow following content).
+    indented_sep = re.findall(r"(?m)^[ \t]+---[ \t]*$", text)
+    opens, closes = text.count("<div"), text.count("</div>")
+    if indented_sep:
+        print(f"  WARNING: {len(indented_sep)} indented '---' — not treated as a slide break; "
+              f"move to column 0")
+    if opens != closes:
+        print(f"  WARNING: unbalanced <div>: {opens} open vs {closes} close — a slide's layout "
+              f"div is likely unclosed")
+
     parts = re.split(r"(?m)^---$", text)
     # parts[0] = leading comment, parts[1] = YAML frontmatter, parts[2:] = slides.
     slides = [render_slide(p) for p in parts[2:] if p.strip()]

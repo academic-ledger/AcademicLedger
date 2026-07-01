@@ -206,20 +206,23 @@ Eventual quality decomposes into a knowable component plus an exogenous shock; e
 - Minimize the time from submission to "reviewed publication" CV status
 - Allow papers to be "reviewed/published" while minimizing unproductive author effort
 - Engage the community in discovery, discussion, and constructive feedback
+
+</div>
+<div>
+
 - Embrace revision over time with a transparent history and serving the latest version
-
 - Exhibit grace towards low-citation papers and authors (the vast majority of the field)
-
 - Enable easy discovery, search, and retrieval
-
 - Operate sustainably
 
-  
+</div>
+</div>
 
-  <span class="ref">*A cursory tour of academic forums (Hacker News, r/AskAcademia, r/professors) turns up every one of these, in far more colorful form.* On what the community wants: Mulligan, Hall & Raphael (2013), *JASIST* 64(1):132–161; Ithaka S+R *US Faculty Survey* (2021).</span>
-  
-  ---
-  ## The Journal System Could Possibly Be Fixed
+<span class="ref">*A cursory tour of academic forums (Hacker News, r/AskAcademia, r/professors) turns up every one of these, in far more colorful form.* On what the community wants: Mulligan, Hall & Raphael (2013), *JASIST* 64(1):132–161; Ithaka S+R *US Faculty Survey* (2021).</span>
+
+---
+
+## The Journal System Could Possibly Be Fixed
 
 - We have faced long lead times and Reviewer 2 essentially forever. Not a new problem.
 - Tightly run journals with committed editors still seem to function reasonably well
