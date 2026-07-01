@@ -76,26 +76,28 @@
 
   <div class="controls">
     <label>Journal
+      <!-- value = journal ISSN so the cohort loads via OpenAlex's filter=...issn: path.
+           OpenAlex now rate-limits anonymous name search (503), so we never search by name. -->
       <select id="journalSelect">
-        <option>Management Science</option>
-        <option>American Economic Review</option>
-        <option>Quarterly Journal of Economics</option>
-        <option>Econometrica</option>
-        <option>Journal of Finance</option>
-        <option>Marketing Science</option>
-        <option>Journal of Consumer Research</option>
-        <option>Operations Research</option>
-        <option>Organization Science</option>
-        <option>Administrative Science Quarterly</option>
-        <option>Strategic Management Journal</option>
-        <option>American Sociological Review</option>
-        <option>American Political Science Review</option>
-        <option>Psychological Science</option>
-        <option value="__other__">Other (type name or ISSN) …</option>
+        <option value="0025-1909">Management Science</option>
+        <option value="0002-8282">American Economic Review</option>
+        <option value="0033-5533">Quarterly Journal of Economics</option>
+        <option value="0012-9682">Econometrica</option>
+        <option value="0022-1082">Journal of Finance</option>
+        <option value="0732-2399">Marketing Science</option>
+        <option value="0093-5301">Journal of Consumer Research</option>
+        <option value="0030-364X">Operations Research</option>
+        <option value="1047-7039">Organization Science</option>
+        <option value="0001-8392">Administrative Science Quarterly</option>
+        <option value="0143-2095">Strategic Management Journal</option>
+        <option value="0003-1224">American Sociological Review</option>
+        <option value="0003-0554">American Political Science Review</option>
+        <option value="0956-7976">Psychological Science</option>
+        <option value="__other__">Other (type an ISSN) …</option>
       </select>
     </label>
-    <label id="otherWrap" style="display:none">Name or ISSN
-      <input id="journalOther" placeholder="e.g. Journal of Marketing">
+    <label id="otherWrap" style="display:none">ISSN
+      <input id="journalOther" placeholder="e.g. 1547-7185">
     </label>
     <label>Year <input id="year" type="number" value="2014" min="1950" max="2024"></label>
     <label>K (top papers) <input id="kk" type="number" value="10" min="1" max="100"></label>
@@ -140,13 +142,19 @@ const MAILTO = "ktulrich@gmail.com";
 const isISSN = s => /^\d{4}-\d{3}[\dxX]$/.test(s.trim());
 function getJournal() {
   const s = $("journalSelect").value;
-  return s === "__other__" ? $("journalOther").value.trim() : s;
+  return s === "__other__" ? $("journalOther").value.trim() : s;   // preset values are ISSNs
+}
+// Human-readable journal name for status text (preset presets carry the name as option text).
+function journalLabel() {
+  const s = $("journalSelect");
+  return s.value === "__other__" ? $("journalOther").value.trim() : s.options[s.selectedIndex].text;
 }
 
 async function resolveSource(name) {
   const url = "https://api.openalex.org/sources?search=" + encodeURIComponent(name) +
               "&filter=type:journal&per-page=1&select=id,display_name&mailto=" + MAILTO;
   const r = await fetch(url);
+  if (r.status === 503) throw new Error("OpenAlex is rate-limiting anonymous name search right now — enter the journal's ISSN instead (e.g. 0025-1909)");
   if (!r.ok) throw new Error("journal lookup returned " + r.status);
   const j = await r.json();
   if (!j.results || !j.results.length) throw new Error("no journal matched “" + name + "”");
@@ -330,7 +338,7 @@ async function run() {
   stopRace();
   const setStatus = (txt, spin) => $("status").innerHTML = (spin ? "<span class='spinner'></span>" : "") + txt;
   try {
-    let filterClause, jname = jinput;
+    let filterClause, jname = journalLabel();
     if (isISSN(jinput)) {
       filterClause = "primary_location.source.issn:" + jinput;
     } else {
