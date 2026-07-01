@@ -158,7 +158,7 @@
     </section>
 
     <section>
-      <h2>Pre-Publication Peer Review Cannot Do the Job, for Two Reasons</h2>
+      <h2>The one thing Journals purport to still do (certification of quality) can't really be done, for two reasons</h2>
 <div style="display:flex; gap:40px;">
 <div>
 <p><strong>1. The instrument is noisy</strong></p>
@@ -246,7 +246,8 @@
     </section>
 
     <section>
-      <h2>Stakeholder Needs - Academic Publishing System</h2>
+      <h2>What are the stakeholder needs for an academic publishing system?</h2>
+<h2>(The Clean-Sheet Perspective)</h2>
 <div style="display:flex; gap:42px; font-size:21px;">
 <div>
 <ul>
@@ -262,7 +263,7 @@
 <li>Embrace revision over time with a transparent history and serving the latest version</li>
 <li>Exhibit grace towards low-citation papers and authors (the vast majority of the field)</li>
 <li>Enable easy discovery, search, and retrieval</li>
-<li>Operate sustainably</li>
+<li>Operate in an economically sustainable way</li>
 </ul>
 </div>
 </div>
@@ -287,19 +288,38 @@
       <h2>An Alternative Approach: The Academic Ledger</h2>
 <ul>
 <li>A neutral, non-profit <em>system of record</em> applies a light integrity screen <strong>immediately</strong> and enters the work in a ledger, without judging quality</li>
-<li>Then evidence of quality <strong>accumulates over time</strong>, and the branding of recognition occurs with some delay, when confidence in the estimate of Q is sufficiently high</li>
+<li>Then evidence of quality <strong>accumulates over time</strong>, and the branding of quality occurs with some delay, when confidence in the estimate of Q is sufficiently high</li>
 <li>Legacy journals co-exist and may remain important for branding and curation around topics, but the Ledger is the source of truth about quality. </li>
-<li>Alternatives to conventional journals may emerge, built on top of the Ledger to deliver other benefits (e.g., engagement, improvement, focused curation)</li>
+<li>Alternatives to conventional journals may emerge, built on top of the Ledger to deliver other benefits (e.g., engagement with a community, improvement of the work, focused curation around topics)</li>
 </ul>
     </section>
 
     <section>
-      <h2>Estimates of Q Can Be Accurate After a Little Calendar Time</h2>
-<p>The early signal is real: working-paper citations, downloads, and views are available within a year and already forecast eventual citation impact.</p>
-<p><img src="images/fig_early_signal.png" alt="" style="width:780px"></p>
-<p><span class="small">▶ Open the live Citation Race: <a href="https://academicledger.vercel.app/index.html" target="_blank" rel="noopener">academicledger.vercel.app/index.html</a></span></p>
-<p><span class="ref">Early downloads predict later citations: in arXiv physics (N = 14,442 in high-energy physics) the download–citation correlation is r ≈ 0.42, and downloads measured at <strong>6 months</strong> predict 2-year citation impact about as well as a full two years of data — Brody, Harnad &amp; Carr (2006), <em>JASIST</em> 57(8):1060–1072. A prospective study of 153 <em>BMJ</em> papers found the same (hits–citations r ≈ 0.5) — Perneger (2004), <em>BMJ</em> 329:546–547.</span></p>
-      <aside class="notes">r ≈ 0.4 explains roughly 16% of the variance in eventual citations, and the predictive signal plateaus by about 6 months: informative early, far from determinative, which is exactly why the Ledger decides late. Year 1 finds only about half of the eventual top ten.</aside>
+      <h2>An Alternative Approach: The Academic Ledger</h2>
+<ul>
+<li>A neutral, non-profit <em>system of record</em> applies a light integrity screen <strong>immediately</strong> and enters the work in a ledger, without judging quality</li>
+<li>Then evidence of quality <strong>accumulates over time</strong>, and the branding of quality occurs with some delay, when confidence in the estimate of Q is sufficiently high</li>
+<li>Legacy journals co-exist and may remain important for branding and curation around topics, but the Ledger is the source of truth about quality. </li>
+<li>Alternatives to conventional journals may emerge, built on top of the Ledger to deliver other benefits (e.g., engagement with a community, improvement of the work, focused curation around topics)</li>
+</ul>
+    </section>
+
+    <section>
+      <h2>Beta Build of academic Ledger (with QaL)</h2>
+<ul>
+<li>Built using OpenAlex as the source data.</li>
+<li>Estimates QaL for virtually any paper in any field</li>
+<li>Basic approach is<ul>
+<li>Construct a synthetic subfield for any paper</li>
+<li>Locate the paper in the synthetic subfield in percentile rank relative to subfield-year cohort.</li>
+<li>Provide a 90 percent confidence interval of eventual QaL (calibrated by subfield)</li>
+<li>Synthetic subfield is based on recency weighted co-citation neighborhood, or when brand new, by recency weighted subfields of references, by subfields of co-authors, or as fallback by OpenAlex categorization.</li>
+<li>Percentile rank in each subfield is exact...an observation. Combined by weighting subfields.</li>
+<li>EXAMPLE...</li>
+<li>DEMO</li>
+</ul>
+</li>
+</ul>
     </section>
 
     <section>
@@ -361,7 +381,7 @@
     </section>
 
     <section>
-      <h2>The Journal Perspective</h2>
+      <h2>The Legacy Journal Perspective</h2>
 <ul>
 <li>The Ledger is consistent with the policies of most academic journals in social science</li>
 <li>Journals could encourage authors to <strong>first publish on the Ledger</strong>, reducing their volume of low-quality submissions</li>
@@ -373,9 +393,10 @@
     <section>
       <h2>How Might we Provide "Refereed" Status with Minimal Friction</h2>
 <ul>
-<li>"Incidental" voluntary reviews. (Signed comments from readers who are already interested organically in the work: (a) what did I most like about this paper?, (b) how could the author make this paper better?)</li>
-<li>Existing journals solicit articles from work posted on the Ledger.</li>
-<li>Emergent virtual journals with volunteer editorial boards by very specific topic. (I might actually want to be a reviewer for a Journal of Innovation Processes.)</li>
+<li>"Incidental" voluntary reviews. 
+  (e.g., signed comments from readers who are already interested organically in the work: (a) what did I most like about this paper?, (b) how could the author make this paper better?)</li>
+<li>Existing journals could solicit articles from work posted on the Ledger.</li>
+<li>Emergent virtual journals with volunteer editorial boards for a very specific topic. (I might actually want to be a reviewer for a Journal of Innovation Processes.)</li>
 <li>Automated LLM feedback using best current practices, posted with information on prompt and model.</li>
 </ul>
     </section>
@@ -383,8 +404,8 @@
     <section>
       <h2>How Is This Not Just SSRN?</h2>
 <ul>
-<li>SSRN is a for-profit, owned by Elsevier (a journal publisher), with conflicted incentives</li>
-<li>SSRN is a <strong>posting service, not a system of record</strong></li>
+<li>SSRN is a for-profit organization, owned by Elsevier (a journal publisher), with conflicted incentives</li>
+<li>SSRN is a posting service, not a system of record</li>
 <li>SSRN, despite offering its own branded metric (PlumX), deliberately avoids an honest estimate of Q</li>
 <li>It confers no credential that "counts," its download metrics have been gameable, and are reported only as a running cumulative total</li>
 <li>The Ledger adds what SSRN lacks: neutral non-profit governance, an identity and integrity layer, signed review, "refereed" status, and an evidence-based estimate of Q in percentile terms</li>
