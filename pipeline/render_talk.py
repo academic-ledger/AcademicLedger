@@ -55,12 +55,18 @@ TEMPLATE = """<!doctype html>
   .reveal ul, .reveal ol, .reveal li, .reveal p { font-size: 16pt; }
   .reveal ul ul li { font-size: 14pt; color: #444; }
   .reveal img { display: block; margin: 14px auto 0; max-height: 60vh; box-shadow: none; border: 0; }
-  /* Side-by-side flex rows: let them shrink and cap images to the fixed slide box. */
-  .reveal section > div[style*="flex"] { min-width: 0; }
-  .reveal section > div[style*="flex"] > * { min-width: 0; }
-  .reveal section > div[style*="flex"] > img {
-    max-height: 440px !important; max-width: 48% !important;
-    width: auto !important; height: auto !important; object-fit: contain; margin: 0;
+  /* Two-column rows (text beside a figure). The Marp source lays these out as a bare flex row
+     without column sizing, and markdown wraps the image in a <p>; without help the figure keeps
+     its natural width and overlaps the text. Fix: make the text column flex to fill remaining
+     space, let the figure column shrink, and cap the image to its column (width) and the slide
+     (height) while preserving aspect ratio. */
+  .reveal section > div[style*="flex"] { align-items: center; }
+  .reveal section > div[style*="flex"] > div { flex: 1 1 0; min-width: 0; }
+  .reveal section > div[style*="flex"] > p,
+  .reveal section > div[style*="flex"] > img { flex: 0 0 auto; min-width: 0; margin: 0; max-width: 48%; }
+  .reveal section > div[style*="flex"] p { margin: 0; }
+  .reveal section > div[style*="flex"] img {
+    max-height: 58vh; max-width: 100%; width: auto; height: auto; object-fit: contain; margin: 0;
   }
   .reveal .credit { font-size: 12pt; color: #666; }
   .reveal .small { font-size: 12pt; color: #666; }
@@ -116,18 +122,15 @@ SIZE_RE = re.compile(r"^([hw]):(\d+)$")
 
 def size_images(html):
     """Turn Marp `![h:340](x)` (rendered by markdown as <img alt="h:340" src="x">) into a
-    sized image, and drop the size token from alt."""
+    sized image. Raw <img> tags authored directly in the .md (with their own height/style
+    attributes) are left untouched — only the Marp size token is translated."""
     def repl(m):
         attrs = dict(ATTR_RE.findall(m.group(1)))
-        alt = attrs.get("alt", "")
-        sm = SIZE_RE.match(alt.strip())
-        style = ""
-        if sm:
-            dim = "height" if sm.group(1) == "h" else "width"
-            style = f' style="{dim}:{sm.group(2)}px"'
-            alt = ""
-        src = attrs.get("src", "")
-        return f'<img src="{src}" alt="{alt}"{style}>'
+        sm = SIZE_RE.match(attrs.get("alt", "").strip())
+        if not sm:
+            return m.group(0)  # not a Marp size image — preserve the tag verbatim
+        dim = "height" if sm.group(1) == "h" else "width"
+        return f'<img src="{attrs.get("src", "")}" alt="" style="{dim}:{sm.group(2)}px">'
     return IMG_RE.sub(repl, html)
 
 

@@ -23,12 +23,18 @@
   .reveal ul, .reveal ol, .reveal li, .reveal p { font-size: 16pt; }
   .reveal ul ul li { font-size: 14pt; color: #444; }
   .reveal img { display: block; margin: 14px auto 0; max-height: 60vh; box-shadow: none; border: 0; }
-  /* Side-by-side flex rows: let them shrink and cap images to the fixed slide box. */
-  .reveal section > div[style*="flex"] { min-width: 0; }
-  .reveal section > div[style*="flex"] > * { min-width: 0; }
-  .reveal section > div[style*="flex"] > img {
-    max-height: 440px !important; max-width: 48% !important;
-    width: auto !important; height: auto !important; object-fit: contain; margin: 0;
+  /* Two-column rows (text beside a figure). The Marp source lays these out as a bare flex row
+     without column sizing, and markdown wraps the image in a <p>; without help the figure keeps
+     its natural width and overlaps the text. Fix: make the text column flex to fill remaining
+     space, let the figure column shrink, and cap the image to its column (width) and the slide
+     (height) while preserving aspect ratio. */
+  .reveal section > div[style*="flex"] { align-items: center; }
+  .reveal section > div[style*="flex"] > div { flex: 1 1 0; min-width: 0; }
+  .reveal section > div[style*="flex"] > p,
+  .reveal section > div[style*="flex"] > img { flex: 0 0 auto; min-width: 0; margin: 0; max-width: 48%; }
+  .reveal section > div[style*="flex"] p { margin: 0; }
+  .reveal section > div[style*="flex"] img {
+    max-height: 58vh; max-width: 100%; width: auto; height: auto; object-fit: contain; margin: 0;
   }
   .reveal .credit { font-size: 12pt; color: #666; }
   .reveal .small { font-size: 12pt; color: #666; }
@@ -78,7 +84,7 @@
 <li>"Quality" matters, but assessing quality is tricky</li>
 </ul>
 </div>
-<p><img src="images/KT-econometrica.png" alt=""></p>
+<p><img src="images/KT-econometrica.png" height="470" style="border:1px solid #ccc;"></p>
 </div>
       <aside class="notes">Kahneman & Tversky, "Prospect Theory," Econometrica 47(2), 1979. Nobel-recognized, foundational, top journal: the article as coin of the realm.</aside>
     </section>
@@ -106,7 +112,7 @@
 <li>The more independent the signals, the less the estimate of Q can be gamed</li>
 </ul>
 </div>
-<p><img src="images/quality-metrics-image.png" alt=""></p>
+<p><img src="images/quality-metrics-image.png" height="430" style="border:1px solid #ccc;"></p>
 </div>
     </section>
 
@@ -131,7 +137,7 @@
 </ul>
 <p><span class="small">A percentile is intuitive, field-fair, and robust to the tail. The Ledger's tiers map onto these classes.</span></p>
 </div>
-<p><img src="images/fig_percentile_transform.png" alt=""></p>
+<p><img src="images/fig_percentile_transform.png" height="430"></p>
 </div>
 <p><span class="ref">Percentile classes: National Science Board, <em>Science &amp; Engineering Indicators</em> (NSB-2025-7); CWTS Leiden Ranking. Parameter-free alternative: Glänzel &amp; Schubert (1988), "Characteristic Scores and Scales in Assessing Citation Impact," <em>Journal of Information Science</em> 14(2):123–127.</span></p>
     </section>
@@ -182,7 +188,7 @@
 <li><strong>Certification of quality</strong>: some of it knowable early, most revealed over time</li>
 </ul>
 </div>
-<p><img src="images/Springer-splash-page.png" alt=""></p>
+<p><img src="images/Springer-splash-page.png" height="340" style="border:1px solid #ccc;"></p>
 </div>
 <p><strong>Historically, Journals Performed All of these Functions</strong></p>
 <ul>
