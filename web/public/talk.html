@@ -100,7 +100,7 @@
 <p>Many dimensions of quality: interestingness, importance, impact, novelty, elegance, humor, clarity, rigor, popularity, methodological purity, and so on</p>
 </li>
 <li>
-<p>For simplicity, we collapse them to a single scalar <strong>Q</strong>, the eventual recognized value of the work; correctness and importance are <em>inputs</em> to Q, not separately certified axes</p>
+<p>For simplicity, we collapse them to a single scalar Q, the eventual recognized value of the work; correctness and importance are <em>inputs</em> to Q, not separately certified axes</p>
 </li>
 <li>
 <p>Ex ante uncertainty about Q is high</p>
@@ -133,6 +133,24 @@
 <p><img src="images/fig_citation_distribution.png" alt="" style="height:430px"></p>
 <p><span class="small">Management Science &amp; OR, OpenAlex (all journals), published 2015, cited through 2026; n=10,000. ~48% uncited, median 1, yet the top 1% hold 27% of all citations. Psychology is essentially identical (median 0, ~53% uncited, σ≈1.5, top 1%≈26%): citation distributions are universal across fields.</span></p>
 <p><span class="ref">Radicchi, Fortunato &amp; Castellano (2008), <em>PNAS</em> 105(45):17268–17272; Brzezinski (2015), <em>Scientometrics</em> 103(1):213–228; Thelwall (2016), <em>Journal of Informetrics</em> 10(2):336–346.</span></p>
+    </section>
+
+    <section>
+      <h2>Reporting Q as a Percentile Class</h2>
+<div style="display:flex; gap:30px; align-items:center;">
+<div>
+<ul>
+<li>Raw citation counts are heavy-tailed and hard to compare across fields and years</li>
+<li>Transform each paper to its <strong>percentile within its own (sub)field and publication year</strong></li>
+<li>Report membership in standard classes: <strong>top 1%, 5%, 10%, 25%, 50%</strong></li>
+<li>These are the NSF / Leiden percentile classes, a standard in research evaluation</li>
+<li>About half of all papers sit at or near zero citations: an atom at the bottom</li>
+</ul>
+<p><span class="small">A percentile is intuitive, field-fair, and robust to the tail.</span></p>
+</div>
+<p><img src="images/fig_percentile_transform.png" height="430"></p>
+</div>
+<p><span class="ref">Percentile classes: National Science Board, <em>Science &amp; Engineering Indicators</em> (NSB-2025-7); CWTS Leiden Ranking. Parameter-free alternative: Glänzel &amp; Schubert (1988), "Characteristic Scores and Scales in Assessing Citation Impact," <em>Journal of Information Science</em> 14(2):123–127.</span></p>
     </section>
 
     <section>
@@ -295,27 +313,21 @@
     </section>
 
     <section>
-      <h2>An Alternative Approach: The Academic Ledger</h2>
-<ul>
-<li>A neutral, non-profit <em>system of record</em> applies a light integrity screen <strong>immediately</strong> and enters the work in a ledger, without judging quality</li>
-<li>Then evidence of quality <strong>accumulates over time</strong>, and the branding of quality occurs with some delay, when confidence in the estimate of Q is sufficiently high</li>
-<li>Legacy journals co-exist and may remain important for branding and curation around topics, but the Ledger is the source of truth about quality. </li>
-<li>Alternatives to conventional journals may emerge, built on top of the Ledger to deliver other benefits (e.g., engagement with a community, improvement of the work, focused curation around topics)</li>
-</ul>
+      <p><img src="images/comparative-timelines.png" alt="Comparative timelines: the journal system versus the academic Ledger" style="max-height:82vh; max-width:100%;"></p>
     </section>
 
     <section>
       <h2>Beta Build of academic Ledger (with QaL)</h2>
 <ul>
 <li>Built using OpenAlex as the source data.</li>
-<li>Estimates QaL for virtually any paper in any field</li>
+<li>Estimates QaL for virtually any paper in any field (N ~ 500M)</li>
 <li>Basic approach is<ul>
 <li>Construct a synthetic subfield for any paper</li>
 <li>Locate the paper in the synthetic subfield in percentile rank relative to subfield-year cohort.</li>
 <li>Provide a 90 percent confidence interval of eventual QaL (calibrated by subfield)</li>
 <li>Synthetic subfield is based on recency weighted co-citation neighborhood, or when brand new, by recency weighted subfields of references, by subfields of co-authors, or as fallback by OpenAlex categorization.</li>
 <li>Percentile rank in each subfield is exact...an observation. Combined by weighting subfields.</li>
-<li>EXAMPLE...</li>
+<li>EXAMPLES</li>
 <li>DEMO</li>
 </ul>
 </li>
@@ -346,24 +358,6 @@
 </div>
 </div>
 <p><span class="ref">Responsible-metrics principles: Hicks, Wouters, Waltman, de Rijcke &amp; Rafols (2015), "The Leiden Manifesto for research metrics," <em>Nature</em> 520:429–431; DORA (2013). Article-level normalization: Hutchins, Yuan, Anderson &amp; Santangelo (2016), "Relative Citation Ratio," <em>PLoS Biology</em> 14(9):e1002541; CWTS Leiden Ranking (MNCS); Glänzel &amp; Schubert (1988).</span></p>
-    </section>
-
-    <section>
-      <h2>Reporting Q as a Percentile Class</h2>
-<div style="display:flex; gap:30px; align-items:center;">
-<div>
-<ul>
-<li>Raw citation counts are heavy-tailed and hard to compare across fields and years</li>
-<li>Transform each paper to its <strong>percentile within its own (sub)field and publication year</strong></li>
-<li>Report membership in standard classes: <strong>top 1%, 5%, 10%, 25%, 50%</strong></li>
-<li>These are the NSF / Leiden percentile classes, a standard in research evaluation</li>
-<li>About half of all papers sit at or near zero citations: an atom at the bottom</li>
-</ul>
-<p><span class="small">A percentile is intuitive, field-fair, and robust to the tail.</span></p>
-</div>
-<p><img src="images/fig_percentile_transform.png" height="430"></p>
-</div>
-<p><span class="ref">Percentile classes: National Science Board, <em>Science &amp; Engineering Indicators</em> (NSB-2025-7); CWTS Leiden Ranking. Parameter-free alternative: Glänzel &amp; Schubert (1988), "Characteristic Scores and Scales in Assessing Citation Impact," <em>Journal of Information Science</em> 14(2):123–127.</span></p>
     </section>
 
     <section>
@@ -398,6 +392,18 @@
 <li>Existing journals could solicit articles from work posted on the Ledger.</li>
 <li>Emergent virtual journals with volunteer editorial boards for a very specific topic. (I might actually want to be a reviewer for a Journal of Innovation Processes.)</li>
 <li>Automated LLM feedback using best current practices, posted with information on prompt and model.</li>
+</ul>
+    </section>
+
+    <section>
+      <h2>Utopia</h2>
+<ul>
+<li>Administration is smooth and fast: register, screen integrity, archive, timestamp, and disseminate within days</li>
+<li>True signals of quality emerge <strong>smoothly and continuously</strong> as the field reads, uses, cites, and endorses; those signals are used for critical decisions in universities</li>
+<li>Authors can <strong>respond, adapt, and improve</strong> the work, with the revision history on the record</li>
+<li>Incentive is to create interesting and impactful work not to fit the norms of a community</li>
+<li>Journals become nice-to-have <em>curation</em>; the revealed evidence is what matters for reputation and for evaluating scholarship</li>
+<li>A more predictable, less capricious, less arbitrary world for emerging scholars; senior scholars with no patience for journals may opt out of the legacy system and still "publish"</li>
 </ul>
     </section>
 
@@ -474,13 +480,11 @@
     <section>
       <h2>Open Questions</h2>
 <ul>
-<li>Actual development of QaL: How well can Q be estimated, and how early?</li>
 <li>Does the system require radical change, or could the incumbents address the pain points?</li>
-<li>How network-y is the Ledger? (Should there be just one Ledger?)</li>
 <li>Could an institution host the Ledger (e.g., "academic Ledger is hosted by the Wharton School of the University of Pennsylvania")?</li>
-<li>What is the unit of work? (papers, books, videos, other)</li>
+<li>What is the unit of work? (papers, books, videos, other) Should we care?</li>
 <li>What resources are required to operate the Ledger at scale?</li>
-<li>Could the Ledger be self-sustaining on fees? What other business models are there?</li>
+<li>What business models might work?</li>
 </ul>
     </section>
 
@@ -524,17 +528,6 @@
      Figure skating: judges agree, yet share a reputation prior (Findlay & Ste-Marie 2004); shared bias does not cancel.
      Wine: judges disagree AND cannot reproduce their own scores (Hodgson 2008); no stable signal to recover.
      Peer review: same profile as Galton (ICC ~0.34), dragged below by 2-3 judges and a shared reputation bias.</aside>
-    </section>
-
-    <section>
-      <h2>Utopia</h2>
-<ul>
-<li>Administration is smooth and fast: register, screen integrity, archive, timestamp, and disseminate within days</li>
-<li>True signals of quality emerge <strong>smoothly and continuously</strong> as the field reads, uses, cites, and endorses; those signals are used for critical decisions in universities</li>
-<li>Authors can <strong>respond, adapt, and improve</strong> the work, with the revision history on the record</li>
-<li>Journals become nice-to-have <em>curation</em>; the revealed evidence is what matters for reputation and for evaluating scholarship</li>
-<li>A more predictable, less capricious, less arbitrary world for emerging scholars; senior scholars with no patience for journals can opt out and still "publish"</li>
-</ul>
     </section>
 
     <section>

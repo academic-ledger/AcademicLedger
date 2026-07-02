@@ -61,7 +61,7 @@ July 9, 2026 · OID Department Seminar · The Wharton School
 
 - Many dimensions of quality: interestingness, importance, impact, novelty, elegance, humor, clarity, rigor, popularity, methodological purity, and so on
 
-- For simplicity, we collapse them to a single scalar **Q**, the eventual recognized value of the work; correctness and importance are *inputs* to Q, not separately certified axes
+- For simplicity, we collapse them to a single scalar Q, the eventual recognized value of the work; correctness and importance are *inputs* to Q, not separately certified axes
 
 - Ex ante uncertainty about Q is high
 
@@ -96,6 +96,27 @@ July 9, 2026 · OID Department Seminar · The Wharton School
 <span class="small">Management Science & OR, OpenAlex (all journals), published 2015, cited through 2026; n=10,000. ~48% uncited, median 1, yet the top 1% hold 27% of all citations. Psychology is essentially identical (median 0, ~53% uncited, σ≈1.5, top 1%≈26%): citation distributions are universal across fields.</span>
 
 <span class="ref">Radicchi, Fortunato & Castellano (2008), *PNAS* 105(45):17268–17272; Brzezinski (2015), *Scientometrics* 103(1):213–228; Thelwall (2016), *Journal of Informetrics* 10(2):336–346.</span>
+
+---
+## Reporting Q as a Percentile Class
+
+<div style="display:flex; gap:30px; align-items:center;">
+<div>
+
+- Raw citation counts are heavy-tailed and hard to compare across fields and years
+- Transform each paper to its **percentile within its own (sub)field and publication year**
+- Report membership in standard classes: **top 1%, 5%, 10%, 25%, 50%**
+- These are the NSF / Leiden percentile classes, a standard in research evaluation
+- About half of all papers sit at or near zero citations: an atom at the bottom
+
+<span class="small">A percentile is intuitive, field-fair, and robust to the tail.</span>
+
+</div>
+<img src="../../web/public/images/fig_percentile_transform.png" height="430">
+</div>
+
+<span class="ref">Percentile classes: National Science Board, *Science & Engineering Indicators* (NSB-2025-7); CWTS Leiden Ranking. Parameter-free alternative: Glänzel & Schubert (1988), "Characteristic Scores and Scales in Assessing Citation Impact," *Journal of Information Science* 14(2):123–127.</span>
+
 
 ---
 ## The Societal Functions of Publishing
@@ -245,26 +266,23 @@ Eventual quality decomposes into a knowable component plus an exogenous shock; e
 - Legacy journals co-exist and may remain important for branding and curation around topics, but the Ledger is the source of truth about quality. 
 - Alternatives to conventional journals may emerge, built on top of the Ledger to deliver other benefits (e.g., engagement with a community, improvement of the work, focused curation around topics)
 
----
-## An Alternative Approach: The Academic Ledger
 
-- A neutral, non-profit *system of record* applies a light integrity screen **immediately** and enters the work in a ledger, without judging quality
-- Then evidence of quality **accumulates over time**, and the branding of quality occurs with some delay, when confidence in the estimate of Q is sufficiently high
-- Legacy journals co-exist and may remain important for branding and curation around topics, but the Ledger is the source of truth about quality. 
-- Alternatives to conventional journals may emerge, built on top of the Ledger to deliver other benefits (e.g., engagement with a community, improvement of the work, focused curation around topics)
+---
+
+<img src="../../web/public/images/comparative-timelines.png" alt="Comparative timelines: the journal system versus the academic Ledger" style="max-height:82vh; max-width:100%;">
 
 ---
 ## Beta Build of academic Ledger (with QaL)
 
 - Built using OpenAlex as the source data.
-- Estimates QaL for virtually any paper in any field
+- Estimates QaL for virtually any paper in any field (N ~ 500M)
 - Basic approach is
 	- Construct a synthetic subfield for any paper
 	- Locate the paper in the synthetic subfield in percentile rank relative to subfield-year cohort.
 	- Provide a 90 percent confidence interval of eventual QaL (calibrated by subfield)
 	- Synthetic subfield is based on recency weighted co-citation neighborhood, or when brand new, by recency weighted subfields of references, by subfields of co-authors, or as fallback by OpenAlex categorization.
 	- Percentile rank in each subfield is exact...an observation. Combined by weighting subfields.
-	- EXAMPLE...
+	- EXAMPLES
 	- DEMO
 
 ---
@@ -298,30 +316,6 @@ Eventual quality decomposes into a knowable component plus an exogenous shock; e
 
 ---
 
-
-## Reporting Q as a Percentile Class
-
-<div style="display:flex; gap:30px; align-items:center;">
-<div>
-
-- Raw citation counts are heavy-tailed and hard to compare across fields and years
-- Transform each paper to its **percentile within its own (sub)field and publication year**
-- Report membership in standard classes: **top 1%, 5%, 10%, 25%, 50%**
-- These are the NSF / Leiden percentile classes, a standard in research evaluation
-- About half of all papers sit at or near zero citations: an atom at the bottom
-
-<span class="small">A percentile is intuitive, field-fair, and robust to the tail.</span>
-
-</div>
-<img src="../../web/public/images/fig_percentile_transform.png" height="430">
-</div>
-
-<span class="ref">Percentile classes: National Science Board, *Science & Engineering Indicators* (NSB-2025-7); CWTS Leiden Ranking. Parameter-free alternative: Glänzel & Schubert (1988), "Characteristic Scores and Scales in Assessing Citation Impact," *Journal of Information Science* 14(2):123–127.</span>
-
-
----
-
-
 ## The Initial Screen Should be a Low Bar
 
 - **Entry in the Ledger does not judge quality.** It verifies identity and screens out fraud and the obviously wrong, nothing more
@@ -352,6 +346,17 @@ Eventual quality decomposes into a knowable component plus an exogenous shock; e
 - Existing journals could solicit articles from work posted on the Ledger.
 - Emergent virtual journals with volunteer editorial boards for a very specific topic. (I might actually want to be a reviewer for a Journal of Innovation Processes.)
 - Automated LLM feedback using best current practices, posted with information on prompt and model.
+
+---
+## Utopia
+
+- Administration is smooth and fast: register, screen integrity, archive, timestamp, and disseminate within days
+- True signals of quality emerge **smoothly and continuously** as the field reads, uses, cites, and endorses; those signals are used for critical decisions in universities
+- Authors can **respond, adapt, and improve** the work, with the revision history on the record
+- Incentive is to create interesting and impactful work not to fit the norms of a community
+- Journals become nice-to-have *curation*; the revealed evidence is what matters for reputation and for evaluating scholarship
+- A more predictable, less capricious, less arbitrary world for emerging scholars; senior scholars with no patience for journals may opt out of the legacy system and still "publish"
+
 ---
 
 ## How Is This Not Just SSRN?
@@ -402,13 +407,11 @@ td,th{ vertical-align:top; }
 
 ## Open Questions
 
-- Actual development of QaL: How well can Q be estimated, and how early?
 - Does the system require radical change, or could the incumbents address the pain points?
-- How network-y is the Ledger? (Should there be just one Ledger?)
 - Could an institution host the Ledger (e.g., "academic Ledger is hosted by the Wharton School of the University of Pennsylvania")?
-- What is the unit of work? (papers, books, videos, other)
+- What is the unit of work? (papers, books, videos, other) Should we care?
 - What resources are required to operate the Ledger at scale?
-- Could the Ledger be self-sustaining on fees? What other business models are there?
+- What business models might work?
 ---
 
 ## OTHER STUFF
@@ -458,14 +461,6 @@ td,th{ vertical-align:top; }
      Peer review: same profile as Galton (ICC ~0.34), dragged below by 2-3 judges and a shared reputation bias. -->
 
 
----
-## Utopia
-
-- Administration is smooth and fast: register, screen integrity, archive, timestamp, and disseminate within days
-- True signals of quality emerge **smoothly and continuously** as the field reads, uses, cites, and endorses; those signals are used for critical decisions in universities
-- Authors can **respond, adapt, and improve** the work, with the revision history on the record
-- Journals become nice-to-have *curation*; the revealed evidence is what matters for reputation and for evaluating scholarship
-- A more predictable, less capricious, less arbitrary world for emerging scholars; senior scholars with no patience for journals can opt out and still "publish"
 
 ---
 
