@@ -321,6 +321,47 @@ Eventual quality decomposes into a knowable component plus an exogenous shock; e
 
 ---
 
+## Computing a QaL: A Worked Example
+
+<div style="display:flex; gap:30px; align-items:center;">
+<div style="flex:1.5; min-width:0; font-size:17px;">
+
+| Subfield in the synthetic field | Weight | Pctile | Contribution |
+|:--|--:|--:|--:|
+| Experimental & Cognitive Psychology | 24.9% | 99.9 | 24.9 |
+| Artificial Intelligence | 20.7% | 99.8 | 20.7 |
+| Sociology & Political Science | 13.1% | 100.0 | 13.1 |
+| Health Informatics | 11.6% | 96.8 | 11.2 |
+| Computer Science Applications | 5.7% | 99.7 | 5.7 |
+| Economics & Econometrics | 5.6% | 99.9 | 5.6 |
+| Management Information Systems | 4.6% | 99.9 | 4.6 |
+| Cognitive Neuroscience | 4.2% | 99.9 | 4.2 |
+| Information Systems | 3.5% | 100.0 | 3.5 |
+| Safety Research | 3.5% | 99.8 | 3.5 |
+| Social Psychology | 2.6% | 100.0 | 2.6 |
+| **Total** | **100%** | | **99.5** |
+
+<span class="small">Contribution = weight × percentile; the paper is ranked within each subfield's 2023 cohort.</span>
+
+</div>
+<div style="flex:1; min-width:0; font-size:21px;">
+
+***Ideas are Dimes a Dozen*** — Girotra, Meincke, Terwiesch & Ulrich (2023); 168 citations.
+
+OpenAlex tags it **one** subfield (*Computer Science Applications*). QaL instead ranks it in the **synthetic field** — the 11 subfields its references and co-citations actually span.
+
+**Observed** = Σ (weight × percentile) = **99.5**
+
+**Extrapolate to eventual** — it's only 3 years old, so each calibrated subfield maps observed → eventual, blended over the 83% of weight that's calibrated:
+
+<div style="font-size:30px; font-weight:700; color:#2e8b57; margin:6px 0;">QaL 99.8 &nbsp;·&nbsp; 90% CI [97, 100]</div>
+
+a top-0.2% paper — a **forecast**, not just today's citation count.
+
+</div>
+</div>
+
+---
 ## The Initial Screen Should be a Low Bar
 
 - **Entry in the Ledger does not judge quality.** It verifies identity and screens out fraud and the obviously wrong, nothing more

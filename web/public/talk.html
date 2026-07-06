@@ -401,6 +401,109 @@
     </section>
 
     <section>
+      <h2>Computing a QaL: A Worked Example</h2>
+<div style="display:flex; gap:30px; align-items:center;">
+<div style="flex:1.5; min-width:0; font-size:17px;">
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Subfield in the synthetic field</th>
+<th style="text-align: right;">Weight</th>
+<th style="text-align: right;">Pctile</th>
+<th style="text-align: right;">Contribution</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">Experimental &amp; Cognitive Psychology</td>
+<td style="text-align: right;">24.9%</td>
+<td style="text-align: right;">99.9</td>
+<td style="text-align: right;">24.9</td>
+</tr>
+<tr>
+<td style="text-align: left;">Artificial Intelligence</td>
+<td style="text-align: right;">20.7%</td>
+<td style="text-align: right;">99.8</td>
+<td style="text-align: right;">20.7</td>
+</tr>
+<tr>
+<td style="text-align: left;">Sociology &amp; Political Science</td>
+<td style="text-align: right;">13.1%</td>
+<td style="text-align: right;">100.0</td>
+<td style="text-align: right;">13.1</td>
+</tr>
+<tr>
+<td style="text-align: left;">Health Informatics</td>
+<td style="text-align: right;">11.6%</td>
+<td style="text-align: right;">96.8</td>
+<td style="text-align: right;">11.2</td>
+</tr>
+<tr>
+<td style="text-align: left;">Computer Science Applications</td>
+<td style="text-align: right;">5.7%</td>
+<td style="text-align: right;">99.7</td>
+<td style="text-align: right;">5.7</td>
+</tr>
+<tr>
+<td style="text-align: left;">Economics &amp; Econometrics</td>
+<td style="text-align: right;">5.6%</td>
+<td style="text-align: right;">99.9</td>
+<td style="text-align: right;">5.6</td>
+</tr>
+<tr>
+<td style="text-align: left;">Management Information Systems</td>
+<td style="text-align: right;">4.6%</td>
+<td style="text-align: right;">99.9</td>
+<td style="text-align: right;">4.6</td>
+</tr>
+<tr>
+<td style="text-align: left;">Cognitive Neuroscience</td>
+<td style="text-align: right;">4.2%</td>
+<td style="text-align: right;">99.9</td>
+<td style="text-align: right;">4.2</td>
+</tr>
+<tr>
+<td style="text-align: left;">Information Systems</td>
+<td style="text-align: right;">3.5%</td>
+<td style="text-align: right;">100.0</td>
+<td style="text-align: right;">3.5</td>
+</tr>
+<tr>
+<td style="text-align: left;">Safety Research</td>
+<td style="text-align: right;">3.5%</td>
+<td style="text-align: right;">99.8</td>
+<td style="text-align: right;">3.5</td>
+</tr>
+<tr>
+<td style="text-align: left;">Social Psychology</td>
+<td style="text-align: right;">2.6%</td>
+<td style="text-align: right;">100.0</td>
+<td style="text-align: right;">2.6</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Total</strong></td>
+<td style="text-align: right;"><strong>100%</strong></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"><strong>99.5</strong></td>
+</tr>
+</tbody>
+</table>
+<p><span class="small">Contribution = weight × percentile; the paper is ranked within each subfield's 2023 cohort.</span></p>
+</div>
+<div style="flex:1; min-width:0; font-size:21px;">
+<p><strong><em>Ideas are Dimes a Dozen</em></strong> — Girotra, Meincke, Terwiesch &amp; Ulrich (2023); 168 citations.</p>
+<p>OpenAlex tags it <strong>one</strong> subfield (<em>Computer Science Applications</em>). QaL instead ranks it in the <strong>synthetic field</strong> — the 11 subfields its references and co-citations actually span.</p>
+<p><strong>Observed</strong> = Σ (weight × percentile) = <strong>99.5</strong></p>
+<p><strong>Extrapolate to eventual</strong> — it's only 3 years old, so each calibrated subfield maps observed → eventual, blended over the 83% of weight that's calibrated:</p>
+<div style="font-size:30px; font-weight:700; color:#2e8b57; margin:6px 0;">
+<p>QaL 99.8 &nbsp;·&nbsp; 90% CI [97, 100]</p>
+</div>
+<p>a top-0.2% paper — a <strong>forecast</strong>, not just today's citation count.</p>
+</div>
+</div>
+    </section>
+
+    <section>
       <h2>The Initial Screen Should be a Low Bar</h2>
 <ul>
 <li><strong>Entry in the Ledger does not judge quality.</strong> It verifies identity and screens out fraud and the obviously wrong, nothing more</li>
