@@ -91,6 +91,9 @@ TEMPLATE = """<!doctype html>
   .reveal code { font-size: .9em; background: #f1f4f8; padding: 1px 6px; border-radius: 4px; }
   .deck { position:fixed; top:0; left:0; right:0; bottom:0; }
   .deck .reveal { width:100%; height:100%; }
+  /* Slide number, lower-right. */
+  .reveal .slide-number { background: none; color: #9aa0a8; font-size: 12pt; right: 16px; bottom: 12px; top: auto; left: auto; }
+  .reveal .slide-number a { color: #9aa0a8; }
 </style>
 </head>
 <body>

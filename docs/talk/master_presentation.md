@@ -300,9 +300,6 @@ Eventual quality decomposes into a knowable component plus an exogenous shock; e
 
 ---
 
-<img src="../../web/public/images/serving-democracy-screen.png" alt="academic Ledger paper page — “Serving Democracy”" style="max-height:82vh; max-width:100%;">
-
----
 ## Designing Q*a*L: Composition and Choices
 
 <div style="display:flex; gap:34px; font-size:15px;">
@@ -330,6 +327,10 @@ Eventual quality decomposes into a knowable component plus an exogenous shock; e
 </div>
 
 <span class="ref">Responsible-metrics principles: Hicks, Wouters, Waltman, de Rijcke & Rafols (2015), "The Leiden Manifesto for research metrics," *Nature* 520:429–431; DORA (2013). Article-level normalization: Hutchins, Yuan, Anderson & Santangelo (2016), "Relative Citation Ratio," *PLoS Biology* 14(9):e1002541; CWTS Leiden Ranking (MNCS); Glänzel & Schubert (1988).</span>
+
+---
+
+<img src="../../web/public/images/serving-democracy-screen.png" alt="academic Ledger paper page — “Serving Democracy”" style="max-height:82vh; max-width:100%;">
 
 ---
 
