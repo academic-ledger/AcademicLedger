@@ -81,7 +81,7 @@
 <div style="display:flex; gap:30px; align-items:center;">
 <div>
 <ul>
-<li>Unit of work in academia</li>
+<li>Unit of "work" in academia</li>
 <li>Vary widely in embodied effort</li>
 <li>"Refereed" journal an important categorization</li>
 <li>" 'A' journal" is the most important categorization</li>
@@ -113,23 +113,25 @@
     </section>
 
     <section>
-      <h2>Many Available Metrics for Q; Authority-Weighted Citations ("PageRank") Likely Pretty Good</h2>
+      <h2>A Metric for Q: Authority-Weighted Citations (essentially "PageRank")</h2>
 <div style="display:flex; gap:30px; align-items:center;">
 <div>
 <ul>
-<li>Estimate <strong>Q from realized impact</strong>: the percentile, within field and vintage, of citation count — excluding self-citations (or authority-weighted citations, essentially PageRank)</li>
-<li>A confidence interval for Q begins at <strong>[0, 100]</strong>; one citation moves it to about <strong>[50, 100]</strong>; with enough evidence it narrows, e.g., <strong>[82, 84]</strong></li>
-<li>In theory could estimate Q from a wealth of independent signals, and they accrue over time</li>
-<li>The more independent the signals, the less the estimate of Q can be gamed</li>
+<li>In theory could estimate Q from a wealth of independent signals, and they accrue over time, including views, citations, downloads.</li>
+<li>The more independent the signals, the less the estimate of Q can be gamed.</li>
+<li>Citations well understood and reasonably well behaved statistically; authority weighting a fairly easy add on.</li>
+<li>In the long run, hard to imagine a paper being important and having impact if not cited. </li>
+<li>(Of course there are edge cases...e.g., a paper with a widely cited methodological blunder.)</li>
 </ul>
 </div>
-<p><img src="images/false-positive-psychology-google-scholar.png" style="max-width:100%; border:1px solid #ccc;"></p>
+<p><img src="images/false-positive-psychology-google-scholar.png" style="max-width:100%; border:1px solid #ccc;">
+  </p>
 </div>
     </section>
 
     <section>
       <h2>The Distribution of Q Is Heavy-Tailed (and the Mode is 0)</h2>
-<p><span class="small">Quality Q, proxied by citation-based impact.</span></p>
+<p><span class="small">Quality Q, proxied by citations.</span></p>
 <p><img src="images/fig_citation_distribution.png" alt="" style="height:430px"></p>
 <p><span class="small">Management Science &amp; OR, OpenAlex (all journals), published 2015, cited through 2026; n=10,000. ~48% uncited, median 1, yet the top 1% hold 27% of all citations. Psychology is essentially identical (median 0, ~53% uncited, σ≈1.5, top 1%≈26%): citation distributions are universal across fields.</span></p>
 <p><span class="ref">Radicchi, Fortunato &amp; Castellano (2008), <em>PNAS</em> 105(45):17268–17272; Brzezinski (2015), <em>Scientometrics</em> 103(1):213–228; Thelwall (2016), <em>Journal of Informetrics</em> 10(2):336–346.</span></p>
@@ -141,10 +143,10 @@
 <div>
 <ul>
 <li>Raw citation counts are heavy-tailed and hard to compare across fields and years</li>
-<li>Transform each paper to its <strong>percentile within its own (sub)field and publication year</strong></li>
-<li>Report membership in standard classes: <strong>top 1%, 5%, 10%, 25%, 50%</strong></li>
+<li>Can report each paper in terms of <strong>percentile within its own (sub)field and publication year</strong></li>
+<li>Report membership in classes: <strong>top 1%, 5%, 10%, 25%, 50%</strong></li>
 <li>These are the NSF / Leiden percentile classes, a standard in research evaluation</li>
-<li>About half of all papers sit at or near zero citations: an atom at the bottom</li>
+<li>About half of all papers sit at or near zero citations: a mass at the bottom</li>
 </ul>
 <p><span class="small">A percentile is intuitive, field-fair, and robust to the tail.</span></p>
 </div>
@@ -329,20 +331,6 @@
     </section>
 
     <section>
-      <h2>The Journal System Could Possibly Be Fixed</h2>
-<ul>
-<li>We have faced long lead times and Reviewer 2 essentially forever. Not a new problem.</li>
-<li>Tightly run journals with committed editors still seem to function reasonably well</li>
-<li>"AI will save us" is the optimistic branch, but the evidence is mixed and the prospects are genuinely uncertain</li>
-<li>LLMs are useful <em>assistants</em>: on realistic tests they catch only a minority of real or inserted errors, miss broken logic, can be gamed by hidden prompts, and skew lenient. They may get much better.</li>
-<li>They are strongest at triaging and improving reviews, weakest at identifying the very best work and at grounded technical verification</li>
-<li>A diverse <strong>ensemble</strong> of LLMs (the "wisdom of crowds" move) may raise the floor cheaply, but the evidence does not yet support replacing human judgment</li>
-<li>Still, journals could use LLMs for an initial filter to push net submission rates toward pre-LLM levels</li>
-</ul>
-<p><span class="ref">LLMs catch only roughly 20–40% of real or inserted errors and can miss broken logic entirely: Son et al. (2025, SPOT, arXiv:2505.11855); Xi et al. (2025, FLAWS, arXiv:2511.21843); Dycke &amp; Gurevych (2025, arXiv:2508.21422). Useful as assistance: Liang et al. (2024), <em>NEJM AI</em> 1(8). Gameable by hidden prompts: Gibney (2025), <em>Nature</em> 643:887–888. On the ensemble idea: Meincke, Terwiesch &amp; Huchzermeier (working paper).</span></p>
-    </section>
-
-    <section>
       <h2>An Alternative Approach: The Academic Ledger</h2>
 <ul>
 <li>A neutral, non-profit <em>system of record</em> applies a light integrity screen <strong>immediately</strong> and enters the work in a ledger, without judging quality</li>
@@ -362,13 +350,10 @@
 <li>Built using OpenAlex as the source data.</li>
 <li>Estimates QaL for virtually any paper in any field (N ~ 500M)</li>
 <li>Basic approach is<ul>
-<li>Construct a synthetic subfield for any paper</li>
+<li>Construct a synthetic subfield for any paper (using hierarchy of methods depending on paper age)</li>
 <li>Locate the paper in the synthetic subfield in percentile rank relative to subfield-year cohort.</li>
-<li>Provide a 90 percent confidence interval of eventual QaL (calibrated by subfield)</li>
-<li>Synthetic subfield is based on recency weighted co-citation neighborhood, or when brand new, by recency weighted subfields of references, by subfields of co-authors, or as fallback by OpenAlex categorization.</li>
 <li>Percentile rank in each subfield is exact...an observation. Combined by weighting subfields.</li>
-<li>EXAMPLES</li>
-<li>DEMO</li>
+<li>Provide a 90 percent confidence interval of eventual QaL (calibrated by observing papers in subfields)</li>
 </ul>
 </li>
 </ul>
@@ -479,7 +464,7 @@
 <p><span class="small">Contribution = weight × percentile; the paper is ranked within each subfield's 2022 cohort. The subfields disagree (86th–98th) — averaging them is what pulls the blended percentile down to 93.7.</span></p>
 </div>
 <div style="flex:1; min-width:0; font-size:21px;">
-<p><strong><em>Serving Democracy</em></strong> — voting-resource disparity in Florida (2022); 13 citations.</p>
+<p><strong><em>Serving Democracy</em></strong> — voting-resource disparity in Florida, Cachon and Kaaua (2022); 13 citations.</p>
 <p>OpenAlex tags it <strong>one</strong> subfield (<em>Political Science &amp; International Relations</em>). QaL instead ranks it in the <strong>synthetic field</strong> — the 9 subfields its references and co-citations actually span.</p>
 <p><strong>Observed</strong> = Σ (weight × percentile) = <strong>93.7</strong></p>
 <p><strong>Extrapolate to eventual</strong> (its percentile at the 10-year horizon) — it's only 4 years old, so each calibrated subfield maps observed → eventual, blended over the 95% of weight that's calibrated:</p>
@@ -498,8 +483,9 @@
 <ul>
 <li>A young paper's cohort <strong>isn't mature</strong> — citations are still accruing, so today's rank isn't its final one</li>
 <li>Calibration — learned from communities we have watched to <strong>maturity</strong> — maps <em>observed percentile + age</em> → a <strong>distribution</strong> over the eventual percentile</li>
-<li>The point estimate barely moves (93 → 94); the <strong>90% interval narrows</strong> as the paper ages toward the 10-year horizon, [88, 97] → [92, 95] — more evidence, not a different answer</li>
-<li>That shrinking uncertainty is the case for <strong>deciding late</strong>: the eventual standing is a <strong>forecast</strong> you can sharpen by waiting, so commit when the evidence is in — not at submission</li>
+<li>The <strong>90% interval narrows</strong> as the paper ages toward the 10-year horizon, [88, 97] → [92, 95] — more evidence, not a different answer</li>
+<li>That shrinking uncertainty is the case for <strong>deciding late</strong>: the eventual standing is a <strong>forecast</strong> you can sharpen by waiting, so commit when the evidence is in — not at submission.</li>
+<li>Still, the estimate is pretty good with a few citations.</li>
 </ul>
 </div>
 <div style="flex:1.55; min-width:0;">
@@ -509,17 +495,28 @@
     </section>
 
     <section>
-      <h2>The Initial Screen Should be a Low Bar</h2>
+      <h2>How Might we Provide "Refereed" Status with Minimal Friction</h2>
+<div style="display:flex; gap:30px; align-items:center;">
+<div>
 <ul>
-<li><strong>Entry in the Ledger does not judge quality.</strong> It verifies identity and screens out fraud and the obviously wrong, nothing more</li>
-<li><strong>Identity is the primary filter:</strong> ORCID authentication raises the cost of paper-mill, sock-puppet, and fabricated-author submissions</li>
-<li>The automated and LLM screen targets a deliberately narrow set: fabrication, manipulated figures, paper-mill and "tortured phrase" text, fabricated or dead citations, gross statistical inconsistencies, and claims with no support</li>
-<li>Much of this is handled by <strong>validated rule-based tools</strong> (image-duplication, statcheck, tortured-phrase and paper-mill detectors), with LLMs for triage. This is a low bar the evidence can support, unlike judging quality, which it does not attempt</li>
-<li>Expected outcome: outright rejection of perhaps <strong>1–5%</strong> of ORCID-authenticated submissions</li>
-<li><strong>Prefer conditional registration:</strong> admit borderline work with an attached, transparent summary of the LLM-generated concerns, and leave judgment to readers and to the later tiers</li>
+<li>
+<p>"Incidental" voluntary reviews. 
+(e.g., signed comments from readers who are already interested organically in the work: (a) what did I most like about this paper?, (b) how could the author make this paper better?)</p>
+</li>
+<li>
+<p>Existing journals could solicit articles from work posted on the Ledger.</p>
+</li>
+<li>
+<p>Emergent virtual journals with volunteer editorial boards for a very specific topic. (I might actually want to be a reviewer for a Journal of Innovation Processes.)</p>
+</li>
+<li>
+<p>Automated LLM feedback using best current practices, posted with information on prompt and model.</p>
+</li>
 </ul>
-<p><span class="ref">LLMs cannot yet reliably certify correctness (Son et al. 2025, SPOT; Xi et al. 2025, FLAWS; Dycke &amp; Gurevych 2025) and are gameable (Gibney 2025, <em>Nature</em> 643:887). The screen is therefore scoped to fraud and obvious error, where rule-based tools (statcheck; image-duplication; tortured-phrase and SCIgen detectors) are already effective.</span></p>
-      <aside class="notes">The design deliberately does not rely on LLMs for correctness. The bar is fraud and the obviously wrong; everything else is admitted, optionally with disclosed concerns, and importance is decided later from evidence.</aside>
+</div>
+<p><img src="images/cv-regions-ku.png" style="max-height:78vh; max-width:100%;">
+  </p>
+</div>
     </section>
 
     <section>
@@ -533,29 +530,6 @@
     </section>
 
     <section>
-      <h2>How Might we Provide "Refereed" Status with Minimal Friction</h2>
-<ul>
-<li>"Incidental" voluntary reviews. 
-  (e.g., signed comments from readers who are already interested organically in the work: (a) what did I most like about this paper?, (b) how could the author make this paper better?)</li>
-<li>Existing journals could solicit articles from work posted on the Ledger.</li>
-<li>Emergent virtual journals with volunteer editorial boards for a very specific topic. (I might actually want to be a reviewer for a Journal of Innovation Processes.)</li>
-<li>Automated LLM feedback using best current practices, posted with information on prompt and model.</li>
-</ul>
-    </section>
-
-    <section>
-      <h2>Conferring Refereed Status</h2>
-<div style="display:flex; gap:30px; align-items:center;">
-<div>
-<ul>
-<li>real estate on the CV</li>
-</ul>
-</div>
-<p><img src="images/cv-regions-ku.png" style="max-height:78vh; max-width:100%;"></p>
-</div>
-    </section>
-
-    <section>
       <h2>Utopia</h2>
 <ul>
 <li>Administration is smooth and fast: register, screen integrity, archive, timestamp, and disseminate within days</li>
@@ -563,18 +537,70 @@
 <li>Authors can <strong>respond, adapt, and improve</strong> the work, with the revision history on the record</li>
 <li>Incentive is to create interesting and impactful work not to fit the norms of a community</li>
 <li>Journals become nice-to-have <em>curation</em>; the revealed evidence is what matters for reputation and for evaluating scholarship</li>
-<li>A more predictable, less capricious, less arbitrary world for emerging scholars; senior scholars with no patience for journals may opt out of the legacy system and still "publish"</li>
+<li>A more predictable, less capricious, less arbitrary world for emerging scholars.</li>
+<li>Senior scholars with no patience for journals may opt out of the legacy system and still "publish."</li>
 </ul>
+    </section>
+
+    <section>
+      <h2>Some Key Questions</h2>
+<ul>
+<li>Does the system require radical change, or could the incumbents address the pain points?</li>
+<li>Could an institution host the Ledger (e.g., "academic Ledger is hosted by the Wharton School of the University of Pennsylvania")?</li>
+<li>What is the unit of work? (papers, books, videos, other) Should we care?</li>
+<li>What resources are required to operate the Ledger at scale?</li>
+<li>What business models might work to make the Ledger sustainable?</li>
+</ul>
+    </section>
+
+    <section>
+      <h2>OTHER STUFF</h2>
+    </section>
+
+    <section>
+      <h2>The Initial Screen Should be a Low Bar</h2>
+<ul>
+<li>
+<p><strong>Entry in the Ledger does not judge quality.</strong> It verifies identity and screens out fraud and the obviously wrong, nothing more</p>
+</li>
+<li>
+<p><strong>Identity is the primary filter:</strong> ORCID authentication raises the cost of paper-mill, sock-puppet, and fabricated-author submissions</p>
+</li>
+<li>
+<p>The automated and LLM screen targets a deliberately narrow set: fabrication, manipulated figures, paper-mill and "tortured phrase" text, fabricated or dead citations, gross statistical inconsistencies, and claims with no support</p>
+</li>
+<li>
+<p>Much of this is handled by <strong>validated rule-based tools</strong> (image-duplication, statcheck, tortured-phrase and paper-mill detectors), with LLMs for triage. This is a low bar the evidence can support, unlike judging quality, which it does not attempt</p>
+</li>
+<li>
+<p>Expected outcome: outright rejection of perhaps <strong>1–5%</strong> of ORCID-authenticated submissions</p>
+</li>
+<li>
+<p><strong>Prefer conditional registration:</strong> admit borderline work with an attached, transparent summary of the LLM-generated concerns, and leave judgment to readers and to the later tiers</p>
+</li>
+</ul>
+<p><span class="ref">LLMs cannot yet reliably certify correctness (Son et al. 2025, SPOT; Xi et al. 2025, FLAWS; Dycke &amp; Gurevych 2025) and are gameable (Gibney 2025, <em>Nature</em> 643:887). The screen is therefore scoped to fraud and obvious error, where rule-based tools (statcheck; image-duplication; tortured-phrase and SCIgen detectors) are already effective.</span></p>
+      <aside class="notes">The design deliberately does not rely on LLMs for correctness. The bar is fraud and the obviously wrong; everything else is admitted, optionally with disclosed concerns, and importance is decided later from evidence.</aside>
     </section>
 
     <section>
       <h2>How Is This Not Just SSRN?</h2>
 <ul>
-<li>SSRN is a for-profit organization, owned by Elsevier (a journal publisher), with conflicted incentives</li>
-<li>SSRN is a posting service, not a system of record</li>
-<li>SSRN, despite offering its own branded metric (PlumX), deliberately avoids an honest estimate of Q</li>
-<li>It confers no credential that "counts," its download metrics have been gameable, and are reported only as a running cumulative total</li>
-<li>The Ledger adds what SSRN lacks: neutral non-profit governance, an identity and integrity layer, signed review, "refereed" status, and an evidence-based estimate of Q in percentile terms</li>
+<li>
+<p>SSRN is a for-profit organization, owned by Elsevier (a journal publisher), with conflicted incentives</p>
+</li>
+<li>
+<p>SSRN is a posting service, not a system of record</p>
+</li>
+<li>
+<p>SSRN, despite offering its own branded metric (PlumX), deliberately avoids an honest estimate of Q</p>
+</li>
+<li>
+<p>It confers no credential that "counts," its download metrics have been gameable, and are reported only as a running cumulative total</p>
+</li>
+<li>
+<p>The Ledger adds what SSRN lacks: neutral non-profit governance, an identity and integrity layer, signed review, "refereed" status, and an evidence-based estimate of Q in percentile terms</p>
+</li>
 </ul>
       <aside class="notes">Drafted to answer Karl's heading; adjust freely.</aside>
     </section>
@@ -638,18 +664,31 @@
     </section>
 
     <section>
-      <h2>Open Questions</h2>
+      <h2>The Journal System Could Possibly Be Fixed</h2>
 <ul>
-<li>Does the system require radical change, or could the incumbents address the pain points?</li>
-<li>Could an institution host the Ledger (e.g., "academic Ledger is hosted by the Wharton School of the University of Pennsylvania")?</li>
-<li>What is the unit of work? (papers, books, videos, other) Should we care?</li>
-<li>What resources are required to operate the Ledger at scale?</li>
-<li>What business models might work?</li>
+<li>
+<p>We have faced long lead times and Reviewer 2 essentially forever. Not a new problem.</p>
+</li>
+<li>
+<p>Tightly run journals with committed editors still seem to function reasonably well</p>
+</li>
+<li>
+<p>"AI will save us" is the optimistic branch, but the evidence is mixed and the prospects are genuinely uncertain</p>
+</li>
+<li>
+<p>LLMs are useful <em>assistants</em>: on realistic tests they catch only a minority of real or inserted errors, miss broken logic, can be gamed by hidden prompts, and skew lenient. They may get much better.</p>
+</li>
+<li>
+<p>They are strongest at triaging and improving reviews, weakest at identifying the very best work and at grounded technical verification</p>
+</li>
+<li>
+<p>A diverse <strong>ensemble</strong> of LLMs (the "wisdom of crowds" move) may raise the floor cheaply, but the evidence does not yet support replacing human judgment</p>
+</li>
+<li>
+<p>Still, journals could use LLMs for an initial filter to push net submission rates toward pre-LLM levels</p>
+</li>
 </ul>
-    </section>
-
-    <section>
-      <h2>OTHER STUFF</h2>
+<p><span class="ref">LLMs catch only roughly 20–40% of real or inserted errors and can miss broken logic entirely: Son et al. (2025, SPOT, arXiv:2505.11855); Xi et al. (2025, FLAWS, arXiv:2511.21843); Dycke &amp; Gurevych (2025, arXiv:2508.21422). Useful as assistance: Liang et al. (2024), <em>NEJM AI</em> 1(8). Gameable by hidden prompts: Gibney (2025), <em>Nature</em> 643:887–888. On the ensemble idea: Meincke, Terwiesch &amp; Huchzermeier (working paper).</span></p>
     </section>
 
     <section>
