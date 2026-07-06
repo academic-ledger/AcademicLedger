@@ -145,7 +145,7 @@ July 9, 2026 · OID Department Seminar · The Wharton School
 
 ## The one thing Journals purport to still do (certification of quality) can't really be done, for two reasons
 
-<div style="display:flex; gap:40px;">
+<div style="display:flex; gap:34px; align-items:center;">
 <div>
 
 **1. The instrument is noisy**
@@ -153,11 +153,6 @@ July 9, 2026 · OID Department Seminar · The Wharton School
 - Inter-rater reliability is low: 2–3 reviewers give a verdict little better than a guess
 - Reliability rises only slowly with more judges; you would need >10 to dependably classify a marginal paper
 - *Fixable in principle*: add judges (Spearman–Brown)
-
-![h:230](../../web/public/images/fig_reliability.png)
-
-</div>
-<div>
 
 **2. The target is mostly exogenous**
 
@@ -168,6 +163,7 @@ July 9, 2026 · OID Department Seminar · The Wharton School
 **Reason 1 limits any small panel. Reason 2 limits any ex ante process, however many reviewers it uses.**
 
 </div>
+<img src="../../web/public/images/fig_reliability.png" style="max-height:80vh; max-width:100%;">
 </div>
 
 ---
@@ -189,9 +185,18 @@ Eventual quality decomposes into a knowable component plus an exogenous shock; e
 
 ## The Result: More Reviewers Barely Help
 
-![h:430](../../web/public/images/fig_reviewer_table.png)
+<div style="font-size:23px;">
 
-<span class="ref">Probability a paper that truly belongs in a tier is placed there, under the model above (ICC 0.34; validity ceiling R² 0.06). "Perfect measure of quality" is a noise-free read of ex ante quality, not foreknowledge of the outcome. Going from 3 to 10 reviewers barely moves the numbers: the validity ceiling, not reviewer count, is the binding constraint.</span>
+| Probability of correctly identifying | By chance | 3 reviewers | 10 reviewers | Perfect read of q<sub>0</sub> |
+|:--|:--:|:--:|:--:|:--:|
+| a top 1% paper | 1% | 3% | 4% | <b style="color:#2e8b57">4%</b> |
+| a top 10% paper | 10% | 17% | 18% | <b style="color:#2e8b57">19%</b> |
+| a top 25% paper | 25% | 33% | 35% | <b style="color:#2e8b57">36%</b> |
+| a top 50% paper | 50% | 56% | 57% | <b style="color:#2e8b57">58%</b> |
+
+</div>
+
+<span class="ref">Probability a paper that truly belongs in a tier is placed there, under the model above (ICC 0.34; validity ceiling R² 0.06). The last column is a perfect (noise-free) read of *q<sub>0</sub>* — the knowable ex-ante quality defined on the previous slide (*Q* = *q<sub>0</sub>* + *u*) — **not** foreknowledge of the outcome; even then a top-1% paper is tagged only ~4%, because ~94% of impact is exogenous. Going from 3 to 10 reviewers barely moves the numbers: the validity ceiling, not reviewer count, is the binding constraint.</span>
 
 ---
 
