@@ -429,9 +429,14 @@ async function blendQal(sf: SynthResult): Promise<SyntheticQal | null> {
       qal: { point, ci90: [lo, hi], class_prob: cp, buckets: buckets(cp) },
     };
   }
-  // (2) maturity rule — decided paper, QaL = observed standing
+  // (2) maturity rule — decided paper, QaL = observed standing. The half-width shrinks toward the
+  // 0/100 ceilings so a fully-matured extreme paper (e.g. the DNA paper at ~99.99) reads ~[99,100]
+  // instead of a flat +/-2.5 -> [97,100]; mid-range mature papers keep the +/-2.5 band. FUTURE
+  // CLEANUP: replace this heuristic band (and the classProb sd floor of 1.5, which still leaves the
+  // buckets ~+/-2.5 wide) with a real maturity posterior once non-Decision-Sciences subfields are calibrated.
   if (rawAge >= H) {
-    const q: QalPoint = { point: Math.round(obs), lo: Math.max(0, obs - 2.5), hi: Math.min(100, obs + 2.5) };
+    const hw = Math.min(2.5, obs + 0.5, 100 - obs + 0.5);
+    const q: QalPoint = { point: Math.round(obs), lo: Math.max(0, obs - hw), hi: Math.min(100, obs + hw) };
     const cp = classProb(q);
     return {
       ...base, gp_weight, calibrated: true, coverage: "mature",

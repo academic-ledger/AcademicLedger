@@ -27,6 +27,15 @@ import calib_lib as cl
 CUTS = [50, 75, 90, 95, 99]
 
 
+def _mature_hw(obs):
+    """Half-width of the mature-paper (decided) interval. Shrinks toward the 0/100 ceilings so a
+    fully-matured extreme paper (e.g. the DNA paper at ~99.99) reads ~[99,100] instead of a flat
+    +/-2.5 -> [97,100]; mid-range mature papers keep +/-2.5. FUTURE CLEANUP: replace this heuristic
+    band (and the _class_prob sd floor of 1.5, which still leaves the buckets ~+/-2.5 wide) with a
+    real maturity posterior once non-Decision-Sciences subfields are calibrated."""
+    return min(2.5, obs + 0.5, (100 - obs) + 0.5)
+
+
 def _class_prob(point, lo, hi):
     """NSF cumulative class probabilities P(eventual >= cut) from a normal centered at the point
     with sd implied by the 90% interval (mirrors web/lib/qal.ts classProb, floor 1.5)."""
@@ -162,7 +171,8 @@ def _compose(conn, labels, H, seed, snapshot, as_of, model_version):
                                for c in (50, 75, 90, 95, 99)},
             }
         if raw_age >= H:  # decided at maturity -> QaL = observed standing, tight interval
-            lo, hi = max(0.0, obs - 2.5), min(100.0, obs + 2.5)
+            hw = _mature_hw(obs)
+            lo, hi = max(0.0, obs - hw), min(100.0, obs + hw)
             return {"obs": obs, "calibrated": True, "coverage": "mature",
                     "point": round(obs, 1), "ci_lo": round(lo, 1), "ci_hi": round(hi, 1),
                     "class_prob": _class_prob(obs, lo, hi)}
@@ -207,7 +217,8 @@ def _compose(conn, labels, H, seed, snapshot, as_of, model_version):
                     "point": point, "ci_lo": lo, "ci_hi": hi,
                     "class_prob": _class_prob(point, lo, hi)}
         if raw_age >= H:
-            lo, hi = max(0.0, synth_obs - 2.5), min(100.0, synth_obs + 2.5)
+            hw = _mature_hw(synth_obs)
+            lo, hi = max(0.0, synth_obs - hw), min(100.0, synth_obs + hw)
             return {"obs": synth_obs, "calibrated": True, "coverage": "mature", "gp_weight": gp_weight,
                     "point": round(synth_obs, 1), "ci_lo": round(lo, 1), "ci_hi": round(hi, 1),
                     "class_prob": _class_prob(synth_obs, lo, hi)}
