@@ -560,14 +560,6 @@ td,th{ vertical-align:top; }
 <!-- The example is this talk. The journal citation and DOI are fabricated for illustration, not real. Quantitative Science Studies is a real, well-fit venue (MIT Press, community-owned), used here illustratively. -->
 
 ---
-
-## What the Paper Record Looks Like on academic Ledger
-
-[![h:470](../../web/public/images/aL-paper-view.png)](https://academicledger.vercel.app/paper.html)
-
-<span class="small">A paper's home on the Ledger: tier status, the journal-published flag, and impact that accrues over time. Open the live page: <a href="https://academicledger.vercel.app/paper.html" target="_blank" rel="noopener">academicledger.vercel.app/paper.html</a></span>
-
----
 ## Wine, the 100m Dash, Galton's Ox, and Figure Skating
 
 ![h:470](../../web/public/images/fig_matrix.png)
@@ -603,15 +595,3 @@ A realistic near-term target: a system of record, plus…
 - Institutional authority lends credibility (Wharton, INFORMS, and so on)
 - To start, all existing work could be scraped, indexed, analyzed, and reformatted
 
----
-## Sketch of a Model for Establishing System Parameters
-
-- Eating our own dogfood: can a model usefully inform this system?
-- A scalar quality **Q** with a **heavy-tailed** distribution (most value sits in the tail)
-- A low-bar integrity gate at entry, then estimation of Q from accumulating evidence; the real decision is *when* to certify each tier
-- Targets a chosen level of false negatives and false positives, under a validity ceiling on early prediction
-- A two-dimensional (C, I) treatment is a useful extension we keep as a branch
-
-![w:540](../../web/public/images/fig2_entrybar.png)
-
-<span class="small">▶ Open the live belief-about-eventual-percentile model: <a href="https://academicledger.vercel.app/quality-percentile.html" target="_blank" rel="noopener">academicledger.vercel.app/quality-percentile.html</a> · 2D (C, I) extension: <a href="https://academicledger.vercel.app/quality.html" target="_blank" rel="noopener">academicledger.vercel.app/quality.html</a></span>
