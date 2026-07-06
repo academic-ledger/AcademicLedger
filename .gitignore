@@ -19,3 +19,4 @@ out/
 .claude/settings.local.json
 # os
 .DS_Store
+/academic-ledger-talk.pdf
