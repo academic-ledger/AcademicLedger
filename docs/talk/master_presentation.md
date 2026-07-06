@@ -353,6 +353,19 @@ Eventual quality decomposes into a knowable component plus an exogenous shock; e
 - Automated LLM feedback using best current practices, posted with information on prompt and model.
 
 ---
+
+## Conferring Refereed Status
+
+<div style="display:flex; gap:30px; align-items:center;">
+<div>
+
+- real estate on the CV
+
+</div>
+<img src="../../web/public/images/cv-regions-ku.png" style="max-height:78vh; max-width:100%;">
+</div>
+
+---
 ## Utopia
 
 - Administration is smooth and fast: register, screen integrity, archive, timestamp, and disseminate within days
