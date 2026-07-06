@@ -354,9 +354,9 @@ OpenAlex tags it **one** subfield (*Computer Science Applications*). QaL instead
 
 **Extrapolate to eventual** — it's only 3 years old, so each calibrated subfield maps observed → eventual, blended over the 83% of weight that's calibrated:
 
-<div style="font-size:30px; font-weight:700; color:#2e8b57; margin:6px 0;">QaL 99.8 &nbsp;·&nbsp; 90% CI [97, 100]</div>
+<div style="font-size:30px; font-weight:700; color:#2e8b57; margin:6px 0;">QaL ≈100 &nbsp;·&nbsp; 90% CI [99, 100]</div>
 
-a top-0.2% paper — a **forecast**, not just today's citation count.
+a near-locked top-1% paper — a **forecast**, not just today's citation count.
 
 </div>
 </div>
@@ -370,7 +370,7 @@ a top-0.2% paper — a **forecast**, not just today's citation count.
 - A young paper's cohort **isn't mature** — citations are still accruing, so today's rank isn't its final one
 - Calibration — learned from communities we have watched to **maturity** — maps *observed percentile + age* → a **distribution** over the eventual percentile
 - The point estimate barely moves; the **90% interval narrows** as the paper ages toward the horizon — the case for **deciding late**
-- *Serving Democracy* (2022): observed **94.6** today → forecast **QaL 94, [89, 98]**, tightening to ~**[93, 95]** at maturity
+- *Serving Democracy* (2022), observed **94.6**: the chart traces **one subfield** (Political Science), tightening **[89, 98]** → **[93, 95]**. The paper's QaL blended over all 8 subfields is the wider **[78, 99]** — the subfields disagree.
 
 </div>
 <div style="flex:1.55; min-width:0;">
