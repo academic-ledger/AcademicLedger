@@ -367,8 +367,8 @@ a likely top-10% paper — and the wide interval is honest: the **field itself i
 
 - A young paper's cohort **isn't mature** — citations are still accruing, so today's rank isn't its final one
 - Calibration — learned from communities we have watched to **maturity** — maps *observed percentile + age* → a **distribution** over the eventual percentile
-- **Within one reference class** (panel a — Political Science), the point barely moves and the 90% interval **collapses**, [95, 100] → [98, 98]: more evidence sharpens the forecast — the case for **deciding late**
-- **But the paper's real QaL** (panel b) blends **9 subfields that disagree** (86th–98th). The point firms up (93 → 94), yet the interval **stays wide**, [77, 99] → [80, 99] — some uncertainty is **irreducible field-ambiguity**, not youth, and the interval says so honestly
+- **Within one reference class** (green — Political Science), the point barely moves and the 90% interval **collapses**, [95, 100] → [98, 98]: more evidence sharpens the forecast — the case for **deciding late**
+- **The paper's real QaL** (amber) blends **9 subfields that disagree** (86th–98th). The point firms up (93 → 94), yet the interval **stays wide**, [77, 99] → [80, 99] — some uncertainty is **irreducible field-ambiguity**, not youth, and the interval says so honestly
 
 </div>
 <div style="flex:1.55; min-width:0;">
