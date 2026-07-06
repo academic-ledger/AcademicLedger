@@ -254,17 +254,19 @@ async function _authorsList(url: string, map: (x: any) => AuthorSuggestion): Pro
   }
 }
 
-// Hybrid typeahead. The `/authors?search=` endpoint has the recall and citation ranking (it
-// surfaces e.g. Gérard Cachon, whom autocomplete misses) but only matches COMPLETE name tokens;
-// `/autocomplete/authors` matches prefixes (good while still typing) but ranks sparse clusters
-// oddly. Query both, merge by id (search wins, it carries the institution), citation-sort, top 8.
+// Hybrid typeahead. `authors?filter=display_name.search:` requires the query's tokens to appear in
+// ONE author's NAME — so "Sophie Yu" resolves to real people named Sophie … Yu, and "Cachon" still
+// surfaces Gérard P. Cachon — unlike the earlier `authors?search=`, whose fuzzy relevance + citation
+// sort buried less-famous authors under mega-cited near-matches (e.g. "Sophie Yu" returned V. O.
+// Tikhomirov). `/autocomplete/authors` adds prefix matches (good while still typing). Query both,
+// merge by id, citation-sort, top 8. (backlog U16.)
 export async function autocompleteAuthors(q: string): Promise<AuthorSuggestion[]> {
   const term = q.trim();
   if (term.length < 2) return [];
-  const enc = encodeURIComponent(term);
+  const enc = encodeURIComponent(term.replace(/,/g, " ")); // commas delimit OpenAlex filters
   const [search, ac] = await Promise.all([
     _authorsList(
-      `https://api.openalex.org/authors?search=${enc}&sort=cited_by_count:desc&per-page=8` +
+      `https://api.openalex.org/authors?filter=display_name.search:${enc}&sort=cited_by_count:desc&per-page=8` +
         `&select=id,display_name,cited_by_count,works_count,last_known_institutions,orcid${AUTH}`,
       (a) => ({
         oaid: (a.id || "").split("/").pop() || "",
