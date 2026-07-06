@@ -10,14 +10,14 @@ theme: default
 title: "All You Need is QaL: The Crisis in Academic Publishing"
 ---
 <style>
-  section { font-size: 26px; }
+  section { font-size: 18px; }
   section.lead h1 { color: #1b2a4a; font-size: 46px; }
   section img { display: block; margin: 10px auto 0; }
-  h2 { color: #1b2a4a; }
+  h2 { color: #1b2a4a; font-size: 28px; }
   ul { margin-top: 6px; }
-  table { font-size: 19px; }
-  .small { font-size: 20px; color: #666; }
-  .ref { font-size: 17px; color: #888; }
+  table { font-size: 14px; }
+  .small { font-size: 14px; color: #666; }
+  .ref { font-size: 12px; color: #888; }
 </style>
 
 <!-- _class: lead -->
@@ -173,7 +173,7 @@ July 9, 2026 · OID Department Seminar · The Wharton School
 
 Eventual quality decomposes into a knowable component plus an exogenous shock; each reviewer sees the knowable component through noise:
 
-<div style="text-align:center; font-size:30px; color:#1b2a4a; margin:6px 0 12px;"><i>Q</i> = <i>q<sub>0</sub></i> + <i>u</i> &nbsp;·&nbsp; <i>s<sub>i</sub></i> = <i>q<sub>0</sub></i> + <i>e<sub>i</sub></i></div>
+<div style="text-align:center; font-size:22px; color:#1b2a4a; margin:6px 0 12px;"><i>Q</i> = <i>q<sub>0</sub></i> + <i>u</i> &nbsp;·&nbsp; <i>s<sub>i</sub></i> = <i>q<sub>0</sub></i> + <i>e<sub>i</sub></i></div>
 
 | Parameter | Value | Evidence |
 |---|---|---|
@@ -186,7 +186,7 @@ Eventual quality decomposes into a knowable component plus an exogenous shock; e
 
 ## The Result: More Reviewers Barely Help
 
-<div style="font-size:23px;">
+<div style="font-size:16px;">
 
 | Probability of correctly identifying | By chance | 3 reviewers | 10 reviewers | Perfect read of q<sub>0</sub> |
 |:--|:--:|:--:|:--:|:--:|
@@ -201,17 +201,17 @@ Eventual quality decomposes into a knowable component plus an exogenous shock; e
 
 ---
 
-## Early Citations Do Predict Eventual Standing — Slowly
+## Early Citations Predict Eventual Rank
 
 <div style="display:flex; gap:28px; align-items:center;">
 <div style="flex:1; min-width:0;">
 
-- **Early citations do predict eventual rank** — on the 302k papers behind the QaL's calibration (three Decision-Sciences subfields, 2008–2015; eventual = the 10-year percentile)
-- You can **pick out the eventual top 10% early** — AUC **0.82 by year 2**, **0.98 by year 4**
-- But the **atom at zero** (88% uncited at year 1) flatters a plain rank correlation (**Spearman ρ 0.39**) and floors the tie-corrected one (**Kendall τ‑b 0.20**); **AUC — which ignores the uncited mass — is the honest read**
-- The **magnitude** matures slowly — only **12%** of eventual citations are in by year 2, **43%** by year 5
+- Sample of 302k papers behind the QaL's calibration (three Decision-Sciences subfields, 2008–2015; eventual = the 10-year percentile)
+- Top 10% in year N as a predictor of eventual top 10%: **AUC 0.82 by year 2**, **0.98 by year 4** Even 2-year citations likely much better than 3 reviewers ex ante.
+- The atom at zero (88% uncited at year 1) flatters a plain rank correlation (Spearman ρ 0.39) and floors the tie-corrected one (Kendall τ‑b 0.20); AUC (area under curve for binary classifier) ignores the uncited mass and is best calibration metric.
+- Number of citations matures slowly — only 12% of eventual citations are in by year 2, 43% by year 5
 
-<span class="small">**Real signal early, full picture late** — the empirical case for deciding late.</span>
+<span class="small">Real signal early, full picture late.</span>
 
 </div>
 <div style="flex:1.6; min-width:0;">
@@ -247,7 +247,7 @@ Eventual quality decomposes into a knowable component plus an exogenous shock; e
 
 ## (The Clean-Sheet Perspective)
 
-<div style="display:flex; gap:42px; font-size:21px;">
+<div style="display:flex; gap:42px; font-size:15px;">
 <div>
 
 - Credibly certify correctness, avoiding false negatives
@@ -305,7 +305,7 @@ Eventual quality decomposes into a knowable component plus an exogenous shock; e
 ---
 ## Designing Q*a*L: Composition and Choices
 
-<div style="display:flex; gap:34px; font-size:21px;">
+<div style="display:flex; gap:34px; font-size:15px;">
 <div>
 
 **How it is composed**
@@ -336,7 +336,7 @@ Eventual quality decomposes into a knowable component plus an exogenous shock; e
 ## Computing a QaL: A Worked Example
 
 <div style="display:flex; gap:30px; align-items:center;">
-<div style="flex:1.5; min-width:0; font-size:18px;">
+<div style="flex:1.5; min-width:0; font-size:14px;">
 
 | Subfield in the synthetic field | Weight | Pctile | Contribution |
 |:--|--:|--:|--:|
@@ -354,7 +354,7 @@ Eventual quality decomposes into a knowable component plus an exogenous shock; e
 <span class="small">Contribution = weight × percentile; the paper is ranked within each subfield's 2022 cohort. The subfields disagree (86th–98th) — averaging them is what pulls the blended percentile down to 93.7.</span>
 
 </div>
-<div style="flex:1; min-width:0; font-size:21px;">
+<div style="flex:1; min-width:0; font-size:15px;">
 ***Serving Democracy*** — voting-resource disparity in Florida, Cachon and Kaaua (2022); 13 citations.
 
 OpenAlex tags it **one** subfield (*Political Science & International Relations*). QaL instead ranks it in the **synthetic field** — the 9 subfields its references and co-citations actually span.
@@ -363,7 +363,7 @@ OpenAlex tags it **one** subfield (*Political Science & International Relations*
 
 **Extrapolate to eventual** (its percentile at the 10-year horizon) — it's only 4 years old, so each calibrated subfield maps observed → eventual, blended over the 95% of weight that's calibrated:
 
-<div style="font-size:30px; font-weight:700; color:#2e8b57; margin:6px 0;">QaL 93 &nbsp;·&nbsp; 90% CI [88, 97]</div>
+<div style="font-size:24px; font-weight:700; color:#2e8b57; margin:6px 0;">QaL 93 &nbsp;·&nbsp; 90% CI [88, 97]</div>
 
 a likely top-10% paper — the eventual standing is a genuine **forecast**, with an interval that **narrows as the paper matures**, not just today's citation count.
 
@@ -487,7 +487,7 @@ a likely top-10% paper — the eventual standing is a genuine **forecast**, with
 - Barriers for anyone: the cold start (authors and endorsers together); recognition still locked to journal names and the impact factor; cross-field scope; durable funding; each incumbent's own inertia.
 
 <style scoped>
-table{ font-size:15px; }
+table{ font-size:13px; }
 td,th{ vertical-align:top; }
 </style>
 

@@ -55,8 +55,8 @@ TEMPLATE = """<!doctype html>
      <ul> ~60px wider than its flex column, so bullet text spilled under the adjacent figure.
      border-box + auto width keeps the list inside its box. */
   .reveal ul, .reveal ol { box-sizing: border-box; max-width: 100%; }
-  .reveal ul, .reveal ol, .reveal li, .reveal p { font-size: 16pt; }
-  .reveal ul ul li { font-size: 14pt; color: #444; }
+  .reveal ul, .reveal ol, .reveal li, .reveal p { font-size: 14pt; }
+  .reveal ul ul li { font-size: 12pt; color: #444; }
   .reveal img { display: block; margin: 14px auto 0; max-height: 60vh; box-shadow: none; border: 0; }
   /* Two-column rows (text beside a figure). The Marp source lays these out as a bare flex row
      without column sizing, and markdown wraps the image in a <p>; without help the figure keeps
