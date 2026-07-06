@@ -143,12 +143,37 @@ async function searchOne(filter: string): Promise<any[]> {
   }
 }
 
+// A pasted DOI, OpenAlex work id, or SSRN/doi.org URL is a direct reference, not a text query.
+// Resolve it via the single-entity / `filter=doi:` endpoints — which OpenAlex does NOT rate-limit —
+// instead of the throttled text search. Returns an OpenAlex-resolvable id, or null for an ordinary
+// query. (backlog U12: lets a paper be found by pasting its link even if search is degraded.)
+export function parseWorkRef(term: string): { kind: "oaid" | "doi"; id: string } | null {
+  const t = term.trim();
+  const oa = t.match(/^(?:https?:\/\/openalex\.org\/)?(W\d{4,})$/i); // W-id, bare or as a URL
+  if (oa) return { kind: "oaid", id: oa[1].toUpperCase() };
+  const ssrn = t.match(/ssrn\.com\/\S*abstract_?id=(\d+)/i); // SSRN page -> its SSRN DOI
+  if (ssrn) return { kind: "doi", id: `10.2139/ssrn.${ssrn[1]}` };
+  const doi = t.match(/^(?:doi:|https?:\/\/(?:dx\.)?doi\.org\/)?(10\.\d{4,}\/\S+)$/i);
+  if (doi) return { kind: "doi", id: doi[1].replace(/[.,;)\]]+$/, "") };
+  return null;
+}
+
 export async function searchWorks(
   q: string,
   opts: { since?: number | null } = {}
 ): Promise<Work[]> {
   const term = q.trim();
   if (!term) return [];
+  // Direct DOI/ID/URL paste -> exact lookup, bypassing the (rate-limited) text search.
+  const ref = parseWorkRef(term);
+  if (ref) {
+    if (ref.kind === "oaid") {
+      const w = await fetchWork(ref.id);
+      return w ? [w] : [];
+    }
+    const rows = await searchOne(`doi:${ref.id}`);
+    return rows.length ? [mapWork(rows[0])] : [];
+  }
   const enc = encodeURIComponent(term);
   const base: string[] = [];
   if (opts.since) base.push(`from_publication_date:${opts.since}-01-01`);
