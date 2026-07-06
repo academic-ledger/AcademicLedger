@@ -324,39 +324,37 @@ Eventual quality decomposes into a knowable component plus an exogenous shock; e
 ## Computing a QaL: A Worked Example
 
 <div style="display:flex; gap:30px; align-items:center;">
-<div style="flex:1.5; min-width:0; font-size:17px;">
+<div style="flex:1.5; min-width:0; font-size:18px;">
 
 | Subfield in the synthetic field | Weight | Pctile | Contribution |
 |:--|--:|--:|--:|
-| Experimental & Cognitive Psychology | 24.9% | 99.9 | 24.9 |
-| Artificial Intelligence | 20.7% | 99.8 | 20.7 |
-| Sociology & Political Science | 13.1% | 100.0 | 13.1 |
-| Health Informatics | 11.6% | 96.8 | 11.2 |
-| Computer Science Applications | 5.7% | 99.7 | 5.7 |
-| Economics & Econometrics | 5.6% | 99.9 | 5.6 |
-| Management Information Systems | 4.6% | 99.9 | 4.6 |
-| Cognitive Neuroscience | 4.2% | 99.9 | 4.2 |
-| Information Systems | 3.5% | 100.0 | 3.5 |
-| Safety Research | 3.5% | 99.8 | 3.5 |
-| Social Psychology | 2.6% | 100.0 | 2.6 |
-| **Total** | **100%** | | **99.5** |
+| Political Science & International Relations | 37.7% | 97.8 | 36.9 |
+| Management Information Systems | 15.3% | 91.0 | 13.9 |
+| Economics & Econometrics | 10.9% | 93.7 | 10.2 |
+| Artificial Intelligence | 8.2% | 86.7 | 7.1 |
+| Sociology & Political Science | 8.0% | 95.2 | 7.6 |
+| Strategy & Management | 7.3% | 90.8 | 6.6 |
+| Public Administration | 5.2% | 93.0 | 4.8 |
+| Transportation | 4.4% | 88.6 | 3.9 |
+| Marketing | 3.0% | 86.2 | 2.6 |
+| **Total** | **100%** | | **93.7** |
 
-<span class="small">Contribution = weight × percentile; the paper is ranked within each subfield's 2023 cohort.</span>
+<span class="small">Contribution = weight × percentile; the paper is ranked within each subfield's 2022 cohort. The subfields disagree (86th–98th) — which is exactly why the eventual interval stays wide.</span>
 
 </div>
 <div style="flex:1; min-width:0; font-size:21px;">
 
-***Ideas are Dimes a Dozen*** — Girotra, Meincke, Terwiesch & Ulrich (2023); 168 citations.
+***Serving Democracy*** — voting-resource disparity in Florida (2022); 13 citations.
 
-OpenAlex tags it **one** subfield (*Computer Science Applications*). QaL instead ranks it in the **synthetic field** — the 11 subfields its references and co-citations actually span.
+OpenAlex tags it **one** subfield (*Political Science & International Relations*). QaL instead ranks it in the **synthetic field** — the 9 subfields its references and co-citations actually span.
 
-**Observed** = Σ (weight × percentile) = **99.5**
+**Observed** = Σ (weight × percentile) = **93.7**
 
-**Extrapolate to eventual** — it's only 3 years old, so each calibrated subfield maps observed → eventual, blended over the 83% of weight that's calibrated:
+**Extrapolate to eventual** — it's only 4 years old, so each calibrated subfield maps observed → eventual, blended over the 95% of weight that's calibrated:
 
-<div style="font-size:30px; font-weight:700; color:#2e8b57; margin:6px 0;">QaL ≈100 &nbsp;·&nbsp; 90% CI [99, 100]</div>
+<div style="font-size:30px; font-weight:700; color:#2e8b57; margin:6px 0;">QaL 93 &nbsp;·&nbsp; 90% CI [77, 99]</div>
 
-a near-locked top-1% paper — a **forecast**, not just today's citation count.
+a likely top-10% paper — and the wide interval is honest: the **field itself is ambiguous**, so the eventual standing is a genuine **forecast**, not just today's citation count.
 
 </div>
 </div>
@@ -369,8 +367,8 @@ a near-locked top-1% paper — a **forecast**, not just today's citation count.
 
 - A young paper's cohort **isn't mature** — citations are still accruing, so today's rank isn't its final one
 - Calibration — learned from communities we have watched to **maturity** — maps *observed percentile + age* → a **distribution** over the eventual percentile
-- The point estimate barely moves; the **90% interval narrows** as the paper ages toward the horizon — the case for **deciding late**
-- *Serving Democracy* (2022), observed **94.6**: the chart traces **one subfield** (Political Science), tightening **[89, 98]** → **[93, 95]**. The paper's QaL blended over all 8 subfields is the wider **[78, 99]** — the subfields disagree.
+- **Within one reference class** (panel a — Political Science), the point barely moves and the 90% interval **collapses**, [95, 100] → [98, 98]: more evidence sharpens the forecast — the case for **deciding late**
+- **But the paper's real QaL** (panel b) blends **9 subfields that disagree** (86th–98th). The point firms up (93 → 94), yet the interval **stays wide**, [77, 99] → [80, 99] — some uncertainty is **irreducible field-ambiguity**, not youth, and the interval says so honestly
 
 </div>
 <div style="flex:1.55; min-width:0;">
