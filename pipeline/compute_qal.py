@@ -27,17 +27,6 @@ import calib_lib as cl
 CUTS = [50, 75, 90, 95, 99]
 
 
-def _survival_pct(cp, target):
-    """U15: invert the blended survival curve P(eventual >= x) to a percentile. `cp` maps cut -> P(>=cut),
-    anchored at (0, 1) and (100, 0). Reads the interval off the MIXTURE so it absorbs between-subfield
-    disagreement and agrees with the class-prob bars, unlike weighting per-subfield [q5,q95] endpoints."""
-    pts = [(0, 1.0), (50, cp[50]), (75, cp[75]), (90, cp[90]), (95, cp[95]), (99, cp[99]), (100, 0.0)]
-    for (x0, s0), (x1, s1) in zip(pts, pts[1:]):
-        if s0 >= target >= s1:
-            return x1 if s0 == s1 else x0 + (s0 - target) / (s0 - s1) * (x1 - x0)
-    return 0.0 if target >= 1 else 100.0
-
-
 def _class_prob(point, lo, hi):
     """NSF cumulative class probabilities P(eventual >= cut) from a normal centered at the point
     with sd implied by the 90% interval (mirrors web/lib/qal.ts classProb, floor 1.5)."""
@@ -187,8 +176,7 @@ def _compose(conn, labels, H, seed, snapshot, as_of, model_version):
         the reference class in back-tested subfields. A forecast shows when >=50% of the weight is
         gate-passed; else the maturity rule for a decided paper; else observed-only."""
         gpW = calW = 0.0
-        m = 0.0
-        acc = {c: 0.0 for c in CUTS}
+        m = lo_acc = hi_acc = 0.0
         for p in (parts or []):
             s, ws, pct = p.get("sid"), p.get("weight", 0.0), p.get("pct")
             conf = confidence_by_comm.get(s)
@@ -200,22 +188,24 @@ def _compose(conn, labels, H, seed, snapshot, as_of, model_version):
             calW += ws
             if conf == "gate-passed":
                 gpW += ws
-            m += ws * cell["median"]
-            for c in CUTS:
-                acc[c] += ws * cell[f"p_ge{c}"]
+            m += ws * cell["median"]  # weighted-average of the per-subfield median, q5, q95
+            lo_acc += ws * cell["q5"]
+            hi_acc += ws * cell["q95"]
         gp_weight = round(gpW, 2)
         # A forecast shows when >=50% of the reference class is calibrated (gate-passed OR fitted);
         # it's labeled 'gate-passed' only if >=50% is back-tested, else 'fitted' (preliminary).
         if calW >= 0.5:
             n = lambda x: x / calW
             tier = "gate-passed" if gpW >= 0.5 else "fitted"
-            cp = {c: n(acc[c]) for c in CUTS}
-            # U15: interval from the blended mixture (not weighted endpoints); point = weighted median
-            # clamped inside it, so point / interval / class_prob are coherent.
-            lo, hi = round(_survival_pct(cp, 0.95), 1), round(_survival_pct(cp, 0.05), 1)
+            # QaL = rank in ONE pooled synthetic field, so the eventual value is the weighted AVERAGE
+            # of the per-subfield eventual percentiles: blend [q5, median, q95] by weight (a comonotonic
+            # weighted-sum interval that CONVERGES toward the point as age -> H), and read class_prob off
+            # that same interval. Disagreement lives in the point, not the width. (Supersedes U15 mixture.)
+            lo, hi = round(n(lo_acc), 1), round(n(hi_acc), 1)
+            point = round(min(hi, max(lo, n(m))), 1)
             return {"obs": synth_obs, "calibrated": True, "coverage": tier, "gp_weight": gp_weight,
-                    "point": round(min(hi, max(lo, n(m))), 1), "ci_lo": lo, "ci_hi": hi,
-                    "class_prob": {f"ge{c}": round(cp[c], 4) for c in CUTS}}
+                    "point": point, "ci_lo": lo, "ci_hi": hi,
+                    "class_prob": _class_prob(point, lo, hi)}
         if raw_age >= H:
             lo, hi = max(0.0, synth_obs - 2.5), min(100.0, synth_obs + 2.5)
             return {"obs": synth_obs, "calibrated": True, "coverage": "mature", "gp_weight": gp_weight,

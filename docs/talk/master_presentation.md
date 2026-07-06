@@ -339,7 +339,7 @@ Eventual quality decomposes into a knowable component plus an exogenous shock; e
 | Marketing | 3.0% | 86.2 | 2.6 |
 | **Total** | **100%** | | **93.7** |
 
-<span class="small">Contribution = weight × percentile; the paper is ranked within each subfield's 2022 cohort. The subfields disagree (86th–98th) — which is exactly why the eventual interval stays wide.</span>
+<span class="small">Contribution = weight × percentile; the paper is ranked within each subfield's 2022 cohort. The subfields disagree (86th–98th) — averaging them is what pulls the blended percentile down to 93.7.</span>
 
 </div>
 <div style="flex:1; min-width:0; font-size:21px;">
@@ -350,11 +350,11 @@ OpenAlex tags it **one** subfield (*Political Science & International Relations*
 
 **Observed** = Σ (weight × percentile) = **93.7**
 
-**Extrapolate to eventual** — it's only 4 years old, so each calibrated subfield maps observed → eventual, blended over the 95% of weight that's calibrated:
+**Extrapolate to eventual** (its percentile at the 10-year horizon) — it's only 4 years old, so each calibrated subfield maps observed → eventual, blended over the 95% of weight that's calibrated:
 
-<div style="font-size:30px; font-weight:700; color:#2e8b57; margin:6px 0;">QaL 93 &nbsp;·&nbsp; 90% CI [77, 99]</div>
+<div style="font-size:30px; font-weight:700; color:#2e8b57; margin:6px 0;">QaL 93 &nbsp;·&nbsp; 90% CI [88, 97]</div>
 
-a likely top-10% paper — and the wide interval is honest: the **field itself is ambiguous**, so the eventual standing is a genuine **forecast**, not just today's citation count.
+a likely top-10% paper — the eventual standing is a genuine **forecast**, with an interval that **narrows as the paper matures**, not just today's citation count.
 
 </div>
 </div>
@@ -367,8 +367,8 @@ a likely top-10% paper — and the wide interval is honest: the **field itself i
 
 - A young paper's cohort **isn't mature** — citations are still accruing, so today's rank isn't its final one
 - Calibration — learned from communities we have watched to **maturity** — maps *observed percentile + age* → a **distribution** over the eventual percentile
-- **Within one reference class** (green — Political Science), the point barely moves and the 90% interval **collapses**, [95, 100] → [98, 98]: more evidence sharpens the forecast — the case for **deciding late**
-- **The paper's real QaL** (amber) blends **9 subfields that disagree** (86th–98th). The point firms up (93 → 94), yet the interval **stays wide**, [77, 99] → [80, 99] — some uncertainty is **irreducible field-ambiguity**, not youth, and the interval says so honestly
+- The point estimate barely moves (93 → 94); the **90% interval narrows** as the paper ages toward the 10-year horizon, [88, 97] → [92, 95] — more evidence, not a different answer
+- That shrinking uncertainty is the case for **deciding late**: the eventual standing is a **forecast** you can sharpen by waiting, so commit when the evidence is in — not at submission
 
 </div>
 <div style="flex:1.55; min-width:0;">

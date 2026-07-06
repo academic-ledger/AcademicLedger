@@ -384,21 +384,14 @@ export async function syntheticQal(oaid: string): Promise<SyntheticQal | null> {
 }
 
 // Blend-weighted calibration of a SynthResult into a served QaL (DB-only; no OpenAlex calls).
-// U15: invert the blended survival curve P(eventual >= x) to a percentile. Anchored at (0,1) and
-// (100,0) with the class-prob thresholds between; returns x where P(>= x) = target. Used to read the
-// 90% interval off the MIXTURE, so it (a) absorbs between-subfield disagreement and (b) agrees with
-// the bucket bars — unlike weighting each subfield's [q5,q95] endpoints.
-function survivalPct(cp: ClassProb, target: number): number {
-  const pts: [number, number][] = [
-    [0, 1], [50, cp.ge50], [75, cp.ge75], [90, cp.ge90], [95, cp.ge95], [99, cp.ge99], [100, 0],
-  ];
-  for (let i = 0; i < pts.length - 1; i++) {
-    const [x0, s0] = pts[i], [x1, s1] = pts[i + 1];
-    if (s0 >= target && target >= s1) return s0 === s1 ? x1 : x0 + ((s0 - target) / (s0 - s1)) * (x1 - x0);
-  }
-  return target >= 1 ? 0 : 100;
-}
-
+// The QaL is the paper's rank in ONE pooled synthetic field, so its eventual value is the weighted
+// AVERAGE of the per-subfield eventual percentiles — a single number that becomes known as the paper
+// matures. We therefore blend the per-subfield [q5, median, q95] posteriors by weight (a comonotonic
+// weighted-sum interval) and read class-probs/buckets off that interval with the same normal model as
+// the maturity branch. Unlike a mixture of the subfield distributions, this interval CONVERGES toward
+// the point as age -> H: between-subfield disagreement (e.g. 86th-98th) lives in the POINT, not the
+// width, consistent with the back-tested "percentile at H=10 years" estimand. (Supersedes the U15
+// mixture blend, which folded that disagreement into the width and so never converged at late ages.)
 async function blendQal(sf: SynthResult): Promise<SyntheticQal | null> {
   const obs = sf.obs;
   const rawAge = NOW - sf.vintage;
@@ -410,20 +403,16 @@ async function blendQal(sf: SynthResult): Promise<SyntheticQal | null> {
   // blend each CALIBRATED subfield's posterior (gate-passed or fitted), weighted by the synthetic-
   // field weights. gpW = back-tested weight; calW = total calibrated weight (gate-passed + fitted).
   let gpW = 0, calW = 0;
-  let m = 0;
-  const acc: ClassProb = { ge50: 0, ge75: 0, ge90: 0, ge95: 0, ge99: 0 };
+  let m = 0, loAcc = 0, hiAcc = 0;
   for (const { sid, weight, pct } of sf.parts) {
     const r = await calibCell(sid, age, pct);
     if (!r) continue; // this subfield has no calibration -> its share contributes no forecast
     calW += weight;
     if (r.tier === "gate-passed") gpW += weight;
     const cell = r.cell;
-    m += weight * cell.median;
-    acc.ge50 += weight * cell.ge50;
-    acc.ge75 += weight * cell.ge75;
-    acc.ge90 += weight * cell.ge90;
-    acc.ge95 += weight * cell.ge95;
-    acc.ge99 += weight * cell.ge99;
+    m += weight * cell.median; // weighted-average of the per-subfield median, q5, q95
+    loAcc += weight * cell.q5;
+    hiAcc += weight * cell.q95;
   }
   const gp_weight = Math.round(gpW * 100) / 100;
 
@@ -431,18 +420,13 @@ async function blendQal(sf: SynthResult): Promise<SyntheticQal | null> {
   // if >=50% is back-tested; otherwise "fitted" (preliminary — calibrated but not yet back-tested).
   if (calW >= GP_MIN) {
     const n = (x: number) => x / calW; // renormalize over the calibrated weight
-    const cp: ClassProb = {
-      ge50: Math.round(n(acc.ge50) * 100) / 100, ge75: Math.round(n(acc.ge75) * 100) / 100,
-      ge90: Math.round(n(acc.ge90) * 100) / 100, ge95: Math.round(n(acc.ge95) * 100) / 100,
-      ge99: Math.round(n(acc.ge99) * 100) / 100,
-    };
-    // U15: read the 90% interval off the blended mixture (not weighted endpoints); keep the point as
-    // the blend-weighted median, clamped inside the interval so point/interval/buckets are coherent.
-    const lo = Math.round(survivalPct(cp, 0.95));
-    const hi = Math.round(survivalPct(cp, 0.05));
+    const lo = Math.round(n(loAcc)), hi = Math.round(n(hiAcc));
+    const point = Math.min(hi, Math.max(lo, Math.round(n(m))));
+    // class-probs + buckets from the SAME converging interval (normal model, as the maturity branch)
+    const cp = classProb({ point, lo, hi });
     return {
       ...base, gp_weight, calibrated: true, coverage: gpW >= GP_MIN ? "gate-passed" : "fitted",
-      qal: { point: Math.min(hi, Math.max(lo, Math.round(n(m)))), ci90: [lo, hi], class_prob: cp, buckets: buckets(cp) },
+      qal: { point, ci90: [lo, hi], class_prob: cp, buckets: buckets(cp) },
     };
   }
   // (2) maturity rule — decided paper, QaL = observed standing
