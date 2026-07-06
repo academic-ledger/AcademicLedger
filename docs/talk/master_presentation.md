@@ -214,7 +214,7 @@ Eventual quality decomposes into a knowable component plus an exogenous shock; e
 <span class="small">Real signal early, full picture late.</span>
 
 </div>
-<div style="flex:1.6; min-width:0;">
+<div style="flex:2.2; min-width:0;">
 <img src="../../web/public/images/fig_early_signal.png" style="max-width:100%;">
 </div>
 </div>
@@ -384,7 +384,7 @@ a likely top-10% paper — the eventual standing is a genuine **forecast**, with
 - Still, the estimate is pretty good with a few citations.
 
 </div>
-<div style="flex:1.55; min-width:0;">
+<div style="flex:2.2; min-width:0;">
 <img src="../../web/public/images/fig_forecast_funnel.png" style="max-width:100%;">
 </div>
 </div>

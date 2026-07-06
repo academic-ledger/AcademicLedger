@@ -67,10 +67,10 @@ TEMPLATE = """<!doctype html>
      style, while two-text-column rows want their headers top-aligned (default stretch). */
   .reveal section > div[style*="flex"] > div { flex: 1 1 0; min-width: 0; }
   .reveal section > div[style*="flex"] > p,
-  .reveal section > div[style*="flex"] > img { flex: 0 0 auto; min-width: 0; margin: 0; max-width: 48%; }
+  .reveal section > div[style*="flex"] > img { flex: 0 0 auto; min-width: 0; margin: 0; max-width: 58%; }
   .reveal section > div[style*="flex"] p { margin: 0; }
   .reveal section > div[style*="flex"] img {
-    max-height: 58vh; max-width: 100%; width: auto; height: auto; object-fit: contain; margin: 0;
+    max-height: 64vh; max-width: 100%; width: auto; height: auto; object-fit: contain; margin: 0;
   }
   .reveal .credit { font-size: 12pt; color: #666; }
   .reveal .small { font-size: 12pt; color: #666; }
