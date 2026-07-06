@@ -563,7 +563,9 @@ export async function getAuthorRecord(oaid: string): Promise<AuthorPayload | nul
     [oaid]
   );
   const exSet = new Set(excluded.map((r) => r.work_oaid));
-  const fetched = await fetchAuthorWorks(oaid, 100);
+  // 200 is OpenAlex's max per-page (one request). Covers virtually every author; sorted by
+  // citations desc, so a lower cap silently hides an author's low-citation/newer tail.
+  const fetched = await fetchAuthorWorks(oaid, 200);
   if (fetched === null) {
     // OpenAlex unavailable (rate-limited/budget/timeout). Return the author header (from the entity
     // fetch, which succeeded) with a flag, so the page says so honestly rather than rendering an
