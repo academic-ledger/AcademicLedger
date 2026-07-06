@@ -201,6 +201,26 @@ Eventual quality decomposes into a knowable component plus an exogenous shock; e
 
 ---
 
+## Early Citations Do Predict Eventual Standing — Slowly
+
+<div style="display:flex; gap:28px; align-items:center;">
+<div style="flex:1; min-width:0;">
+
+- **Early citations do predict eventual rank** — on the 302k papers behind the QaL's calibration (three Decision-Sciences subfields, 2008–2015; eventual = the 10-year percentile)
+- You can **pick out the eventual top 10% early** — AUC **0.82 by year 2**, **0.98 by year 4**
+- But the **atom at zero** (88% uncited at year 1) flatters a plain rank correlation (**Spearman ρ 0.39**) and floors the tie-corrected one (**Kendall τ‑b 0.20**); **AUC — which ignores the uncited mass — is the honest read**
+- The **magnitude** matures slowly — only **12%** of eventual citations are in by year 2, **43%** by year 5
+
+<span class="small">**Real signal early, full picture late** — the empirical case for deciding late.</span>
+
+</div>
+<div style="flex:1.6; min-width:0;">
+<img src="../../web/public/images/fig_early_signal.png" style="max-width:100%;">
+</div>
+</div>
+
+---
+
 
 ## The System has Always been Infuriating; It May Be Getting Worse
 
