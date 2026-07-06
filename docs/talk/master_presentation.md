@@ -362,6 +362,23 @@ a top-0.2% paper — a **forecast**, not just today's citation count.
 </div>
 
 ---
+## Forecasting from Now to the Horizon
+
+<div style="display:flex; gap:28px; align-items:center;">
+<div style="flex:1; min-width:0;">
+
+- A young paper's cohort **isn't mature** — citations are still accruing, so today's rank isn't its final one
+- Calibration — learned from communities we have watched to **maturity** — maps *observed percentile + age* → a **distribution** over the eventual percentile
+- The point estimate barely moves; the **90% interval narrows** as the paper ages toward the horizon — the case for **deciding late**
+- *Serving Democracy* (2022): observed **94.6** today → forecast **QaL 94, [89, 98]**, tightening to ~**[93, 95]** at maturity
+
+</div>
+<div style="flex:1.55; min-width:0;">
+<img src="../../web/public/images/fig_forecast_funnel.png" style="max-width:100%;">
+</div>
+</div>
+
+---
 ## The Initial Screen Should be a Low Bar
 
 - **Entry in the Ledger does not judge quality.** It verifies identity and screens out fraud and the obviously wrong, nothing more
