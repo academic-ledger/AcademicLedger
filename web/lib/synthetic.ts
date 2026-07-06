@@ -384,6 +384,21 @@ export async function syntheticQal(oaid: string): Promise<SyntheticQal | null> {
 }
 
 // Blend-weighted calibration of a SynthResult into a served QaL (DB-only; no OpenAlex calls).
+// U15: invert the blended survival curve P(eventual >= x) to a percentile. Anchored at (0,1) and
+// (100,0) with the class-prob thresholds between; returns x where P(>= x) = target. Used to read the
+// 90% interval off the MIXTURE, so it (a) absorbs between-subfield disagreement and (b) agrees with
+// the bucket bars — unlike weighting each subfield's [q5,q95] endpoints.
+function survivalPct(cp: ClassProb, target: number): number {
+  const pts: [number, number][] = [
+    [0, 1], [50, cp.ge50], [75, cp.ge75], [90, cp.ge90], [95, cp.ge95], [99, cp.ge99], [100, 0],
+  ];
+  for (let i = 0; i < pts.length - 1; i++) {
+    const [x0, s0] = pts[i], [x1, s1] = pts[i + 1];
+    if (s0 >= target && target >= s1) return s0 === s1 ? x1 : x0 + ((s0 - target) / (s0 - s1)) * (x1 - x0);
+  }
+  return target >= 1 ? 0 : 100;
+}
+
 async function blendQal(sf: SynthResult): Promise<SyntheticQal | null> {
   const obs = sf.obs;
   const rawAge = NOW - sf.vintage;
@@ -395,7 +410,7 @@ async function blendQal(sf: SynthResult): Promise<SyntheticQal | null> {
   // blend each CALIBRATED subfield's posterior (gate-passed or fitted), weighted by the synthetic-
   // field weights. gpW = back-tested weight; calW = total calibrated weight (gate-passed + fitted).
   let gpW = 0, calW = 0;
-  let m = 0, q5 = 0, q95 = 0;
+  let m = 0;
   const acc: ClassProb = { ge50: 0, ge75: 0, ge90: 0, ge95: 0, ge99: 0 };
   for (const { sid, weight, pct } of sf.parts) {
     const r = await calibCell(sid, age, pct);
@@ -404,8 +419,6 @@ async function blendQal(sf: SynthResult): Promise<SyntheticQal | null> {
     if (r.tier === "gate-passed") gpW += weight;
     const cell = r.cell;
     m += weight * cell.median;
-    q5 += weight * cell.q5;
-    q95 += weight * cell.q95;
     acc.ge50 += weight * cell.ge50;
     acc.ge75 += weight * cell.ge75;
     acc.ge90 += weight * cell.ge90;
@@ -423,9 +436,13 @@ async function blendQal(sf: SynthResult): Promise<SyntheticQal | null> {
       ge90: Math.round(n(acc.ge90) * 100) / 100, ge95: Math.round(n(acc.ge95) * 100) / 100,
       ge99: Math.round(n(acc.ge99) * 100) / 100,
     };
+    // U15: read the 90% interval off the blended mixture (not weighted endpoints); keep the point as
+    // the blend-weighted median, clamped inside the interval so point/interval/buckets are coherent.
+    const lo = Math.round(survivalPct(cp, 0.95));
+    const hi = Math.round(survivalPct(cp, 0.05));
     return {
       ...base, gp_weight, calibrated: true, coverage: gpW >= GP_MIN ? "gate-passed" : "fitted",
-      qal: { point: Math.round(n(m)), ci90: [Math.round(n(q5)), Math.round(n(q95))], class_prob: cp, buckets: buckets(cp) },
+      qal: { point: Math.min(hi, Math.max(lo, Math.round(n(m)))), ci90: [lo, hi], class_prob: cp, buckets: buckets(cp) },
     };
   }
   // (2) maturity rule — decided paper, QaL = observed standing
