@@ -82,7 +82,7 @@ July 9, 2026 · OID Department Seminar · The Wharton School
 - The more independent the signals, the less the estimate of Q can be gamed
 
 </div>
-<img src="../../web/public/images/quality-metrics-image.png" height="430" style="border:1px solid #ccc;">
+<img src="../../web/public/images/false-positive-psychology-google-scholar.png" style="max-width:100%; border:1px solid #ccc;">
 </div>
 
 ---
