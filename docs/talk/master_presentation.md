@@ -275,6 +275,14 @@ Eventual quality decomposes into a knowable component plus an exogenous shock; e
 	- Provide a 90 percent confidence interval of eventual QaL (calibrated by observing papers in subfields)
 
 ---
+
+<img src="../../web/public/images/ideas-dimes-paper-display-view.png" alt="academic Ledger paper page — “Ideas are Dimes a Dozen”" style="max-height:82vh; max-width:100%;">
+
+---
+
+<img src="../../web/public/images/serving-democracy-screen.png" alt="academic Ledger paper page — “Serving Democracy”" style="max-height:82vh; max-width:100%;">
+
+---
 ## Designing Q*a*L: Composition and Choices
 
 <div style="display:flex; gap:34px; font-size:21px;">
