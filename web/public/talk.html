@@ -63,6 +63,10 @@
   /* Slide number, lower-right. */
   .reveal .slide-number { background: none; color: #9aa0a8; font-size: 12pt; right: 16px; bottom: 12px; top: auto; left: auto; }
   .reveal .slide-number a { color: #9aa0a8; }
+  /* Download-PDF link, lower-left (hidden during PDF export so it isn't captured in the PDF). */
+  .pdf-link { position: fixed; bottom: 12px; left: 16px; z-index: 40; font-size: 11pt; color: #9aa0a8; text-decoration: none; }
+  .pdf-link:hover { color: #2166ac; }
+  .exporting .pdf-link { display: none; }
 </style>
 </head>
 <body>
@@ -777,7 +781,9 @@
     </section>
   </div>
 </div>
+<a class="pdf-link" href="talk.pdf" download="academic-ledger-talk.pdf">⬇ Download PDF</a>
 </div>
+<script>if (new URLSearchParams(location.search).has("export")) document.documentElement.classList.add("exporting");</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/reveal.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/plugin/notes/notes.min.js"></script>
 <script>

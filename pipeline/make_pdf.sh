@@ -6,7 +6,7 @@
 # Usage:    bash pipeline/make_pdf.sh [output.pdf]
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-OUT="${1:-$ROOT/academic-ledger-talk.pdf}"
+OUT="${1:-$ROOT/web/public/talk.pdf}"  # hosted at /talk.pdf
 PORT=8756
 
 # regenerate the deck from source first, so the PDF matches the latest slides
@@ -20,6 +20,6 @@ sleep 1
 
 # decktape drives reveal.js one slide per page; point puppeteer at the system Chrome
 export PUPPETEER_EXECUTABLE_PATH="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-npx -y decktape reveal --size 1280x720 --pause 500 "http://localhost:$PORT/talk.html" "$OUT"
+npx -y decktape reveal --size 1280x720 --pause 500 "http://localhost:$PORT/talk.html?export" "$OUT"
 
 echo "wrote $OUT"
