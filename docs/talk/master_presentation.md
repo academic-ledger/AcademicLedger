@@ -94,7 +94,7 @@ July 9, 2026 · OID Department Seminar · The Wharton School
 
 ![h:430](../../web/public/images/fig_citation_distribution.png)
 
-<span class="small">Management Science & OR, OpenAlex (all journals), published 2015, cited through 2026; n=10,000. ~48% uncited, median 1, yet the top 1% hold 27% of all citations. Psychology is essentially identical (median 0, ~53% uncited, σ≈1.5, top 1%≈26%): citation distributions are universal across fields.</span>
+<span class="small">Management Science & OR, OpenAlex (all journals), published 2015, cited through 2026; n=10,000. ~54% uncited, median 0, yet the top 1% hold 34% of all citations. Psychology is essentially identical (median 0, ~53% uncited, σ≈1.5, top 1%≈26%): citation distributions are universal across fields.</span>
 
 <span class="ref">Radicchi, Fortunato & Castellano (2008), *PNAS* 105(45):17268–17272; Brzezinski (2015), *Scientometrics* 103(1):213–228; Thelwall (2016), *Journal of Informetrics* 10(2):336–346.</span>
 
