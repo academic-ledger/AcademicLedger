@@ -112,7 +112,7 @@ July 9, 2026 · OID Department Seminar · The Wharton School
 <span class="small">A percentile is intuitive, field-fair, and robust to the tail.</span>
 
 </div>
-<img src="../../web/public/images/fig_percentile_transform.png" height="430">
+<img src="../../web/public/images/fig_percentile_transform.png" style="max-height:82vh; max-width:100%;">
 </div>
 
 <span class="ref">Percentile classes: National Science Board, *Science & Engineering Indicators* (NSB-2025-7); CWTS Leiden Ranking. Parameter-free alternative: Glänzel & Schubert (1988), "Characteristic Scores and Scales in Assessing Citation Impact," *Journal of Information Science* 14(2):123–127.</span>
