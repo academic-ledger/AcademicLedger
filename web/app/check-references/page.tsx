@@ -50,7 +50,7 @@ export default function CheckReferences() {
 
   return (
     <>
-      <Brand active={null} />
+      <Brand active="check-references" />
       <main style={{ maxWidth: 860, margin: "0 auto", padding: "8px 20px 80px" }}>
         <h1 style={{ color: "#1b2a4a", marginBottom: 4 }}>Check my references</h1>
         <p style={{ color: "#555", lineHeight: 1.5, marginTop: 0 }}>

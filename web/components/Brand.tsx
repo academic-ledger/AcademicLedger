@@ -1,7 +1,7 @@
 import Link from "next/link";
 import AuthStatus from "./AuthStatus";
 
-type Tab = "explore" | "author" | "about" | "for-authors" | "talk" | null;
+type Tab = "explore" | "check-references" | "author" | "about" | "for-authors" | "talk" | null;
 
 export default function Brand({
   active = null,
@@ -29,6 +29,9 @@ export default function Brand({
       <nav className="nav">
         <Link className={active === "explore" ? "on" : ""} href="/explore">
           Explore
+        </Link>
+        <Link className={active === "check-references" ? "on" : ""} href="/check-references">
+          Check refs
         </Link>
         <Link className={active === "author" ? "on" : ""} href="/author">
           Author
