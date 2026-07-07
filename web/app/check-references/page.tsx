@@ -12,7 +12,7 @@ type Work = {
   cites: number;
   is_retracted: boolean;
 };
-type RefResult = { ref: string; status: "found" | "flag"; work: Work | null; closest: string | null };
+type RefResult = { ref: string; status: "found" | "flag"; work: Work | null; closest: string | null; note: string | null };
 type Resp = { refs: RefResult[]; total: number; found: number; truncated?: boolean };
 
 const SAMPLE = `Watson JD, Crick FHC. Molecular structure of nucleic acids: a structure for deoxyribose nucleic acid. Nature. 1953;171(4356):737-738.
@@ -135,10 +135,13 @@ export default function CheckReferences() {
                       </a>
                     ) : (
                       <div style={{ fontSize: 14, color: "#c0392b", fontWeight: 600 }}>
-                        ⚠ no result found &mdash; check for validity
+                        ⚠{" "}
+                        {rc.note
+                          ? "cited DOI belongs to a different paper — likely fabricated"
+                          : "no result found — check for validity"}
                         {rc.closest && (
                           <span style={{ fontWeight: 400, color: "#a06", fontStyle: "italic" }}>
-                            {" "}(closest, rejected: &ldquo;{rc.closest}&rdquo;)
+                            {" "}({rc.note ? "resolves to" : "closest, rejected"}: &ldquo;{rc.closest}&rdquo;)
                           </span>
                         )}
                       </div>
@@ -150,7 +153,7 @@ export default function CheckReferences() {
             <p style={{ fontSize: 12, color: "#999", marginTop: 16 }}>
               Matching via Crossref&rsquo;s bibliographic resolver; a flag means &ldquo;could not confidently
               resolve&rdquo; &mdash; worth a human check, not proof of fabrication. Legitimate but poorly-indexed
-              works (some books, non-English, very old) can also flag.
+              works (some books, arXiv-only preprints, non-English, very old) can also flag.
             </p>
           </div>
         )}

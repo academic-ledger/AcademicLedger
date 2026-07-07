@@ -201,7 +201,8 @@ export interface RefResult {
   ref: string;
   status: "found" | "flag";
   work: Work | null; // the matched Ledger paper (oaid, cites, …) when found
-  closest: string | null; // Crossref's best (rejected) title, shown on a flag for context
+  closest: string | null; // best (rejected) title, shown on a flag for context
+  note: string | null; // a specific flag reason (e.g. the cited DOI resolves to a different paper)
 }
 
 function refToks(s: string | null): Set<string> {
@@ -238,27 +239,49 @@ async function crossrefTop(ref: string): Promise<{ title: string | null; doi: st
   }
 }
 
+const asFound = (ref: string, w: Work): RefResult => ({ ref, status: "found", work: w, closest: null, note: null });
+const clip = (t: string | null) => (t && t.length > 140 ? t.slice(0, 140) + "…" : t);
+
 export async function checkReference(ref: string): Promise<RefResult> {
   const trimmed = ref.trim();
-  // A DOI in the reference itself is the strongest signal — resolve it directly.
+
+  // 1) The reference's own DOI — accept ONLY if the resolved paper's title matches the citation.
+  //    A DOI that resolves to a different paper is a strong fabrication signal (a borrowed DOI).
   const dm = trimmed.match(/\b10\.\d{4,}\/[^\s"<>,;]+/);
-  let doi: string | null = dm ? dm[0].replace(/[.,;:)\]]+$/, "") : null;
-  let closest: string | null = null;
-  if (!doi) {
-    const cx = await crossrefTop(trimmed);
-    if (cx?.doi) {
-      closest = cx.title && cx.title.length > 140 ? cx.title.slice(0, 140) + "…" : cx.title; // junk issue-records have huge titles
-      const ov = titleOverlap(cx.title, trimmed);
-      // real refs land at overlap ~1 (or a lower overlap but high Crossref score when the stored
-      // title carries a subtitle the citation omits); fabricated refs get low overlap AND low score.
-      if (ov >= 0.65 || (ov >= 0.35 && cx.score >= 50)) doi = cx.doi;
+  const refDoi = dm ? dm[0].replace(/[.,;:)\]]+$/, "") : null;
+  if (refDoi) {
+    const rows = await searchOne(`doi:${refDoi}`);
+    if (rows.length) {
+      const w = mapWork(rows[0]);
+      if (titleOverlap(w.title, trimmed) >= 0.35) return asFound(trimmed, w);
+      return { ref: trimmed, status: "flag", work: null, closest: clip(w.title),
+        note: "the cited DOI resolves to a different paper" };
+    }
+    // ref DOI not indexed in OpenAlex (common for arXiv/IEEE) -> fall through to Crossref / title.
+  }
+
+  // 2) Resolve the citation string via Crossref; then find the work in OpenAlex by Crossref's DOI,
+  //    else by title — so a real paper whose arXiv/IEEE DOI OpenAlex lacks is still found.
+  const cx = await crossrefTop(trimmed);
+  if (cx?.title) {
+    const ov = titleOverlap(cx.title, trimmed);
+    // real refs land at overlap ~1 (or lower + a high Crossref score when the stored title carries a
+    // subtitle the citation omits); fabricated refs get low overlap AND low score.
+    if (ov >= 0.65 || (ov >= 0.35 && cx.score >= 50)) {
+      if (cx.doi) {
+        const rows = await searchOne(`doi:${cx.doi}`);
+        if (rows.length) {
+          const w = mapWork(rows[0]);
+          if (titleOverlap(w.title, trimmed) >= 0.35 || titleOverlap(w.title, cx.title) >= 0.6) return asFound(trimmed, w);
+        }
+      }
+      for (const raw of (await searchOne(`title.search:${encodeURIComponent(cx.title)}`)).slice(0, 3)) {
+        const w = mapWork(raw);
+        if (titleOverlap(w.title, cx.title) >= 0.6) return asFound(trimmed, w);
+      }
     }
   }
-  if (doi) {
-    const rows = await searchOne(`doi:${doi}`);
-    if (rows.length) return { ref: trimmed, status: "found", work: mapWork(rows[0]), closest: null };
-  }
-  return { ref: trimmed, status: "flag", work: null, closest };
+  return { ref: trimmed, status: "flag", work: null, closest: clip(cx?.title ?? null), note: null };
 }
 
 // ---- Author entity (for the on-the-fly author page; QaL_spec §11 "Author view") -------------
