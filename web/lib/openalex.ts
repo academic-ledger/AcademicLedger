@@ -191,6 +191,76 @@ export async function searchWorks(
   return [...merged.values()].sort((a, b) => b.cites - a.cites);
 }
 
+// ---- "Check my references" (paste a bibliography; resolve each line to a Ledger paper) --------
+// A raw citation string (authors + title + venue + year + pages) confuses OpenAlex's relevance
+// search, so we resolve each reference with Crossref's purpose-built bibliographic matcher, then
+// look the returned DOI up in OpenAlex for the Ledger view (cites, QaL). A reference with no
+// confident match is flagged "check for validity" — the fabricated / garbled / dead-citation signal.
+
+export interface RefResult {
+  ref: string;
+  status: "found" | "flag";
+  work: Work | null; // the matched Ledger paper (oaid, cites, …) when found
+  closest: string | null; // Crossref's best (rejected) title, shown on a flag for context
+}
+
+function refToks(s: string | null): Set<string> {
+  return new Set(
+    (s || "").toLowerCase().normalize("NFKD").replace(/[^a-z0-9\s]/g, " ").split(/\s+/).filter((w) => w.length > 2)
+  );
+}
+// fraction of the candidate title's content words that appear in the reference string
+function titleOverlap(title: string | null, ref: string): number {
+  const a = refToks(title);
+  if (a.size < 2) return 0;
+  const b = refToks(ref);
+  let hit = 0;
+  a.forEach((w) => { if (b.has(w)) hit++; });
+  return hit / a.size;
+}
+
+async function crossrefTop(ref: string): Promise<{ title: string | null; doi: string | null; score: number } | null> {
+  const url =
+    `https://api.crossref.org/works?query.bibliographic=${encodeURIComponent(ref)}` +
+    `&rows=1&select=title,DOI,score&mailto=${encodeURIComponent(MAILTO)}`;
+  try {
+    const r = await oaFetch(url, {
+      headers: { "User-Agent": `academic-ledger/1.0 (mailto:${MAILTO})` },
+      next: { revalidate: SEARCH_REVALIDATE },
+    });
+    if (!r.ok) return null;
+    const j: any = await r.json();
+    const it = j?.message?.items?.[0];
+    if (!it) return null;
+    return { title: it.title?.[0] ?? null, doi: it.DOI ?? null, score: it.score ?? 0 };
+  } catch {
+    return null;
+  }
+}
+
+export async function checkReference(ref: string): Promise<RefResult> {
+  const trimmed = ref.trim();
+  // A DOI in the reference itself is the strongest signal — resolve it directly.
+  const dm = trimmed.match(/\b10\.\d{4,}\/[^\s"<>,;]+/);
+  let doi: string | null = dm ? dm[0].replace(/[.,;:)\]]+$/, "") : null;
+  let closest: string | null = null;
+  if (!doi) {
+    const cx = await crossrefTop(trimmed);
+    if (cx?.doi) {
+      closest = cx.title;
+      const ov = titleOverlap(cx.title, trimmed);
+      // real refs land at overlap ~1 (or a lower overlap but high Crossref score when the stored
+      // title carries a subtitle the citation omits); fabricated refs get low overlap AND low score.
+      if (ov >= 0.65 || (ov >= 0.35 && cx.score >= 50)) doi = cx.doi;
+    }
+  }
+  if (doi) {
+    const rows = await searchOne(`doi:${doi}`);
+    if (rows.length) return { ref: trimmed, status: "found", work: mapWork(rows[0]), closest: null };
+  }
+  return { ref: trimmed, status: "flag", work: null, closest };
+}
+
 // ---- Author entity (for the on-the-fly author page; QaL_spec §11 "Author view") -------------
 
 export interface AuthorEntity {
