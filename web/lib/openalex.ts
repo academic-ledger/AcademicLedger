@@ -221,7 +221,7 @@ function titleOverlap(title: string | null, ref: string): number {
 
 async function crossrefTop(ref: string): Promise<{ title: string | null; doi: string | null; score: number } | null> {
   const url =
-    `https://api.crossref.org/works?query.bibliographic=${encodeURIComponent(ref)}` +
+    `https://api.crossref.org/works?query.bibliographic=${encodeURIComponent(ref.slice(0, 400))}` +
     `&rows=1&select=title,DOI,score&mailto=${encodeURIComponent(MAILTO)}`;
   try {
     const r = await oaFetch(url, {
@@ -247,7 +247,7 @@ export async function checkReference(ref: string): Promise<RefResult> {
   if (!doi) {
     const cx = await crossrefTop(trimmed);
     if (cx?.doi) {
-      closest = cx.title;
+      closest = cx.title && cx.title.length > 140 ? cx.title.slice(0, 140) + "…" : cx.title; // junk issue-records have huge titles
       const ov = titleOverlap(cx.title, trimmed);
       // real refs land at overlap ~1 (or a lower overlap but high Crossref score when the stored
       // title carries a subtitle the citation omits); fabricated refs get low overlap AND low score.

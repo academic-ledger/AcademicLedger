@@ -22,7 +22,7 @@ function splitRefs(text: string): string[] {
       .map(clean)
       .filter((s) => s.length >= 15);
   }
-  const YEAR = /\((?:19|20)\d{2}[a-z]?\)/;
+  const YEAR = /\((?:19|20)\d{2}[a-z]?[,)]/; // (2015) or (2026, April 8) or (2020a)
   const refs: string[] = [];
   let cur = "";
   for (const s of lines) {
