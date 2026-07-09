@@ -213,7 +213,9 @@ function refToks(s: string | null): Set<string> {
 // fraction of the candidate title's content words that appear in the reference string
 function titleOverlap(title: string | null, ref: string): number {
   const a = refToks(title);
-  if (a.size < 2) return 0;
+  // Allow single-token titles (e.g. "Bison bison" — a Mammalian Species binomial). Only bail when
+  // the title has no content words at all; short titles lean on the Crossref score at the call site.
+  if (a.size === 0) return 0;
   const b = refToks(ref);
   let hit = 0;
   a.forEach((w) => { if (b.has(w)) hit++; });
@@ -266,8 +268,13 @@ export async function checkReference(ref: string): Promise<RefResult> {
   if (cx?.title) {
     const ov = titleOverlap(cx.title, trimmed);
     // real refs land at overlap ~1 (or lower + a high Crossref score when the stored title carries a
-    // subtitle the citation omits); fabricated refs get low overlap AND low score.
-    if (ov >= 0.65 || (ov >= 0.35 && cx.score >= 50)) {
+    // subtitle the citation omits); fabricated refs get low overlap AND low score. A one-word title
+    // (e.g. "Bison bison") is weak evidence on its own, so require Crossref to also be confident.
+    const shortTitle = refToks(cx.title).size < 2;
+    const confident = shortTitle
+      ? ov >= 0.9 && cx.score >= 40
+      : ov >= 0.65 || (ov >= 0.35 && cx.score >= 50);
+    if (confident) {
       if (cx.doi) {
         const rows = await searchOne(`doi:${cx.doi}`);
         if (rows.length) {
