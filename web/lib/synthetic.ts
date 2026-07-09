@@ -416,31 +416,31 @@ async function blendQal(sf: SynthResult): Promise<SyntheticQal | null> {
   }
   const gp_weight = Math.round(gpW * 100) / 100;
 
-  // (1) enough of the reference class is calibrated -> blended forecast. Labeled "gate-passed" only
-  // if >=50% is back-tested; otherwise "fitted" (preliminary — calibrated but not yet back-tested).
+  // (1) MATURITY FIRST — a paper at/past the H-year horizon is DECIDED, not forecast: its eventual
+  // percentile is (essentially) its observed standing, with a tight residual band. This must precede
+  // the blend below, which is a *forward* forecast evaluated at the age cap (H-1); applying it to a
+  // decided paper wrongly re-introduces forward uncertainty (e.g. Watts-Strogatz at 28y showing only
+  // 73% in the top class). The half-width shrinks toward the 0/100 ceilings (extreme paper -> ~[99,100]),
+  // and the buckets use a small sd floor (0.3) so a decided extreme paper reads ~100% in its class.
+  if (rawAge >= H) {
+    const hw = Math.min(2.5, obs + 0.5, 100 - obs + 0.5);
+    const q: QalPoint = { point: Math.round(obs), lo: Math.max(0, obs - hw), hi: Math.min(100, obs + hw) };
+    const cp = classProb(q, 0.3);
+    return {
+      ...base, gp_weight, calibrated: true, coverage: "mature",
+      qal: { point: q.point, ci90: [Math.round(q.lo), Math.round(q.hi)], class_prob: cp, buckets: buckets(cp) },
+    };
+  }
+  // (2) young paper, enough of the reference class calibrated -> blended forward forecast. Labeled
+  // "gate-passed" only if >=50% back-tested; else "fitted" (preliminary — calibrated, not back-tested).
   if (calW >= GP_MIN) {
     const n = (x: number) => x / calW; // renormalize over the calibrated weight
     const lo = Math.round(n(loAcc)), hi = Math.round(n(hiAcc));
     const point = Math.min(hi, Math.max(lo, Math.round(n(m))));
-    // class-probs + buckets from the SAME converging interval (normal model, as the maturity branch)
     const cp = classProb({ point, lo, hi });
     return {
       ...base, gp_weight, calibrated: true, coverage: gpW >= GP_MIN ? "gate-passed" : "fitted",
       qal: { point, ci90: [lo, hi], class_prob: cp, buckets: buckets(cp) },
-    };
-  }
-  // (2) maturity rule — decided paper, QaL = observed standing. The half-width shrinks toward the
-  // 0/100 ceilings so a fully-matured extreme paper (e.g. the DNA paper at ~99.99) reads ~[99,100]
-  // instead of a flat +/-2.5 -> [97,100]; mid-range mature papers keep the +/-2.5 band. FUTURE
-  // CLEANUP: replace this heuristic band (and the classProb sd floor of 1.5, which still leaves the
-  // buckets ~+/-2.5 wide) with a real maturity posterior once non-Decision-Sciences subfields are calibrated.
-  if (rawAge >= H) {
-    const hw = Math.min(2.5, obs + 0.5, 100 - obs + 0.5);
-    const q: QalPoint = { point: Math.round(obs), lo: Math.max(0, obs - hw), hi: Math.min(100, obs + hw) };
-    const cp = classProb(q);
-    return {
-      ...base, gp_weight, calibrated: true, coverage: "mature",
-      qal: { point: q.point, ci90: [Math.round(q.lo), Math.round(q.hi)], class_prob: cp, buckets: buckets(cp) },
     };
   }
   // (3) observed-only — correct reference class, but the bulk of its weight isn't calibrated yet

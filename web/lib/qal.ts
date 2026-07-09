@@ -53,8 +53,11 @@ export interface ClassProb {
   ge99: number;
 }
 
-export function classProb(q: QalPoint): ClassProb {
-  const sd = Math.max(1.5, (q.hi - q.lo) / 3.2897); // 90% interval ≈ ±1.6449 sd
+// minSd floors the spread: 1.5 for a forward forecast (don't over-claim precision), but a small
+// value (~0.3) for a DECIDED (mature) paper so its buckets can concentrate — a 28-year-old paper at
+// the 99.9th percentile should read ~100% in the top class, not 73%.
+export function classProb(q: QalPoint, minSd = 1.5): ClassProb {
+  const sd = Math.max(minSd, (q.hi - q.lo) / 3.2897); // 90% interval ≈ ±1.6449 sd
   const ge = (k: number) => {
     const p = 1 - normCdf(k, q.point, sd);
     return Math.round(p * 100) / 100;

@@ -36,10 +36,11 @@ def _mature_hw(obs):
     return min(2.5, obs + 0.5, (100 - obs) + 0.5)
 
 
-def _class_prob(point, lo, hi):
-    """NSF cumulative class probabilities P(eventual >= cut) from a normal centered at the point
-    with sd implied by the 90% interval (mirrors web/lib/qal.ts classProb, floor 1.5)."""
-    sd = max(1.5, (hi - lo) / 3.2897)  # 90% interval ~= +/- 1.6449 sd
+def _class_prob(point, lo, hi, min_sd=1.5):
+    """NSF cumulative class probabilities P(eventual >= cut) from a normal centered at the point with
+    sd implied by the 90% interval (mirrors web/lib/qal.ts classProb). min_sd floors the spread: 1.5
+    for a forward forecast, ~0.3 for a DECIDED (mature) paper so its buckets can concentrate."""
+    sd = max(min_sd, (hi - lo) / 3.2897)  # 90% interval ~= +/- 1.6449 sd
     sf = lambda k: 0.5 * math.erfc((k - point) / (sd * math.sqrt(2)))
     return {f"ge{c}": round(min(1.0, max(0.0, sf(c))), 4) for c in CUTS}
 
@@ -162,6 +163,12 @@ def _compose(conn, labels, H, seed, snapshot, as_of, model_version):
             return None
         conf = confidence_by_comm.get(sid)
         cell = cl.predict_cell(calib_by_comm.get(sid, {}), age, obs) if sid in calib_by_comm else None
+        if raw_age >= H:  # MATURITY FIRST — a decided paper is observed standing, not a forecast
+            hw = _mature_hw(obs)
+            lo, hi = max(0.0, obs - hw), min(100.0, obs + hw)
+            return {"obs": obs, "calibrated": True, "coverage": "mature",
+                    "point": round(obs, 1), "ci_lo": round(lo, 1), "ci_hi": round(hi, 1),
+                    "class_prob": _class_prob(obs, lo, hi, 0.3)}
         if cell and conf == "gate-passed":
             return {
                 "obs": obs, "calibrated": True, "coverage": "gate-passed",
@@ -170,12 +177,6 @@ def _compose(conn, labels, H, seed, snapshot, as_of, model_version):
                 "class_prob": {f"ge{c}": round(float(cell[f"p_ge{c}"]), 4)
                                for c in (50, 75, 90, 95, 99)},
             }
-        if raw_age >= H:  # decided at maturity -> QaL = observed standing, tight interval
-            hw = _mature_hw(obs)
-            lo, hi = max(0.0, obs - hw), min(100.0, obs + hw)
-            return {"obs": obs, "calibrated": True, "coverage": "mature",
-                    "point": round(obs, 1), "ci_lo": round(lo, 1), "ci_hi": round(hi, 1),
-                    "class_prob": _class_prob(obs, lo, hi)}
         return {"obs": obs, "calibrated": False, "coverage": conf or "observed",
                 "point": None, "ci_lo": None, "ci_hi": None, "class_prob": None}
 
@@ -204,6 +205,14 @@ def _compose(conn, labels, H, seed, snapshot, as_of, model_version):
         gp_weight = round(gpW, 2)
         # A forecast shows when >=50% of the reference class is calibrated (gate-passed OR fitted);
         # it's labeled 'gate-passed' only if >=50% is back-tested, else 'fitted' (preliminary).
+        # MATURITY FIRST — a paper past the H-year horizon is DECIDED, not forecast; must precede the
+        # blend (a forward forecast at the age cap) so a decided paper isn't given forward uncertainty.
+        if raw_age >= H:
+            hw = _mature_hw(synth_obs)
+            lo, hi = max(0.0, synth_obs - hw), min(100.0, synth_obs + hw)
+            return {"obs": synth_obs, "calibrated": True, "coverage": "mature", "gp_weight": gp_weight,
+                    "point": round(synth_obs, 1), "ci_lo": round(lo, 1), "ci_hi": round(hi, 1),
+                    "class_prob": _class_prob(synth_obs, lo, hi, 0.3)}
         if calW >= 0.5:
             n = lambda x: x / calW
             tier = "gate-passed" if gpW >= 0.5 else "fitted"
@@ -216,12 +225,6 @@ def _compose(conn, labels, H, seed, snapshot, as_of, model_version):
             return {"obs": synth_obs, "calibrated": True, "coverage": tier, "gp_weight": gp_weight,
                     "point": point, "ci_lo": lo, "ci_hi": hi,
                     "class_prob": _class_prob(point, lo, hi)}
-        if raw_age >= H:
-            hw = _mature_hw(synth_obs)
-            lo, hi = max(0.0, synth_obs - hw), min(100.0, synth_obs + hw)
-            return {"obs": synth_obs, "calibrated": True, "coverage": "mature", "gp_weight": gp_weight,
-                    "point": round(synth_obs, 1), "ci_lo": round(lo, 1), "ci_hi": round(hi, 1),
-                    "class_prob": _class_prob(synth_obs, lo, hi)}
         return {"obs": synth_obs, "calibrated": False, "coverage": "observed", "gp_weight": gp_weight,
                 "point": None, "ci_lo": None, "ci_hi": None, "class_prob": None}
 
