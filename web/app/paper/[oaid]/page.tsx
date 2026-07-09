@@ -155,7 +155,7 @@ export default async function PaperPage({ params }: { params: { oaid: string } }
                 <div className="qal-pending">calibration-pending</div>
                 <div className="qal-cap">
                   Observed standing is{" "}
-                  <b>{rec.obs_percentile != null ? `${rec.obs_percentile}th percentile` : "—"}</b> in
+                  <b>{rec.obs_percentile != null ? `${rec.obs_percentile.toFixed(1)}th percentile` : "—"}</b> in
                   field &amp; vintage. A calibrated QaL forecast is shown once this community passes the
                   Layer-B back-test.
                   {(() => {
@@ -312,7 +312,7 @@ export default async function PaperPage({ params }: { params: { oaid: string } }
               <div className="l">Citations (total)</div>
             </div>
             <div className="cell">
-              <div className="v">{rec.obs_percentile != null ? `${rec.obs_percentile}%` : "—"}</div>
+              <div className="v">{rec.obs_percentile != null ? `${rec.obs_percentile.toFixed(1)}%` : "—"}</div>
               <div className="l">
                 Observed percentile{" "}
                 {rec.reference_class?.kind === "synthetic" ? "(synthetic field)" : "(field & vintage)"}
