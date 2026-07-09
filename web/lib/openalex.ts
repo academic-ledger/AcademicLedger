@@ -295,6 +295,38 @@ export interface AuthorEntity {
   cited_by_count: number | null;
 }
 
+// ORCID is the author's self-asserted identity, so it's authoritative for affiliation — OpenAlex's
+// `last_known_institutions` is often stale/wrong (e.g. Duncan Watts shown at "University of the Arts"
+// when his ORCID has University of Pennsylvania). Fetch the CURRENT employment from the ORCID public
+// API (no auth needed for public data). Returns null on any error so the author page still renders.
+const ORCID_ID_RE = /(\d{4}-\d{4}-\d{4}-\d{3}[\dXx])/;
+export async function fetchOrcidAffiliation(orcid: string | null): Promise<string | null> {
+  const m = orcid?.match(ORCID_ID_RE);
+  if (!m) return null;
+  try {
+    const r = await oaFetch(`https://pub.orcid.org/v3.0/${m[1]}/employments`, {
+      headers: { Accept: "application/json", "User-Agent": `al-web/1.0 (${MAILTO})` },
+      next: { revalidate: REVALIDATE },
+    });
+    if (!r.ok) return null;
+    const j: any = await r.json();
+    const emps: { name: string; ongoing: boolean; start: number }[] = [];
+    for (const g of j?.["affiliation-group"] || []) {
+      for (const s of g?.summaries || []) {
+        const e = s?.["employment-summary"];
+        const name = e?.organization?.name;
+        if (name) emps.push({ name, ongoing: !e["end-date"], start: Number(e["start-date"]?.year?.value) || 0 });
+      }
+    }
+    if (!emps.length) return null;
+    // prefer an ongoing employment, then the most recent start
+    emps.sort((x, y) => Number(y.ongoing) - Number(x.ongoing) || y.start - x.start);
+    return emps[0].name;
+  } catch {
+    return null;
+  }
+}
+
 export async function fetchAuthor(oaid: string): Promise<AuthorEntity | null> {
   const select = "id,display_name,orcid,last_known_institutions,works_count,cited_by_count";
   const url =
@@ -311,11 +343,13 @@ export async function fetchAuthor(oaid: string): Promise<AuthorEntity | null> {
   if (!r.ok) return null;
   const a: any = await r.json();
   const inst = (a.last_known_institutions || [])[0];
+  const orcid = a.orcid ?? null;
+  const orcidAff = await fetchOrcidAffiliation(orcid); // ORCID wins when present
   return {
     oaid: (a.id || "").split("/").pop() || oaid,
     name: a.display_name ?? null,
-    affiliation: inst?.display_name ?? null,
-    orcid: a.orcid ?? null,
+    affiliation: orcidAff ?? inst?.display_name ?? null,
+    orcid,
     works_count: a.works_count ?? null,
     cited_by_count: a.cited_by_count ?? null,
   };
