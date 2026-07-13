@@ -1,0 +1,14 @@
+#!/bin/sh
+# Auto-generate the hosted reveal.js deck from its canonical Marp source.
+# Fires only when the talk markdown is part of the commit; otherwise a no-op.
+#
+# Committed hook (shared by all collaborators). Activate it once per clone with:
+#   git config core.hooksPath githooks
+# (see the "Working together" section of CLAUDE.md).
+if git diff --cached --name-only | grep -q '^docs/talk/master_presentation\.md$'; then
+  echo "pre-commit: talk source changed -> regenerating web/public/talk.html"
+  PY=".venv/bin/python"; [ -x "$PY" ] || PY="python3"
+  "$PY" pipeline/render_talk.py || { echo "pre-commit: render_talk.py FAILED — commit aborted"; exit 1; }
+  git add web/public/talk.html
+fi
+exit 0
