@@ -55,5 +55,13 @@ cd web && npm install && npm run dev      # P? after create-next-app
 - Secrets never get committed. `DATABASE_URL` and `OPENALEX_MAILTO` live in Vercel env and GitHub Actions secrets. `.env` is gitignored.
 - Be a good OpenAlex citizen: send the polite-pool `mailto`, page with cursors, cache, refresh monthly.
 
+## Working together (multiple authors, each with their own Claude Code)
+Collaboration happens entirely through this GitHub repo — not through shared Claude sessions. This file and `docs/` are the shared context every collaborator's Claude reads on startup, so **decisions live here, not in any one person's private notes.**
+- **Onboarding a new machine:** clone; `cp .env.example .env` and fill your **own** credentials (get your own Neon + Vercel access rather than copying someone else's); `pip install -r pipeline/requirements.txt`; `cd web && npm install`; then run the hook-activation command below.
+- **Activate the shared git hooks (once per clone):** `git config core.hooksPath githooks`. This wires up `githooks/pre-commit`, which regenerates `web/public/talk.html` whenever `docs/talk/master_presentation.md` is committed. Without it, the hosted deck silently goes stale.
+- **`main` auto-deploys to Vercel.** Never push straight to `main`. Work on a feature branch, open a PR, and get a review before merging. Keep PRs small and frequent to avoid merge pain and to give each other (and each Claude) a real review checkpoint.
+- **Pull before you start**, and coordinate who owns which surface (deck / pipeline / web) so two agents don't edit the same files at once.
+- **Secrets never touch git or chat.** The only GitHub-resident secrets are the two Actions secrets `DATABASE_URL` and `OPENALEX_MAILTO`; everything else lives in Vercel/Neon. See `.env.example`.
+
 ## First milestone
 See `BUILD_BACKLOG.md` (the POC checklist). POC = the paper/author/explore/about pages live as a Next.js app on academic-ledger.org, reading real observed percentiles for the seed fields, with QaL shown illustratively and calibration-pending handled honestly.
