@@ -1,0 +1,22 @@
+# CODEOWNERS — require a second reviewer ONLY on the irreversible surfaces.
+#
+# Rationale: the web app is fully recoverable (Vercel instant rollback + git revert),
+# so it needs no mandatory review — rollback is a sufficient safety net there.
+# The pipeline and DB schema write PRODUCTION data and infra (Neon; cohort_percentiles,
+# qal_records) — a bad change there is NOT undone by reverting a commit, so those get a
+# second set of eyes.
+#
+# This only takes effect when the `main` branch ruleset has
+# "Require review from Code Owners" enabled. With required approvals at 0, PRs that
+# don't touch an owned path self-merge; PRs touching pipeline/ or db/ need a code owner.
+#
+# NOTE: a code owner cannot approve their own PR, so list BOTH principals below once
+# Christian's handle is known — that makes these paths a *mutual* review rather than a
+# hard block. Until then, pipeline/db changes require the other owner to exist.
+
+/pipeline/   @ktulrich
+/db/         @ktulrich
+
+# TODO(after Christian is onboarded): make it mutual, e.g.
+#   /pipeline/   @ktulrich @<christian-handle>
+#   /db/         @ktulrich @<christian-handle>
