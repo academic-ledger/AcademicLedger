@@ -5,10 +5,12 @@ run on preprint servers because they expose **open per-article download data**. 
 caveats: [`docs/download_citation_pilot_result.md`](../../docs/download_citation_pilot_result.md).
 
 ## Headline
-Early downloads predict eventual citations at **Spearman ρ ≈ 0.35 (medRxiv 2019, medicine)** to
-**0.47 (bioRxiv 2017, biology)**, **plateauing by ~3–6 months** — in the Brody (physics, ~0.4) /
-Perneger (medicine, ~0.5) band, now shown in-domain with modern data. Real but bounded: the case for
-"admit broadly, decide late." See `fig_download_citation.png`.
+Early downloads predict eventual citations at **Spearman ρ ≈ 0.43 (medRxiv 2019, medicine,
+version-corrected)** to **0.47 (bioRxiv 2017, biology)**, **the signal set within ~3 months** — in the
+Brody (physics, ~0.4) / Perneger (medicine, ~0.5) band, now shown in-domain with modern data. Real but
+bounded: the case for "admit broadly, decide late." Correcting the citation measure (published version
+of record, not just the preprint DOI) raises the medicine estimate from 0.35 to 0.43. See
+`fig_download_citation.png`.
 
 ## Why a preprint pilot (not economics yet)
 The economics version is blocked on data access: LogEc's per-item download pages are under `/scripts/`,

@@ -2,10 +2,10 @@
  "medrxiv": {
   "N": 913,
   "rho_by_window": [
-   0.22851363674723618,
-   0.3470084639420175,
-   0.34668941358761984,
-   0.35974356097305876
+   0.31584729615355767,
+   0.4251978345464636,
+   0.3842542890826495,
+   0.3399925698344272
   ],
   "windows": [
    1,
@@ -13,9 +13,12 @@
    6,
    12
   ],
-  "auc_top_decile_dl6": 0.7642298599745408,
-  "uncited_pct": 28.915662650602407,
-  "median_cites": 2.0
+  "auc_top_decile_dl6": 0.7916114618242278,
+  "rho_dl6_preprint": 0.34668941358761984,
+  "pct_published": 78.64184008762322,
+  "median_cites_best": 19.0,
+  "median_cites_preprint": 2.0,
+  "uncited_pct": 8.652792990142387
  },
  "biorxiv": {
   "N": 2484,
@@ -32,7 +35,10 @@
    12
   ],
   "auc_top_decile_dl6": 0.7806601633393829,
-  "uncited_pct": 24.154589371980677,
-  "median_cites": 2.0
+  "rho_dl6_preprint": 0.4503378180930175,
+  "pct_published": null,
+  "median_cites_best": 2.0,
+  "median_cites_preprint": 2.0,
+  "uncited_pct": 24.154589371980677
  }
 }
