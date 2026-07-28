@@ -45,6 +45,7 @@ export default function Brand({
         <Link className={active === "talk" ? "on" : ""} href="/talk">
           Talk
         </Link>
+        <a href="/research-note.html">Research note</a>
         <AuthStatus />
       </nav>
     </header>
