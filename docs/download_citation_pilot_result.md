@@ -38,43 +38,53 @@ and (b) put an in-domain benchmark in hand.
 
 ## Result
 
-| Cohort | N | ρ @1mo | ρ @3mo | ρ @6mo | ρ @12mo | AUC (top decile, dl@6mo) |
-|---|---:|---:|---:|---:|---:|---:|
-| medRxiv 2019 · medicine | 913 | 0.23 | 0.35 | 0.35 | 0.36 | 0.76 |
-| bioRxiv 2017 · biology | 2,484 | 0.37 | 0.42 | 0.45 | 0.47 | 0.78 |
+Spearman ρ between early downloads and eventual citations, by download window:
+
+| Cohort | N | ρ @1mo | ρ @3mo | ρ @6mo | ρ @12mo | AUC (top decile) | citation measure |
+|---|---:|---:|---:|---:|---:|---:|---|
+| medRxiv 2019 · medicine | 913 | 0.32 | **0.43** | 0.38 | 0.34 | 0.79 | version of record (79% published) |
+| bioRxiv 2017 · biology | 2,484 | 0.37 | 0.42 | 0.45 | **0.47** | 0.78 | preprint DOI (lower bound) |
 
 *Benchmarks: Brody et al. (arXiv physics) r ≈ 0.4; Perneger (BMJ medicine) r ≈ 0.5; both plateau by
 ~6 months.* See `analysis/download_citation_pilot/fig_download_citation.png`.
 
+**Robustness — the citation measure.** Preprint-DOI citations undercount true impact, because once a
+preprint is published most citations accrue to the journal version. For medRxiv, **79% of the 2019
+cohort was published**, and switching to the **version-of-record** citations changes the picture
+materially: median citations rise from **2 → 19** (uncited 29% → 9%), and the correlation **rises from
+ρ = 0.35 (preprint-DOI) to a peak of 0.43** — closer to Perneger's 0.5. The naive preprint-DOI number
+was a conservative artifact. bioRxiv is reported on the preprint DOI (ρ = 0.47); it is already in-band
+and would only rise under the same correction, so it stands as a conservative lower bound.
+
 ## Reading
 
-- **Early downloads predict eventual citations at ρ ≈ 0.35 (medicine) to 0.47 (biology)** — squarely
-  in the Brody/Perneger band, now shown in-domain for preprint servers with modern data.
-- **The signal plateaus fast** — by ~3 months (medRxiv) to ~6 months (bioRxiv), reproducing
-  Perneger's central finding. Waiting past the first months buys almost nothing in *download* signal.
-- Downloads are a **dense** signal: **every paper has downloads** (0% zero), unlike citations
-  (24–29% uncited even years later), and they are observable in the very first month — the earliest
-  ex-post signal we have.
-- The signal is **real but bounded** (ρ ≈ 0.4, AUC ≈ 0.77): early attention rank-orders eventual
+- **Early downloads predict eventual citations at ρ ≈ 0.43 (medicine, version-corrected) to 0.47
+  (biology)** — squarely in the Brody/Perneger band, now shown in-domain for preprint servers with
+  modern data.
+- **The signal is set within months.** Both cohorts reach their level by ~3 months; medRxiv peaks at
+  3 months and eases slightly thereafter, bioRxiv is essentially flat after 3 months. Longer download
+  windows do not sharpen the forecast — an even stronger version of Perneger's plateau.
+- Downloads are a **dense** signal: **every paper has downloads** (0% zero), unlike citations, and
+  they are observable in the very first month — the earliest ex-post signal we have.
+- The signal is **real but bounded** (ρ ≈ 0.43–0.47, AUC ≈ 0.78): early attention rank-orders eventual
   impact meaningfully but is far from determinative — the eventual stars are not cleanly separable
   early. This is the same conclusion as the citation-based early-signal study (ρ ≈ 0.52 at one year on
   the MS&OR cohort), reached from an *even earlier* vantage point. It is direct support for **"admit
   broadly, decide late"** — and it depends on no assumption about AI evaluators.
 
-## Caveats (these estimates are conservative)
+## Caveats
 
-- **Version attribution attenuates the correlation.** OpenAlex citations here are to the *preprint*
-  DOI; when a preprint is published in a journal, citations partly accrue to the *published* version
-  (a separate record), which we do not add in. Because being downloaded and being published are
-  positively related, this undercount likely **attenuates** the true download→impact correlation —
-  the real numbers are probably somewhat higher. (A refinement using Rxivist's `article_publications`
-  → published-DOI citations is a natural robustness check.)
-- **medRxiv 2019 is a young, small, possibly atypical cohort** (the server launched mid-2019;
-  early adopters), which may explain its lower ρ than bioRxiv.
+- **bioRxiv is not version-corrected.** Its ρ = 0.47 uses preprint-DOI citations. Building the full
+  bioRxiv-2017 preprint→published map is a ~1-hour API pull (the endpoint returns 30 items/page over
+  ~530 pages); since the figure is already in-band and correction only raises it, we left bioRxiv as a
+  stated lower bound. medRxiv **is** version-corrected.
+- **medRxiv 2019 is a young, small cohort** (the server launched mid-2019; early adopters). Its
+  version-corrected ρ (0.43) is the medicine estimate; the young-server caveat may still depress it.
 - **This is preprints, not working papers.** Download and citation cultures differ between bioRxiv/
-  medRxiv and economics WPs, so the pilot validates the *method* and benchmarks the *effect size
-  range*; it does not substitute for the economics number, which the RePEc request will produce.
-- bioRxiv here is a ~22% sample; medRxiv is the full 2019 cohort.
+  medRxiv and economics WPs, so the pilot validates the *method* and brackets the *effect-size range*;
+  it does not substitute for the economics number, which the RePEc request will produce.
+- bioRxiv here is a ~22% sample; medRxiv is the full 2019 cohort. Version-of-record citations are the
+  max of the preprint-DOI and published-DOI counts (OpenAlex, by DOI).
 
 ## Relation to the economics study
 

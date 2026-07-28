@@ -65,13 +65,18 @@ def main():
     print(f"{'cohort':22} {'N':>5} |  ρ@1mo  ρ@3mo  ρ@6mo  ρ@12mo | AUC(top-decile, dl@6mo)")
     for key, label, _ in COHORTS:
         d = [x for x in M if x["repo"] == key]
-        c = np.array([x["cites"] for x in d], float)
+        c = np.array([x.get("cites_best", x["cites"]) for x in d], float)   # version-of-record citations
+        cpre = np.array([x["cites"] for x in d], float)                     # preprint-DOI only (conservative)
         thr = np.percentile(c, 90); top = (c >= thr).astype(int)
         rho = [spearman([x[w] for x in d], c) for w, _ in WINDOWS]
         a6 = auc([x["dl6"] for x in d], top)
         results[key] = {"N": len(d), "rho_by_window": rho, "windows": [m for _, m in WINDOWS],
                         "auc_top_decile_dl6": a6,
-                        "uncited_pct": float(np.mean(c == 0) * 100), "median_cites": float(np.median(c))}
+                        "rho_dl6_preprint": spearman([x["dl6"] for x in d], cpre),
+                        "pct_published": (lambda pv: 100.0 * sum(1 for v in pv if v) / sum(1 for v in pv if v is not None)
+                                          if any(v is not None for v in pv) else None)([x.get("published") for x in d]),
+                        "median_cites_best": float(np.median(c)), "median_cites_preprint": float(np.median(cpre)),
+                        "uncited_pct": float(np.mean(c == 0) * 100)}
         print(f"{label:22} {len(d):>5} |  " + "  ".join(f"{r:.2f}" for r in rho) + f" |  {a6:.2f}")
     json.dump(results, open(RESULTS, "w"), indent=1)
 
@@ -86,14 +91,15 @@ def main():
     for key, label, col in COHORTS:
         r = results[key]["rho_by_window"]
         ax.plot(xs, r, "-o", color=col, lw=2.4, ms=8, label=f"{label}  (N={results[key]['N']:,})")
-        ax.annotate(f"{r[-1]:.2f}", (xs[-1], r[-1]), textcoords="offset points", xytext=(8, -3),
-                    fontsize=11, color=col, fontweight="bold")
+        pk = int(np.argmax(r))  # annotate the peak (the level the signal reaches), not the tail
+        ax.annotate(f"{r[pk]:.2f}", (xs[pk], r[pk]), textcoords="offset points", xytext=(0, 10),
+                    fontsize=11, color=col, fontweight="bold", ha="center")
     ax.set_xticks(xs); ax.set_xlim(0.4, 15.5); ax.set_ylim(0, 0.6)
     ax.set_xlabel("download window (months since posting)", fontsize=12)
     ax.set_ylabel("Spearman ρ  (early downloads → eventual citations)", fontsize=12)
-    fig.suptitle("Early downloads predict eventual citations — and the signal plateaus fast",
-                 fontsize=15, color="#1b2a4a", x=0.46, y=0.965)
-    fig.text(0.46, 0.90, "Preprint pilot for the economics download study · real per-article data",
+    fig.suptitle("Early downloads predict eventual citations — the signal is set within months",
+                 fontsize=13, color="#1b2a4a", x=0.5, y=0.965)
+    fig.text(0.46, 0.90, "Preprint pilot for the economics download study · early downloads → eventual citations",
              ha="center", fontsize=10.5, color="#6a6a64")
     ax.grid(True, axis="y", color="#eeeeee"); ax.set_axisbelow(True)
     for s in ("top", "right"):

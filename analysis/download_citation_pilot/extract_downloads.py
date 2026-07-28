@@ -92,11 +92,64 @@ def join_citations(cohort):
     return merged
 
 
+def add_published_citations(merged):
+    """Robustness: use citations of the *published version of record*, not just the preprint DOI.
+
+    Many preprints are later published; OpenAlex attributes most citations to the journal version, so
+    the preprint-DOI count undercounts. We map each preprint to its published DOI via the bioRxiv/
+    medRxiv API `published` field, fetch that version's citations, and set cites_best = max(preprint,
+    published). Adds `published` (0/1) and `cites_best` to each record.
+    """
+    def get(url):
+        for _ in range(4):
+            try:
+                return json.load(urllib.request.urlopen(
+                    urllib.request.Request(url, headers={"User-Agent": "aL-research"}), timeout=45))
+            except Exception:
+                time.sleep(1.5)
+        return {}
+
+    def pubmap(server, start, end):
+        m, cur = {}, 0
+        while True:
+            d = get(f"https://api.biorxiv.org/details/{server}/{start}/{end}/{cur}/json")
+            coll = d.get("collection", [])
+            if not coll:
+                break
+            for it in coll:
+                p = (it.get("published") or "").strip()
+                m[it["doi"].lower()] = p if p and p.upper() != "NA" else None
+            total = int(d["messages"][0]["total"]); cur += len(coll)
+            if cur >= total:
+                break
+            time.sleep(0.03)
+        return m
+
+    pm = {**pubmap("medrxiv", "2019-01-01", "2019-12-31"),
+          **pubmap("biorxiv", "2017-01-01", "2017-12-31")}
+    norm = lambda d: (d or "").lower().replace("https://doi.org/", "")
+    pdois = sorted({pm[x["doi"].lower()] for x in merged if pm.get(x["doi"].lower())})
+    pcit = {}
+    for i in range(0, len(pdois), 50):
+        f = "doi:" + "|".join(pdois[i:i + 50])
+        url = ("https://api.openalex.org/works?filter=" + urllib.parse.quote(f) +
+               "&select=doi,cited_by_count&per-page=50&mailto=" + MAILTO)
+        for r in get(url).get("results", []):
+            pcit[norm(r.get("doi"))] = r.get("cited_by_count", 0)
+    for x in merged:
+        pd = pm.get(x["doi"].lower()); pc = pcit.get(norm(pd)) if pd else None
+        x["published"] = 1 if pd else 0
+        x["cites_best"] = max(x["cites"], pc or 0)
+    return merged
+
+
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         sys.exit("usage: extract_downloads.py /path/to/rxivist.backup")
     cohort = extract(sys.argv[1])
     print(f"extracted downloads for {len(cohort)} papers; joining OpenAlex citations…")
     merged = join_citations(cohort)
+    print("adding published-version citations (robustness)…")
+    merged = add_published_citations(merged)
     json.dump(merged, open(OUT, "w"))
-    print(f"wrote {os.path.relpath(OUT, HERE)}  ({len(merged)} papers with downloads + citations)")
+    print(f"wrote {os.path.relpath(OUT, HERE)}  ({len(merged)} papers; preprint + published citations)")
