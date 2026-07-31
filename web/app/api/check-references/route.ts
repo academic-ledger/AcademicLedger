@@ -56,18 +56,31 @@ async function mapLimit<T, R>(items: T[], n: number, fn: (t: T) => Promise<R>): 
   return out;
 }
 
+const MAX_REFS = 300; // generous cap; the client checks these in small sequential batches
+const MAX_BATCH = 25; // per request — bounded so each stays well under maxDuration and paces Crossref
+
+// Two request shapes so the client can process arbitrarily long bibliographies without hitting the
+// function timeout or Crossref's burst rate limit:
+//   { text }          -> split only, returns the individual reference STRINGS (no lookups; fast)
+//   { batch: string[] } -> resolve this small chunk, returns RefResult[]
+// The client splits once, then walks the list in sequential batches (with retries for "unresolved").
 export async function POST(req: Request) {
   try {
-    const { text } = await req.json();
+    const body = await req.json().catch(() => ({}));
+
+    if (Array.isArray(body?.batch)) {
+      const batch = (body.batch as unknown[]).filter((s): s is string => typeof s === "string").slice(0, MAX_BATCH);
+      const results = await mapLimit(batch, 6, checkReference);
+      return NextResponse.json({ results });
+    }
+
+    const text = body?.text;
     if (!text || typeof text !== "string") {
       return NextResponse.json({ error: "Paste a reference list." }, { status: 400 });
     }
     const refs = splitRefs(text);
     if (!refs.length) return NextResponse.json({ error: "No references found in the pasted text." }, { status: 400 });
-    const capped = refs.slice(0, 80);
-    const results = await mapLimit(capped, 6, checkReference);
-    const found = results.filter((r) => r.status === "found").length;
-    return NextResponse.json({ refs: results, total: results.length, found, truncated: refs.length > 80 });
+    return NextResponse.json({ refs: refs.slice(0, MAX_REFS), truncated: refs.length > MAX_REFS });
   } catch (e: any) {
     return NextResponse.json({ error: e?.message ?? "error" }, { status: 500 });
   }

@@ -199,7 +199,10 @@ export async function searchWorks(
 
 export interface RefResult {
   ref: string;
-  status: "found" | "flag";
+  // "found" = matched; "flag" = resolved but no confident match (worth a human check);
+  // "unresolved" = the external resolver (Crossref/OpenAlex) was rate-limited or unreachable — a
+  // throttle, NOT a verdict on the reference, so the client retries these rather than flagging them.
+  status: "found" | "flag" | "unresolved";
   work: Work | null; // the matched Ledger paper (oaid, cites, …) when found
   closest: string | null; // best (rejected) title, shown on a flag for context
   note: string | null; // a specific flag reason (e.g. the cited DOI resolves to a different paper)
@@ -222,23 +225,44 @@ function titleOverlap(title: string | null, ref: string): number {
   return hit / a.size;
 }
 
+const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
+
+// Crossref politely throttles bursts of bibliographic queries with 429s; a throttle is not a verdict
+// on the reference. Retry with backoff (honoring Retry-After) and THROW if it still won't answer, so
+// the caller can mark the reference "unresolved" (retryable) instead of falsely flagging a real
+// citation. A 200 with empty items IS a genuine no-match and returns normally.
+async function crossrefFetch(url: string): Promise<any> {
+  const backoff = [400, 1200, 3000];
+  for (let attempt = 0; ; attempt++) {
+    let r: Response;
+    try {
+      r = await oaFetch(url, {
+        headers: { "User-Agent": `academic-ledger/1.0 (mailto:${MAILTO})` },
+        next: { revalidate: SEARCH_REVALIDATE },
+      });
+    } catch (e) {
+      if (attempt >= backoff.length) throw e; // network/timeout after retries -> unresolved
+      await sleep(backoff[attempt]);
+      continue;
+    }
+    if (r.ok) return r.json();
+    if ((r.status === 429 || r.status >= 500) && attempt < backoff.length) {
+      const ra = Number(r.headers.get("retry-after"));
+      await sleep(Number.isFinite(ra) && ra > 0 ? Math.min(ra * 1000, 5000) : backoff[attempt]);
+      continue;
+    }
+    throw new Error(`crossref ${r.status}`); // persistent throttle/error -> unresolved
+  }
+}
+
 async function crossrefTop(ref: string): Promise<{ title: string | null; doi: string | null; score: number } | null> {
   const url =
     `https://api.crossref.org/works?query.bibliographic=${encodeURIComponent(ref.slice(0, 400))}` +
     `&rows=1&select=title,DOI,score&mailto=${encodeURIComponent(MAILTO)}`;
-  try {
-    const r = await oaFetch(url, {
-      headers: { "User-Agent": `academic-ledger/1.0 (mailto:${MAILTO})` },
-      next: { revalidate: SEARCH_REVALIDATE },
-    });
-    if (!r.ok) return null;
-    const j: any = await r.json();
-    const it = j?.message?.items?.[0];
-    if (!it) return null;
-    return { title: it.title?.[0] ?? null, doi: it.DOI ?? null, score: it.score ?? 0 };
-  } catch {
-    return null;
-  }
+  const j: any = await crossrefFetch(url); // throws on persistent rate-limit -> checkReference marks unresolved
+  const it = j?.message?.items?.[0];
+  if (!it) return null; // genuine no-match
+  return { title: it.title?.[0] ?? null, doi: it.DOI ?? null, score: it.score ?? 0 };
 }
 
 const asFound = (ref: string, w: Work): RefResult => ({ ref, status: "found", work: w, closest: null, note: null });
@@ -264,31 +288,37 @@ export async function checkReference(ref: string): Promise<RefResult> {
 
   // 2) Resolve the citation string via Crossref; then find the work in OpenAlex by Crossref's DOI,
   //    else by title — so a real paper whose arXiv/IEEE DOI OpenAlex lacks is still found.
-  const cx = await crossrefTop(trimmed);
-  if (cx?.title) {
-    const ov = titleOverlap(cx.title, trimmed);
-    // real refs land at overlap ~1 (or lower + a high Crossref score when the stored title carries a
-    // subtitle the citation omits); fabricated refs get low overlap AND low score. A one-word title
-    // (e.g. "Bison bison") is weak evidence on its own, so require Crossref to also be confident.
-    const shortTitle = refToks(cx.title).size < 2;
-    const confident = shortTitle
-      ? ov >= 0.9 && cx.score >= 40
-      : ov >= 0.65 || (ov >= 0.35 && cx.score >= 50);
-    if (confident) {
-      if (cx.doi) {
-        const rows = await searchOne(`doi:${cx.doi}`);
-        if (rows.length) {
-          const w = mapWork(rows[0]);
-          if (titleOverlap(w.title, trimmed) >= 0.35 || titleOverlap(w.title, cx.title) >= 0.6) return asFound(trimmed, w);
+  try {
+    const cx = await crossrefTop(trimmed);
+    if (cx?.title) {
+      const ov = titleOverlap(cx.title, trimmed);
+      // real refs land at overlap ~1 (or lower + a high Crossref score when the stored title carries a
+      // subtitle the citation omits); fabricated refs get low overlap AND low score. A one-word title
+      // (e.g. "Bison bison") is weak evidence on its own, so require Crossref to also be confident.
+      const shortTitle = refToks(cx.title).size < 2;
+      const confident = shortTitle
+        ? ov >= 0.9 && cx.score >= 40
+        : ov >= 0.65 || (ov >= 0.35 && cx.score >= 50);
+      if (confident) {
+        if (cx.doi) {
+          const rows = await searchOne(`doi:${cx.doi}`);
+          if (rows.length) {
+            const w = mapWork(rows[0]);
+            if (titleOverlap(w.title, trimmed) >= 0.35 || titleOverlap(w.title, cx.title) >= 0.6) return asFound(trimmed, w);
+          }
+        }
+        for (const raw of (await searchOne(`title.search:${encodeURIComponent(cx.title)}`)).slice(0, 3)) {
+          const w = mapWork(raw);
+          if (titleOverlap(w.title, cx.title) >= 0.6) return asFound(trimmed, w);
         }
       }
-      for (const raw of (await searchOne(`title.search:${encodeURIComponent(cx.title)}`)).slice(0, 3)) {
-        const w = mapWork(raw);
-        if (titleOverlap(w.title, cx.title) >= 0.6) return asFound(trimmed, w);
-      }
     }
+    return { ref: trimmed, status: "flag", work: null, closest: clip(cx?.title ?? null), note: null };
+  } catch {
+    // Crossref threw after its retries (persistent 429/5xx/timeout) — a throttle, not a verdict.
+    // Mark unresolved so the client retries rather than falsely flagging a real citation.
+    return { ref: trimmed, status: "unresolved", work: null, closest: null, note: null };
   }
-  return { ref: trimmed, status: "flag", work: null, closest: clip(cx?.title ?? null), note: null };
 }
 
 // ---- Author entity (for the on-the-fly author page; QaL_spec §11 "Author view") -------------
