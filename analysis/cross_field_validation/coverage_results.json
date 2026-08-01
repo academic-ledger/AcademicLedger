@@ -1,0 +1,24 @@
+{
+ "_meta": {
+  "source": "in-region OpenAlex bulk-snapshot factory (pipeline/factory_coverage.py); no API metering",
+  "method": "shipped calib_lib + backtest.py honest leave-one-vintage-out conformal 90% interval, per (subfield x vintage) cohort",
+  "vintages": "2008-2015", "H": 10, "per_cohort_cap": 10000, "min_cohort": 200,
+  "part_files_scanned": 2446, "rows_sampled": 2354839
+ },
+ "Biochemistry & Mol Bio": {
+  "unc": 46, "cov": 0.890, "n": 7529283, "subfields": 14, "col": "#2a78d6",
+  "by_age": {"1": 0.899, "2": 0.895, "3": 0.888, "4": 0.892, "5": 0.895, "6": 0.881, "7": 0.894, "8": 0.884, "9": 0.884}
+ },
+ "Decision Sciences": {
+  "unc": 60, "cov": 0.890, "n": 2321226, "subfields": 4, "col": "#1b2a4a", "canon": 0.886,
+  "by_age": {"1": 0.889, "2": 0.919, "3": 0.889, "4": 0.882, "5": 0.884, "6": 0.913, "7": 0.866, "8": 0.843, "9": 0.923}
+ },
+ "Economics & Finance": {
+  "unc": 72, "cov": 0.884, "n": 2160000, "subfields": 3, "col": "#1baf7a",
+  "by_age": {"1": 0.901, "2": 0.901, "3": 0.870, "4": 0.919, "5": 0.873, "6": 0.840, "7": 0.894, "8": 0.878, "9": 0.883}
+ },
+ "Arts & Humanities": {
+  "unc": 81, "cov": 0.887, "n": 9183042, "subfields": 13, "col": "#e8622e",
+  "by_age": {"1": 0.888, "2": 0.872, "3": 0.884, "4": 0.896, "5": 0.888, "6": 0.873, "7": 0.878, "8": 0.894, "9": 0.911}
+ }
+}
