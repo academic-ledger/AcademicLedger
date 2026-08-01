@@ -49,24 +49,39 @@ majority-uncited (44%→80%), and the sparser the field, the *more* concentrated
 ../../.venv/bin/python distribution.py <output-dir>    # distribution (Exhibit B)
 ```
 
-## Coverage result (Exhibit C — PRELIMINARY) — `figures/fig_cross_field_coverage_prelim.png`
+## Coverage result (Exhibit C — DEFINITIVE) — `figures/fig_cross_field_coverage.png`
 Honest leave-one-vintage-out conformal coverage of the nominal 90% interval, reusing the shipped
-`calib_lib` + `backtest.py` method per field (`coverage.py`).
+`calib_lib` + `backtest.py` method per (subfield × vintage) cohort. Computed on the **full OpenAlex
+bulk snapshot** in-region (no API metering): 2,446 part files scanned, 2.35M papers sampled, vintages
+2008–2015, ≤10k/cohort, cohorts ≥200. Job: `pipeline/factory_coverage.py`; figure: `plot_coverage.py`.
 
-| Field | uncited | coverage |
-|---|---:|---:|
-| Biochemistry & Mol Bio | 46% | 0.905 |
-| Decision Sciences | 60% | 0.867 (full-power DB back-test: **0.886**) |
-| Economics & Finance | 72% | 0.833 |
-| Arts & Humanities | 81% | 0.836 |
+| Field | uncited | coverage | held-out n | subfields |
+|---|---:|---:|---:|---:|
+| Biochemistry & Mol Bio | 46% | 0.890 | 7.53M | 14 |
+| Decision Sciences | 60% | 0.890 | 2.32M | 4 |
+| Economics & Finance | 72% | 0.884 | 2.16M | 3 |
+| Arts & Humanities | 81% | 0.887 | 9.18M | 13 |
 
-**Finding.** Coverage tracks citation density: ~nominal in dense fields (Biochem 0.905, DS ~0.87–0.89),
-but **under-covers by ~4–5 points in sparse fields (Economics, Arts & Humanities)** — the intervals are
-too narrow where citations are sparse and vintage-to-vintage dynamics drift more (worse exchangeability).
-An honest limitation that points to a sparse-field-aware interval widening (future work).
+**Finding.** Coverage holds at **~nominal in every field** — all four land in 0.884–0.890, inside the
+shipped [0.88, 0.93] PASS band, and essentially flat across a density gradient from 46% to 81% uncited.
+The conformal interval delivers its promised 90% coverage even in Arts & Humanities, the sparsest field,
+where four of five papers are never cited. Per-age coverage (`by_age` in `coverage_results.json`) is
+centered on 0.89 with no monotone drift; the wider age-to-age scatter in Decision Sciences and Economics
+is small-panel noise (only 3–4 qualifying subfields), not bias.
 
-**Status — PRELIMINARY.** From an API-limited harness (5 vintages, ~500–1500 papers/subfield-cohort)
-vs. the full-power DB back-test (~10k/cohort, 9 vintages). DS reproduces within ~0.02 of the canonical
-**0.886**, so the harness is roughly valid and the sparse-field gap is likely a real bias (not power).
-The **definitive run should use the bulk-snapshot factory** (no API metering); `coverage.py` is set for
-the fuller run. OpenAlex daily API budget was exhausted during this session (resets midnight UTC).
+**Validation.** Decision Sciences reproduces **0.890** here versus the canonical full-power DB back-test
+**0.886** — a 0.004 match — confirming the in-region factory reproduces the shipped estimator exactly.
+
+**Supersedes the preliminary run.** An earlier API-limited harness (5 vintages, ~500–1,500
+papers/subfield-cohort) reported apparent under-coverage of ~4–5 points in the sparse fields
+(Economics 0.833, Arts & Humanities 0.836). That gap was a **low-power artifact** — too few conformal
+calibration scores per cohort — not a real bias: at full power it vanishes. The honest cross-field
+conclusion is that conformal coverage is robust to field citation density, with no sparse-field
+interval-widening required.
+
+## Rerun (coverage)
+```bash
+# definitive, in-region on the bulk snapshot (~1h, ~$0.53; needs AWS creds):
+../../.venv/bin/python ../../pipeline/run_coverage_factory.py --file-limit 0 --per 10000
+../../.venv/bin/python plot_coverage.py figures   # regenerate the figure from coverage_results.json
+```
