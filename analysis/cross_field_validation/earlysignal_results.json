@@ -1,0 +1,50 @@
+{
+ "Decision Sciences": {
+  "ncohorts": 12,
+  "npapers": 13286,
+  "auc_by_age": [
+   0.79,
+   0.95,
+   0.97,
+   0.98
+  ],
+  "uncited_10y": 0.604,
+  "median_ev": 0.0
+ },
+ "Economics & Finance": {
+  "ncohorts": 12,
+  "npapers": 13600,
+  "auc_by_age": [
+   0.76,
+   0.9,
+   0.95,
+   0.97
+  ],
+  "uncited_10y": 0.724,
+  "median_ev": 0.0
+ },
+ "Biochemistry & Mol Bio": {
+  "ncohorts": 16,
+  "npapers": 11707,
+  "auc_by_age": [
+   0.84,
+   0.98,
+   0.99,
+   0.99
+  ],
+  "uncited_10y": 0.463,
+  "median_ev": 1.0
+ },
+ "Arts & Humanities": {
+  "ncohorts": 21,
+  "npapers": 9762,
+  "auc_by_age": [
+   0.65,
+   0.76,
+   0.83,
+   0.88
+  ],
+  "uncited_10y": 0.81,
+  "median_ev": 0.0
+ }
+}
