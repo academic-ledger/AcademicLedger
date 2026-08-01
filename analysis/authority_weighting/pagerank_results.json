@@ -1,0 +1,62 @@
+[
+ {
+  "name": "Dense (~Biochemistry)",
+  "N": 8000,
+  "uncited_pct": 41.5,
+  "test1_spearman_count_vs_pr": 0.965,
+  "test1_top_decile_jaccard": 0.59,
+  "test1_spearman_count_vs_trustrank": 0.539,
+  "test2_reach": {
+   "count": {
+    "50": 99.0,
+    "75": 99.1,
+    "90": 99.4
+   },
+   "standing": {
+    "50": 75.5,
+    "75": 86.7,
+    "90": 94.1
+   },
+   "pagerank": {
+    "50": 98.6,
+    "75": 98.7,
+    "90": 99.0
+   },
+   "trustrank": {
+    "50": 36.4,
+    "75": 75.1,
+    "90": 90.3
+   }
+  }
+ },
+ {
+  "name": "Sparse (~Arts & Humanities)",
+  "N": 8000,
+  "uncited_pct": 75.2,
+  "test1_spearman_count_vs_pr": 0.933,
+  "test1_top_decile_jaccard": 0.684,
+  "test1_spearman_count_vs_trustrank": 0.575,
+  "test2_reach": {
+   "count": {
+    "50": 99.7,
+    "75": 99.7,
+    "90": 99.8
+   },
+   "standing": {
+    "50": 97.5,
+    "75": 97.5,
+    "90": 98.3
+   },
+   "pagerank": {
+    "50": 95.7,
+    "75": 95.7,
+    "90": 96.3
+   },
+   "trustrank": {
+    "50": 44.0,
+    "75": 44.0,
+    "90": 91.4
+   }
+  }
+ }
+]
