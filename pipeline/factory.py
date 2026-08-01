@@ -24,14 +24,14 @@ try:
 except Exception:
     pass
 
-MANIFEST = "https://openalex.s3.amazonaws.com/data/works/manifest"
+MANIFEST = "https://openalex.s3.amazonaws.com/data/jsonl/works/manifest.json"  # 2026 snapshot reorg
 S3_PREFIX = "s3://openalex/"
 HTTPS_PREFIX = "https://openalex.s3.amazonaws.com/"
 
 
 def part_urls(limit=0):
     m = json.load(urllib.request.urlopen(MANIFEST))
-    entries = m["entries"]
+    entries = m["files"]  # snapshot reorg 2026: data/jsonl/works, file list key 'entries' -> 'files'
     total = sum(e["meta"]["record_count"] for e in entries)
     if limit and limit > 0:
         entries = entries[:limit]
