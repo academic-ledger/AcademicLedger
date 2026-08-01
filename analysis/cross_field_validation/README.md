@@ -28,9 +28,25 @@ back-test (`docs/early_signal_result.md`) — consistent, and far from the 0.91 
 pooled-across-subfields AUC produces. Residual differences trace to vintage pooling and subfield
 sampling (fresh OpenAlex sample vs. the ingested seed cohorts).
 
+## Distribution result (Exhibit B extended) — `figures/fig_cross_field_distribution.png`
+Eventual (10-year) citations at each within-field percentile; matched 2013 cohorts, n = 6,000/field.
+
+| Field | uncited | median | p90 | p99 | top-1% share |
+|---|---:|---:|---:|---:|---:|
+| Biochemistry & Mol Bio | 44% | 1 | 51 | 273 | 35% |
+| Decision Sciences | 59% | 0 | 14 | 116 | 40% |
+| Economics & Finance | 72% | 0 | 7 | 75 | 45% |
+| Arts & Humanities | 80% | 0 | 2 | 33 | 47% |
+
+**Reading.** The same percentile means a wildly different raw count across fields — the 90th-percentile
+paper has **51** citations in Biochemistry but **2** in Arts & Humanities (25×). Every field is
+majority-uncited (44%→80%), and the sparser the field, the *more* concentrated its citations
+(top-1% share rises 35%→47%). Direct motivation for ranking (percentiles) over counts (§4.1–4.2).
+
 ## Rerun
 ```bash
-../../.venv/bin/python earlysignal.py <output-dir>   # pulls cohorts, writes earlysignal_results.json
+../../.venv/bin/python earlysignal.py <output-dir>     # early-signal (Exhibit D)
+../../.venv/bin/python distribution.py <output-dir>    # distribution (Exhibit B)
 ```
 
 ## Still to do (per field)
