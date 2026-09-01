@@ -1,4 +1,5 @@
 import { query } from "./db";
+import { unstable_cache } from "next/cache";
 import type { AuthorPayload, Metrics, MetricView, RecordItem } from "./types";
 import { buckets, classProb, type QalPoint } from "./qal";
 import { fetchWork, fetchAuthor, fetchAuthorWorks, searchWorks, type Work } from "./openalex";
@@ -166,7 +167,15 @@ async function getExploreLive(p: ExploreParams): Promise<RecordItem[]> {
   return Promise.all(works.slice(0, limit).map(liveRecord));
 }
 
-export async function getExplore(p: ExploreParams): Promise<ExploreResult> {
+// Cache explore results per parameter set (1h) so crawler-exploded facet URLs don't re-query Neon on
+// every hit (Aug-2026 egress fix). Explore is also Disallowed in robots.ts.
+export const getExplore = (p: ExploreParams): Promise<ExploreResult> =>
+  unstable_cache(() => getExploreUncached(p), ["explore", JSON.stringify(p ?? {})], {
+    revalidate: 3600,
+    tags: ["explore"],
+  })();
+
+async function getExploreUncached(p: ExploreParams): Promise<ExploreResult> {
   const where: string[] = [];
   const args: any[] = [];
   if (p.field) {
@@ -416,7 +425,17 @@ export async function computeSyntheticDisplay(oaid: string): Promise<any | null>
   };
 }
 
-export async function getPaperRecord(oaid: string) {
+// Cache the public paper record (display + QaL) per oaid so repeated crawler / API hits on the same
+// paper are served from the Next.js Data Cache instead of re-querying Neon on every request
+// (Aug-2026 public-transfer egress fix). Notes/auth are fetched separately in the page component, so
+// this stays correct for signed-in users. Revalidates daily.
+export const getPaperRecord = (oaid: string) =>
+  unstable_cache(() => getPaperRecordUncached(oaid), ["paper-record", oaid], {
+    revalidate: 86400,
+    tags: ["paper-record"],
+  })();
+
+async function getPaperRecordUncached(oaid: string) {
   // Pull any cached record first (DB only). A row may NOT exist for papers outside the prior index —
   // that's fine now. The universal layer (display + observed field percentile) is cheap to serve for
   // ANY paper: one FREE single-record OpenAlex fetch + a DB cohort lookup, and the factory now
